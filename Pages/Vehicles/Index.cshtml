@@ -1,0 +1,67 @@
+@page
+@model VehicleTax.Web.Pages.Vehicles.IndexModel
+
+<h3 class="mb-3">Vehicles</h3>
+
+<div class="d-flex justify-content-between mb-3">
+    <a asp-page="Create" class="btn btn-success">
+        + Register Vehicle
+    </a>
+
+    <input type="text"
+           id="searchInput"
+           class="form-control w-25"
+           placeholder="Search plate or mobile..." />
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle" id="vehicleTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Plate</th>
+                        <th>Owner</th>
+                        <th>Mobile</th>
+                        <th>Car Type</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var v in Model.Vehicles)
+                {
+                    <tr>
+                        <td>@v.PlateNumber</td>
+                        <td>@v.OwnerName</td>
+                        <td>@v.Mobile</td>
+                        <td>@v.CarType?.Name</td>
+                        <td class="text-center">
+                            <a asp-page="Edit"
+                               asp-route-id="@v.Id"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                Edit
+                            </a>
+
+                            <a asp-page="Delete"
+                               asp-route-id="@v.Id"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Delete this vehicle?');">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function () {
+    const value = this.value.toLowerCase();
+    document.querySelectorAll("#vehicleTable tbody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+});
+</script>

@@ -1,0 +1,58 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.Movements.EditModel
+@{
+    ViewData["Title"] = "Edit Movement";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <!-- PAGE TITLE -->
+        <div class="mb-4 text-center">
+            <h3 class="fw-bold">Edit Movement</h3>
+            <p class="text-muted">
+                Update movement type (Passing / Staying)
+            </p>
+        </div>
+
+        <!-- FORM CARD -->
+        <form method="post" class="card shadow-sm border-0">
+
+            <div class="card-body p-4">
+
+                <input type="hidden" asp-for="Movement.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        Movement Name
+                    </label>
+
+                    <input asp-for="Movement.Name"
+                           class="form-control"
+                           required />
+
+                    <span asp-validation-for="Movement.Name"
+                          class="text-danger small"></span>
+                </div>
+
+            </div>
+
+            <!-- CARD FOOTER -->
+            <div class="card-footer bg-light text-end">
+
+                <a asp-page="Index"
+                   class="btn btn-outline-secondary me-2">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary px-4">
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>

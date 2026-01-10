@@ -1,0 +1,178 @@
+@page
+@model VehicleTax.Web.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary">Dashboard</h2>
+        <p class="text-muted mb-0">Vehicle Tax Collection Overview</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body">
+                <h6 class="opacity-75">Total Vehicles</h6>
+                <h2 class="fw-bold">@Model.TotalVehicles</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-dark text-white">
+            <div class="card-body">
+                <h6 class="opacity-75">Total Payments</h6>
+                <h2 class="fw-bold">@Model.TotalPayments</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body">
+                <h6 class="opacity-75">Today’s Collection</h6>
+                <h2 class="fw-bold">$@Model.TodayTotal</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h6 class="fw-bold text-primary mb-3">
+                    Daily Collection (Last 7 Days)
+                </h6>
+                <canvas id="dailyChart" height="120"></canvas>
+            </div>
+            <div class="card-footer border-top text-muted small">
+                Hover to see values • Auto refresh every 10 seconds
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h6 class="fw-bold text-primary mb-3">
+                    Movement Type
+                </h6>
+                <canvas id="movementChart" height="200"></canvas>
+            </div>
+            <div class="card-footer border-top text-muted small">
+                Click section to highlight • Auto refresh every 10 seconds
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-primary mb-0">Recent Payments</h6>
+            <input type="text"
+                   id="searchInput"
+                   class="form-control form-control-sm w-25"
+                   placeholder="Search plate or mobile..." />
+        </div>
+
+        @if (!Model.RecentPayments.Any())
+        {
+            <p class="text-muted">No payments recorded.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered table-sm align-middle" id="paymentsTable">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Date</th>
+                            <th>Plate</th>
+                            <th>Mobile</th>
+                            <th>Movement</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var p in Model.RecentPayments)
+                    {
+                        <tr>
+                            <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
+                            <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
+                            <td>@p.Vehicle?.Mobile</td>
+                            <td>
+                                <span class="badge @(p.MovementType == "Passing" ? "bg-primary" : "bg-warning text-dark")">
+                                    @p.MovementType
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-success">$@p.Amount</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function () {
+    const value = this.value.toLowerCase();
+    document.querySelectorAll("#paymentsTable tbody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+});
+
+let dailyChart;
+let movementChart;
+
+function renderDailyChart() {
+    if (dailyChart) dailyChart.destroy();
+
+    dailyChart = new Chart(document.getElementById('dailyChart'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(Model.DailyLabels),
+            datasets: [{
+                label: 'Collection ($)',
+                data: @Html.Raw(Model.DailyAmounts),
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,.25)',
+                fill: true,
+                tension: 0.45,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }]
+        }
+    });
+}
+
+function renderMovementChart() {
+    if (movementChart) movementChart.destroy();
+
+    movementChart = new Chart(document.getElementById('movementChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Passing', 'Staying'],
+            datasets: [{
+                data: [@Model.PassingCount, @Model.StayingCount],
+                backgroundColor: ['#0d6efd', '#ffc107']
+            }]
+        }
+    });
+}
+
+renderDailyChart();
+renderMovementChart();
+
+setInterval(() => {
+    renderDailyChart();
+    renderMovementChart();
+}, 10000);
+</script>

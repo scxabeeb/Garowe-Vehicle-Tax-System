@@ -1,0 +1,159 @@
+@page
+@model VehicleTax.Web.Pages.Payments.CollectModel
+
+<div class="container mt-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">
+            <i class="bi bi-cash-coin text-success"></i>
+            Collect Vehicle Tax
+        </h3>
+    </div>
+
+    <!-- ALERTS -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i>
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- MAIN CARD -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <form method="post">
+
+                <!-- PLATE NUMBER -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Plate Number</label>
+                        <input asp-for="PlateNumber" class="form-control" placeholder="e.g. GAR-1234" />
+                    </div>
+                </div>
+
+                <!-- SEARCH BUTTON -->
+                <div class="mb-4">
+                    <button asp-page-handler="Search"
+                            type="submit"
+                            class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> Search Vehicle
+                    </button>
+                </div>
+
+                @if (Model.Vehicle != null)
+                {
+                    <!-- VEHICLE INFO -->
+                    <div class="alert alert-secondary">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Owner:</strong> @Model.Vehicle.OwnerName
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Car Type:</strong> @Model.Vehicle.CarType?.Name
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+
+                        <!-- MOVEMENT -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Movement Type</label>
+                            <select asp-for="MovementId"
+                                    asp-items="Model.Movements"
+                                    class="form-select"
+                                    onchange="document.getElementById('calcBtn').click()"
+                                    required>
+                                <option value="">-- Select Movement --</option>
+                            </select>
+                        </div>
+
+                        <!-- QUANTITY -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Quantity</label>
+                            <input asp-for="Quantity"
+                                   type="number"
+                                   min="1"
+                                   class="form-control"
+                                   onchange="document.getElementById('calcBtn').click()" />
+                        </div>
+
+                        <!-- RECEIPT REFERENCE -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Receipt Reference Number</label>
+                            <input asp-for="ReferenceNumber"
+                                   class="form-control @(Model.ReferenceChecked ? (Model.ReferenceValid ? "is-valid" : "is-invalid") : "")"
+                                   placeholder="Enter receipt number"
+                                   onchange="document.getElementById('calcBtn').click()" />
+
+                            @if (Model.ReferenceChecked && !Model.ReferenceValid)
+                            {
+                                <div class="invalid-feedback">
+                                    @Model.ReferenceMessage
+                                </div>
+                            }
+
+                            @if (Model.ReferenceChecked && Model.ReferenceValid)
+                            {
+                                <div class="valid-feedback">
+                                    Receipt number is available
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- HIDDEN CALCULATE -->
+                    <button asp-page-handler="Calculate"
+                            type="submit"
+                            id="calcBtn"
+                            hidden>
+                    </button>
+
+                    @if (Model.UnitAmount > 0 && Model.ReferenceValid)
+                    {
+                        <!-- AMOUNT SUMMARY -->
+                        <div class="alert alert-info mt-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Unit Amount:</strong><br />
+                                    @Model.UnitAmount
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Quantity:</strong><br />
+                                    @Model.Quantity
+                                </div>
+                                <div class="col-md-4 text-md-end fw-bold fs-5">
+                                    Total: @Model.Amount
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COLLECT BUTTON -->
+                        <div class="text-end">
+                            <button asp-page-handler="Collect"
+                                    type="submit"
+                                    class="btn btn-success btn-lg">
+                                <i class="bi bi-check2-circle"></i>
+                                Collect Tax
+                            </button>
+                        </div>
+                    }
+                }
+
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+@page
+@model VehicleTax.Web.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register User";
+}
+
+<div class="card p-4 shadow w-75 mx-auto mt-5">
+
+    <h4 class="text-center mb-4">Register User</h4>
+
+    <form method="post">
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <input asp-for="Username"
+               class="form-control mb-2"
+               placeholder="Username" />
+
+        <input asp-for="Password"
+               type="password"
+               class="form-control mb-3"
+               placeholder="Password" />
+
+        <select asp-for="Role" class="form-select mb-4">
+            <option value="">Select Role</option>
+            <option>Admin</option>
+            <option>Collector</option>
+            <option>Viewer</option>
+        </select>
+
+        <button class="btn btn-success w-100">
+            Create User
+        </button>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

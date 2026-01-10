@@ -1,0 +1,127 @@
+@page
+@model VehicleTax.Web.Pages.ReceiptReferences.IndexModel
+@{
+    ViewData["Title"] = "Receipt References";
+}
+
+<div class="container mt-4">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">Receipt References</h3>
+            <small class="text-muted">
+                Manage receipt numbers used for payments
+            </small>
+        </div>
+
+        <div>
+            <a asp-page="Create" class="btn btn-primary me-2">
+                Add New
+            </a>
+
+            <a asp-page="Upload" class="btn btn-outline-secondary">
+                Upload CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-6">
+            <input name="Search"
+                   value="@Model.Search"
+                   class="form-control"
+                   placeholder="Search receipt number..." />
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn btn-outline-primary w-100">
+                Search
+            </button>
+        </div>
+    </form>
+
+    <!-- PAGINATION ABOVE TABLE -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mb-2">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link"
+                           href="?pageNumber=@i&search=@Model.Search">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+
+    <!-- TABLE -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Receipt Number</th>
+                        <th style="width:140px" class="text-center">Status</th>
+                        <th style="width:130px" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                @if (Model.Receipts.Any())
+                {
+                    foreach (var r in Model.Receipts)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@r.ReferenceNumber</td>
+
+                            <td class="text-center">
+                                @if (r.IsUsed)
+                                {
+                                    <span class="badge bg-success">Used</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Available</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <a asp-page="view"
+                                   asp-route-id="@r.Id"
+                                   class="btn btn-sm btn-outline-info">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            No receipt references found
+                        </td>
+                    </tr>
+                }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>

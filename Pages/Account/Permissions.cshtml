@@ -1,0 +1,25 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.Account.PermissionsModel
+
+<h4 class="mb-3">Permissions for @Model.UserInfo.Username</h4>
+
+<form method="post">
+
+    @foreach (var p in Model.AllPermissions)
+    {
+        <div class="form-check mb-1">
+            <input type="checkbox"
+                   class="form-check-input"
+                   name="SelectedPermissions"
+                   value="@p"
+                   checked="@Model.SelectedPermissions.Contains(p)" />
+
+            <label class="form-check-label">
+                @p
+            </label>
+        </div>
+    }
+
+    <button class="btn btn-success mt-3">Save</button>
+
+</form>

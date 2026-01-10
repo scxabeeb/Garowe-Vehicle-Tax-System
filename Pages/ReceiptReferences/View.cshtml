@@ -1,0 +1,73 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.ReceiptReferences.ViewModel
+
+@{
+    ViewData["Title"] = "Reference Details";
+}
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+
+        <h3 class="fw-bold mb-3">Reference Details</h3>
+
+        @if (Model.Item == null)
+        {
+            <div class="alert alert-danger">
+                Reference not found.
+            </div>
+        }
+        else
+        {
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Reference Number</strong>
+                        <div>@Model.Item.ReferenceNumber</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Status</strong><br />
+
+                        @if (Model.Item.IsUsed)
+                        {
+                            <span class="badge bg-danger">Used</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Available</span>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Used By</strong>
+                        <div>@(Model.Item.UsedBy ?? "-")</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Used At</strong>
+                        <div>@(Model.Item.UsedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</div>
+                    </div>
+
+                </div>
+
+                <div class="card-footer d-flex gap-2">
+
+                    <a asp-page="Index" class="btn btn-secondary">
+                        Back
+                    </a>
+
+                    <form method="post" asp-page-handler="Toggle" asp-route-id="@Model.Item.Id">
+                        <button class="btn btn-outline-primary">
+                            @(Model.Item.IsUsed ? "Mark as Unused" : "Mark as Used")
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
