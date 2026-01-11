@@ -39,21 +39,30 @@ public class IndexModel : PageModel
             return;
         }
 
+        // Total vehicles
         TotalVehicles = _context.Vehicles.Count();
-        TotalPayments = _context.Payments.Count();
 
+        // Total payments (ONLY valid ones)
+        TotalPayments = _context.Payments
+            .Where(p => !p.IsReverted)
+            .Count();
+
+        // Today total (ONLY valid ones)
         TodayTotal = _context.Payments
-            .Where(p => p.PaidAt.Date == DateTime.Today)
+            .Where(p => !p.IsReverted && p.PaidAt.Date == DateTime.Today)
             .Sum(p => (decimal?)p.Amount) ?? 0;
 
+        // Recent payments (ONLY valid ones)
         RecentPayments = _context.Payments
             .Include(p => p.Vehicle)
+            .Where(p => !p.IsReverted)
             .OrderByDescending(p => p.PaidAt)
             .Take(10)
             .ToList();
 
+        // Daily chart (ONLY valid ones)
         var daily = _context.Payments
-            .Where(p => p.PaidAt >= DateTime.Today.AddDays(-6))
+            .Where(p => !p.IsReverted && p.PaidAt >= DateTime.Today.AddDays(-6))
             .GroupBy(p => p.PaidAt.Date)
             .Select(g => new
             {
@@ -63,10 +72,21 @@ public class IndexModel : PageModel
             .OrderBy(x => x.Day)
             .ToList();
 
-        DailyLabels = JsonSerializer.Serialize(daily.Select(d => d.Day.ToString("MM-dd")));
-        DailyAmounts = JsonSerializer.Serialize(daily.Select(d => d.Total));
+        DailyLabels = JsonSerializer.Serialize(
+            daily.Select(d => d.Day.ToString("MM-dd"))
+        );
 
-        PassingCount = _context.Payments.Count(p => p.MovementType == "Passing");
-        StayingCount = _context.Payments.Count(p => p.MovementType == "Staying");
+        DailyAmounts = JsonSerializer.Serialize(
+            daily.Select(d => d.Total)
+        );
+
+        // Passing / Staying counts (ONLY valid ones)
+        PassingCount = _context.Payments
+            .Where(p => !p.IsReverted && p.MovementType == "Passing")
+            .Count();
+
+        StayingCount = _context.Payments
+            .Where(p => !p.IsReverted && p.MovementType == "Staying")
+            .Count();
     }
 }

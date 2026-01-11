@@ -115,7 +115,7 @@
                         </div>
                     </div>
 
-                    <!-- HIDDEN CALCULATE -->
+                    <!-- HIDDEN CALCULATE BUTTON -->
                     <button asp-page-handler="Calculate"
                             type="submit"
                             id="calcBtn"
@@ -152,8 +152,77 @@
                         </div>
                     }
                 }
-
             </form>
         </div>
     </div>
+
+    <!-- ================= PAYMENT HISTORY & REVERT ================= -->
+
+    @if (Model.Payments.Any())
+    {
+        <div class="card shadow-sm border-0 mt-5">
+            <div class="card-body">
+
+                <h4 class="mb-3">
+                    <i class="bi bi-clock-history"></i>
+                    Payment History
+                </h4>
+
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Movement</th>
+                            <th>Amount</th>
+                            <th>Receipt</th>
+                            <th>Status</th>
+                            <th>Revert</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Payments)
+                        {
+                            <tr class="@(p.IsReverted ? "table-danger" : "")">
+                                <td>@p.PaidAt</td>
+                                <td>@p.MovementType</td>
+                                <td>@p.Amount</td>
+                                <td>@p.ReceiptReference.ReferenceNumber</td>
+                                <td>
+                                    @if (p.IsReverted)
+                                    {
+                                        <span class="badge bg-danger">Reverted</span>
+                                        <br />
+                                        <small class="text-muted">@p.RevertReason</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Valid</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!p.IsReverted)
+                                    {
+                                        <form method="post" asp-page-handler="Revert">
+                                            <input type="hidden" name="paymentId" value="@p.Id" />
+                                            <input type="text"
+                                                   name="reason"
+                                                   class="form-control mb-2"
+                                                   placeholder="Reason for revert"
+                                                   required />
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                                Revert
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    }
+
 </div>

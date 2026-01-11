@@ -2,14 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using VehicleTax.Web.Data;
-using System;
-using System.Linq;
 
 namespace VehicleTax.Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous]   // <<< IMPORTANT: Allow Flutter access
+    [AllowAnonymous]   // Flutter access
     public class DashboardController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -22,22 +20,26 @@ namespace VehicleTax.Web.Controllers
         [HttpGet]
         public IActionResult GetDashboard()
         {
-            // Use UTC to avoid date mismatches
+            // Always use UTC for consistency
             var today = DateTime.UtcNow.Date;
+
+            // 🔴 IMPORTANT: Only VALID (not reverted) payments
+            var validPayments = _context.Payments
+                .Where(p => !p.IsReverted);
 
             var totalVehicles = _context.Vehicles.Count();
 
-            var totalPayments = _context.Payments.Count();
+            var totalPayments = validPayments.Count();
 
-            var todayTotal = _context.Payments
+            var todayTotal = validPayments
                 .Where(p => p.PaidAt >= today && p.PaidAt < today.AddDays(1))
                 .Sum(p => (decimal?)p.Amount) ?? 0;
 
-            var todaysPayments = _context.Payments
+            var todaysPayments = validPayments
                 .Include(p => p.Vehicle)
                 .Where(p => p.PaidAt >= today && p.PaidAt < today.AddDays(1))
                 .OrderByDescending(p => p.PaidAt)
-                .Take(10)
+                .Take(50)
                 .Select(p => new
                 {
                     plate = p.Vehicle != null ? p.Vehicle.PlateNumber : "N/A",

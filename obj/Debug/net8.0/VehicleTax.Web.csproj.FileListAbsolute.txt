@@ -130,3 +130,9 @@
 /Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 /Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Identity.UI.dll
 /Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/obj/Debug/net8.0/VehicleTax.Web.MvcApplicationPartsAssemblyInfo.cs
+/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/out/web.config
+/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/out/appsettings.json
+/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/out/VehicleTax.Web.deps.json
+/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/out/VehicleTax.Web.runtimeconfig.json
+/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/bin/Debug/net8.0/out/VehicleTax.Web.staticwebassets.endpoints.json
+/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/obj/Debug/net8.0/VehicleTax.Web.sourcelink.json

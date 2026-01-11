@@ -22,14 +22,33 @@ namespace VehicleTax.Web.Models
         // Prefer UTC for consistency
         public DateTime PaidAt { get; set; } = DateTime.UtcNow;
 
-        // Who collected it (make nullable if needed)
+        // Who collected it
         public int CollectorId { get; set; }
 
         // Receipt reference
         public int? ReceiptReferenceId { get; set; }
         public ReceiptReference? ReceiptReference { get; set; }
 
+        // ============================
+        // 🔁 REVERSAL / REVERT SYSTEM
+        // ============================
+
+        // Marks payment as reverted instead of deleting it
+        public bool IsReverted { get; set; } = false;
+
+        // Why it was reverted
+        public string? RevertReason { get; set; }
+
+        // When it was reverted
+        public DateTime? RevertedAt { get; set; }
+
+        // Optional: who reverted it (for audit trail)
+        public int? RevertedByUserId { get; set; }
+
+        // ============================
         // Backward compatibility
+        // ============================
+
         [NotMapped]
         public decimal AmountPaid
         {

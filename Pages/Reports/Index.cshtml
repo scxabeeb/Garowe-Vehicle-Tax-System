@@ -24,26 +24,20 @@
 
         <div class="col-md-3">
             <label class="form-label">Car Type</label>
-            <select asp-for="CarTypeId"
-                    asp-items="Model.CarTypes"
-                    class="form-select">
+            <select asp-for="CarTypeId" asp-items="Model.CarTypes" class="form-select">
                 <option value="">All</option>
             </select>
         </div>
 
         <div class="col-md-3">
             <label class="form-label">Movement</label>
-            <select asp-for="MovementId"
-                    asp-items="Model.Movements"
-                    class="form-select">
+            <select asp-for="MovementId" asp-items="Model.Movements" class="form-select">
                 <option value="">All</option>
             </select>
         </div>
 
         <div class="col-md-9 d-flex align-items-end">
-            <button class="btn btn-primary w-100">
-                Apply Filters
-            </button>
+            <button class="btn btn-primary w-100">Apply Filters</button>
         </div>
     </div>
 </form>
@@ -111,10 +105,7 @@
         <input type="hidden" name="PlateNumber" value="@Model.PlateNumber" />
         <input type="hidden" name="CarTypeId" value="@Model.CarTypeId" />
         <input type="hidden" name="MovementId" value="@Model.MovementId" />
-
-        <button class="btn btn-success btn-sm">
-            Export Excel
-        </button>
+        <button class="btn btn-success btn-sm">Export Excel</button>
     </form>
 </div>
 
@@ -171,7 +162,13 @@
 
         <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
             <a class="page-link"
-               href="?PageNumber=@(Model.PageNumber - 1)&PageSize=@Model.PageSize">
+               asp-route-PageNumber="@(Model.PageNumber - 1)"
+               asp-route-PageSize="@Model.PageSize"
+               asp-route-FromDate="@Model.FromDate"
+               asp-route-ToDate="@Model.ToDate"
+               asp-route-PlateNumber="@Model.PlateNumber"
+               asp-route-CarTypeId="@Model.CarTypeId"
+               asp-route-MovementId="@Model.MovementId">
                 ‹
             </a>
         </li>
@@ -180,7 +177,13 @@
         {
             <li class="page-item @(i == Model.PageNumber ? "active" : "")">
                 <a class="page-link"
-                   href="?PageNumber=@i&PageSize=@Model.PageSize">
+                   asp-route-PageNumber="@i"
+                   asp-route-PageSize="@Model.PageSize"
+                   asp-route-FromDate="@Model.FromDate"
+                   asp-route-ToDate="@Model.ToDate"
+                   asp-route-PlateNumber="@Model.PlateNumber"
+                   asp-route-CarTypeId="@Model.CarTypeId"
+                   asp-route-MovementId="@Model.MovementId">
                     @i
                 </a>
             </li>
@@ -188,12 +191,16 @@
 
         <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
             <a class="page-link"
-               href="?PageNumber=@(Model.PageNumber + 1)&PageSize=@Model.PageSize">
+               asp-route-PageNumber="@(Model.PageNumber + 1)"
+               asp-route-PageSize="@Model.PageSize"
+               asp-route-FromDate="@Model.FromDate"
+               asp-route-ToDate="@Model.ToDate"
+               asp-route-PlateNumber="@Model.PlateNumber"
+               asp-route-CarTypeId="@Model.CarTypeId"
+               asp-route-MovementId="@Model.MovementId">
                 ›
             </a>
         </li>
 
     </ul>
 </nav>
-
-

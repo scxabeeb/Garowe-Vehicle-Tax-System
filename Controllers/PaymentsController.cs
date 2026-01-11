@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
-using System;
-using System.Linq;
 
 namespace VehicleTax.Web.Controllers
 {
@@ -18,6 +16,9 @@ namespace VehicleTax.Web.Controllers
             _context = context;
         }
 
+        // =======================
+        // CREATE PAYMENT
+        // =======================
         [HttpPost]
         public IActionResult Pay([FromBody] PaymentDto dto)
         {
@@ -25,13 +26,14 @@ namespace VehicleTax.Web.Controllers
             if (vehicle == null)
                 return BadRequest(new { status = "error", message = "Vehicle not found" });
 
+            // 🔴 Ignore reverted payments in duplicate check
             var lastPayment = _context.Payments
-                .Where(p => p.VehicleId == dto.VehicleId)
+                .Where(p => p.VehicleId == dto.VehicleId && !p.IsReverted)
                 .OrderByDescending(p => p.PaidAt)
                 .FirstOrDefault();
 
             if (lastPayment != null &&
-                (DateTime.Now - lastPayment.PaidAt).TotalMinutes < 10)
+                (DateTime.UtcNow - lastPayment.PaidAt).TotalMinutes < 10)
             {
                 return BadRequest(new
                 {
@@ -61,13 +63,15 @@ namespace VehicleTax.Web.Controllers
                 MovementId = movement.Id,
                 MovementType = dto.Movement,
                 Amount = dto.Amount,
-                PaidAt = DateTime.Now,
+                PaidAt = DateTime.UtcNow,
                 ReceiptReferenceId = reference.Id,
-                CollectorId = dto.CollectorId
+                CollectorId = dto.CollectorId,
+                IsReverted = false
             };
 
+            // lock receipt
             reference.IsUsed = true;
-            reference.UsedAt = DateTime.Now;
+            reference.UsedAt = DateTime.UtcNow;
 
             _context.Payments.Add(payment);
             _context.SaveChanges();
@@ -79,13 +83,16 @@ namespace VehicleTax.Web.Controllers
             });
         }
 
+        // =======================
+        // GET PAYMENTS BY COLLECTOR (ONLY VALID PAYMENTS)
+        // =======================
         [HttpGet("collector/{collectorId}")]
         public IActionResult GetByCollector(int collectorId)
         {
             var payments = _context.Payments
                 .Include(p => p.Vehicle)
                 .Include(p => p.ReceiptReference)
-                .Where(p => p.CollectorId == collectorId)
+                .Where(p => p.CollectorId == collectorId && !p.IsReverted)   // 🔴 DO NOT COUNT REVERTED
                 .OrderByDescending(p => p.PaidAt)
                 .Select(p => new
                 {
@@ -93,12 +100,12 @@ namespace VehicleTax.Web.Controllers
                     p.Amount,
                     p.PaidAt,
                     p.MovementType,
-                    vehicle = new
-                    {
-                        p.Vehicle.PlateNumber,
-                        p.Vehicle.OwnerName
-                    },
-                    receipt = p.ReceiptReference.ReferenceNumber
+                    p.IsReverted,    // 🔴 send flag to Flutter
+                    plate = p.Vehicle!.PlateNumber,
+                    owner = p.Vehicle.OwnerName,
+                    receipt = p.ReceiptReference != null
+                        ? p.ReceiptReference.ReferenceNumber
+                        : null
                 })
                 .ToList();
 
@@ -111,6 +118,9 @@ namespace VehicleTax.Web.Controllers
         }
     }
 
+    // =======================
+    // DTO
+    // =======================
     public class PaymentDto
     {
         public int VehicleId { get; set; }

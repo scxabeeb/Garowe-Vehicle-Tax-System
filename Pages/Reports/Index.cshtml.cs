@@ -44,38 +44,52 @@ public class IndexModel : PageModel
         CarTypes = new SelectList(_context.CarTypes, "Id", "Name");
         Movements = new SelectList(_context.Movements, "Id", "Name");
 
+        // Base query: ONLY non-reverted payments
         var query = _context.Payments
+            .Where(p => !p.IsReverted)
             .Include(p => p.Vehicle)
                 .ThenInclude(v => v.CarType)
             .Include(p => p.Movement)
             .Include(p => p.ReceiptReference)
             .AsQueryable();
 
+        // 🔴 DATE FILTER (NO .Date in LINQ)
         if (FromDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date >= FromDate.Value.Date);
+        {
+            var from = FromDate.Value.Date;
+            query = query.Where(p => p.PaidAt >= from);
+        }
 
         if (ToDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date <= ToDate.Value.Date);
+        {
+            var to = ToDate.Value.Date.AddDays(1);
+            query = query.Where(p => p.PaidAt < to);
+        }
 
+        // Plate filter
         if (!string.IsNullOrWhiteSpace(PlateNumber))
             query = query.Where(p =>
                 p.Vehicle != null &&
                 p.Vehicle.PlateNumber.Contains(PlateNumber));
 
+        // Car type filter
         if (CarTypeId.HasValue && CarTypeId > 0)
             query = query.Where(p =>
                 p.Vehicle != null &&
                 p.Vehicle.CarTypeId == CarTypeId);
 
+        // Movement filter
         if (MovementId.HasValue && MovementId > 0)
             query = query.Where(p => p.MovementId == MovementId);
 
+        // ===== TOTALS =====
         TotalPayments = await query.CountAsync();
         TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0;
         TotalVehicles = await query.Select(p => p.VehicleId).Distinct().CountAsync();
 
         TotalPages = (int)Math.Ceiling(TotalPayments / (double)PageSize);
 
+        // ===== PAGED DATA =====
         Payments = await query
             .OrderByDescending(p => p.PaidAt)
             .Skip((PageNumber - 1) * PageSize)
@@ -89,17 +103,26 @@ public class IndexModel : PageModel
         ExcelPackage.License.SetNonCommercialOrganization("Garowe Municipality");
 
         var query = _context.Payments
+            .Where(p => !p.IsReverted)
             .Include(p => p.Vehicle)
                 .ThenInclude(v => v.CarType)
             .Include(p => p.Movement)
             .Include(p => p.ReceiptReference)
             .AsQueryable();
 
+        // Same filters as OnGet
+
         if (FromDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date >= FromDate.Value.Date);
+        {
+            var from = FromDate.Value.Date;
+            query = query.Where(p => p.PaidAt >= from);
+        }
 
         if (ToDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date <= ToDate.Value.Date);
+        {
+            var to = ToDate.Value.Date.AddDays(1);
+            query = query.Where(p => p.PaidAt < to);
+        }
 
         if (!string.IsNullOrWhiteSpace(PlateNumber))
             query = query.Where(p =>
@@ -114,7 +137,9 @@ public class IndexModel : PageModel
         if (MovementId.HasValue && MovementId > 0)
             query = query.Where(p => p.MovementId == MovementId);
 
-        var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
+        var data = await query
+            .OrderByDescending(p => p.PaidAt)
+            .ToListAsync();
 
         using var package = new ExcelPackage();
         var sheet = package.Workbook.Worksheets.Add("Vehicle Tax Report");

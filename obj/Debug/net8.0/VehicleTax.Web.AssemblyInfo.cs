@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VehicleTax.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9abbf290f652e9d4dd9e65883a82520988114622")]
 [assembly: System.Reflection.AssemblyProductAttribute("VehicleTax.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VehicleTax.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

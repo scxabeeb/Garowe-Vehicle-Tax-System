@@ -88,6 +88,9 @@ namespace VehicleTax.Web.Migrations
                     b.Property<int>("CollectorId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsReverted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("MovementId")
                         .HasColumnType("int");
 
@@ -99,6 +102,15 @@ namespace VehicleTax.Web.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<int?>("ReceiptReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RevertReason")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("RevertedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("RevertedByUserId")
                         .HasColumnType("int");
 
                     b.Property<int>("VehicleId")
