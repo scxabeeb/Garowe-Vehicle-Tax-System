@@ -6,117 +6,180 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="login-wrapper d-flex justify-content-center align-items-center min-vh-100">
+<div class="login-container">
 
-    <div class="card login-card border-0 shadow-lg">
-
-        <!-- HEADER -->
-        <div class="text-center p-4 border-bottom">
-            <img src="/images/Logo_of_Garowe_District.jpg"
-                 alt="Garowe District Logo"
-                 width="90"
-                 height="90"
-                 class="mb-3 rounded-circle shadow-sm" />
-
-            <h5 class="fw-bold mb-1">
-                Dowladda Hoose ee Degmada Garoowe
-            </h5>
-            <small class="text-muted">
-                Garowe Local Government
-            </small>
+    <!-- LEFT SIDE (Branding) -->
+    <div class="login-left">
+        <div class="branding">
+            <img src="/images/Logo_of_Garowe_District.jpg" alt="Garowe Logo" />
+            <h2>Dowladda Hoose ee Degmada Garoowe</h2>
+            <p>Garowe Local Government</p>
+            <div class="divider"></div>
+            <h5>Vehicle Tax Management System</h5>
+            <small>Secure Government Revenue Platform</small>
         </div>
+    </div>
 
-        <!-- BODY -->
-        <div class="p-4">
+    <!-- RIGHT SIDE (Login Form) -->
+    <div class="login-right">
+        <div class="login-form-box">
 
-            <h6 class="text-center mb-4 fw-semibold text-secondary">
-                Vehicle Tax System Login
-            </h6>
+            <h3 class="mb-2">Welcome Back</h3>
+            <p class="text-muted mb-4">Please sign in to continue</p>
 
-            <form method="post" novalidate>
+            <form method="post">
 
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold text-muted">
-                        Username
-                    </label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-light">
-                            <i class="bi bi-person-fill text-primary"></i>
-                        </span>
-                        <input asp-for="Username"
-                               class="form-control"
-                               placeholder="Enter username"
-                               autocomplete="username" />
-                    </div>
+                <div class="form-group mb-3">
+                    <label>Username</label>
+                    <input asp-for="Username"
+                           class="form-control form-control-lg"
+                           placeholder="Enter your username" />
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label small fw-semibold text-muted">
-                        Password
-                    </label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-light">
-                            <i class="bi bi-lock-fill text-primary"></i>
-                        </span>
-                        <input asp-for="Password"
-                               type="password"
-                               class="form-control"
-                               placeholder="Enter password"
-                               autocomplete="current-password" />
-                    </div>
+                <div class="form-group mb-4">
+                    <label>Password</label>
+                    <input asp-for="Password"
+                           type="password"
+                           class="form-control form-control-lg"
+                           placeholder="Enter your password" />
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg w-100">
-                    <i class="bi bi-shield-lock-fill me-1"></i>
-                    Secure Login
+                    Login
                 </button>
 
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
-                    <div class="alert alert-danger text-center mt-3 mb-0 small">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <div class="alert alert-danger text-center mt-3 small">
                         @Model.ErrorMessage
                     </div>
                 }
 
             </form>
-        </div>
 
-        <!-- FOOTER -->
-        <div class="text-center py-3 border-top">
-            <small class="text-muted">
-                © @DateTime.Now.Year Garowe District Administration
-            </small>
         </div>
-
     </div>
+
 </div>
 
 <style>
     body {
-        background: linear-gradient(135deg, #0d6efd 0%, #1e3c72 100%);
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #f1f5f9;
     }
 
-    .login-wrapper {
-        padding: 20px;
+    .login-container {
+        display: flex;
+        min-height: 100vh;
     }
 
-    .login-card {
-        width: 420px;
-        border-radius: 16px;
-        background-color: #ffffff;
+    /* LEFT SIDE */
+    .login-left {
+        flex: 1;
+        background: linear-gradient(135deg, #1e3a8a, #0d6efd);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .branding {
+        text-align: center;
+        max-width: 400px;
+    }
+
+    .branding img {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        background: white;
+        padding: 6px;
+    }
+
+    .branding h2 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .branding p {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .branding .divider {
+        width: 60px;
+        height: 4px;
+        background: white;
+        margin: 20px auto;
+        border-radius: 10px;
+    }
+
+    .branding h5 {
+        margin-top: 10px;
+        font-weight: 600;
+    }
+
+    /* RIGHT SIDE */
+    .login-right {
+        flex: 1;
+        background: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .login-form-box {
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .login-form-box h3 {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
     }
 
     .form-control {
-        border-left: 0;
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
     }
 
-    .input-group-text {
-        border-right: 0;
+    .form-control:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.25);
     }
 
     .btn-primary {
+        background: #2563eb;
+        border: none;
+        border-radius: 8px;
         font-weight: 600;
-        letter-spacing: 0.3px;
+        padding: 12px;
+    }
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+    }
+
+    @media (max-width: 768px) {
+        .login-left {
+            display: none;
+        }
+
+        .login-right {
+            flex: 1;
+        }
     }
 </style>
