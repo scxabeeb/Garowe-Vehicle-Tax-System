@@ -6,183 +6,85 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="login-container">
+<div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center">
 
-    <!-- LEFT SIDE (Branding) -->
-    <div class="login-left">
-        <div class="branding">
-            <img src="/images/Logo_of_Garowe_District.jpg" alt="Garowe Logo" />
-            <h2>Dowladda Hoose ee Degmada Garoowe</h2>
-            <p>Garowe Local Government</p>
-            <div class="divider"></div>
-            <h5>Vehicle Tax Management System</h5>
-            <small>Secure Government Revenue Platform</small>
+    <div class="card login-card shadow-lg border-0" style="width: 420px;">
+
+        <!-- HEADER -->
+        <div class="login-header text-center p-4">
+            <img src="/images/Logo_of_Garowe_District.jpg"
+                 alt="Garowe District Logo"
+                 width="90"
+                 height="90"
+                 class="mb-3" />
+
+            <h5 class="fw-bold mb-1 login-title">
+                Dowladda Hoose ee Degmada Garoowe
+            </h5>
+            <small class="text-muted">
+                Garowe Local Government
+            </small>
         </div>
-    </div>
 
-    <!-- RIGHT SIDE (Login Form) -->
-    <div class="login-right">
-        <div class="login-form-box">
-
-            <h3 class="mb-2">Welcome Back</h3>
-            <p class="text-muted mb-4">Please sign in to continue</p>
+        <!-- BODY -->
+        <div class="p-4">
+            <h6 class="text-center mb-4 fw-semibold text-secondary">
+                Vehicle Tax System Login
+            </h6>
 
             <form method="post">
 
-                <div class="form-group mb-3">
-                    <label>Username</label>
-                    <input asp-for="Username"
-                           class="form-control form-control-lg"
-                           placeholder="Enter your username"
-                           autocomplete="username" />
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small text-muted">
+                        Username
+                    </label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input asp-for="Username"
+                               class="form-control"
+                               placeholder="Enter username"
+                               autocomplete="username" />
+                    </div>
                 </div>
 
-                <div class="form-group mb-4">
-                    <label>Password</label>
-                    <input asp-for="Password"
-                           type="password"
-                           class="form-control form-control-lg"
-                           placeholder="Enter your password"
-                           autocomplete="current-password" />
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small text-muted">
+                        Password
+                    </label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-control"
+                               placeholder="Enter password"
+                               autocomplete="current-password" />
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg w-100">
-                    Login
+                <button type="submit" class="btn btn-primary btn-login w-100">
+                    <i class="bi bi-shield-lock me-1"></i> Secure Login
                 </button>
 
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
-                    <div class="alert alert-danger text-center mt-3 small">
+                    <div class="alert alert-danger text-center mt-3 mb-0 small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
                         @Model.ErrorMessage
                     </div>
                 }
-
             </form>
-
         </div>
+
+        <!-- FOOTER -->
+        <div class="login-footer text-center py-2">
+            <small class="text-muted">
+                © @DateTime.Now.Year Garowe District
+            </small>
+        </div>
+
     </div>
-
-</div>
-
-<style>
-    body {
-        margin: 0;
-        font-family: "Segoe UI", sans-serif;
-        background: #f1f5f9;
-    }
-
-    .login-container {
-        display: flex;
-        min-height: 100vh;
-    }
-
-    /* LEFT SIDE */
-    .login-left {
-        flex: 1;
-        background: linear-gradient(135deg, #1e3a8a, #0d6efd);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 40px;
-    }
-
-    .branding {
-        text-align: center;
-        max-width: 400px;
-    }
-
-    .branding img {
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        margin-bottom: 20px;
-        background: white;
-        padding: 6px;
-    }
-
-    .branding h2 {
-        font-size: 22px;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-
-    .branding p {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .branding .divider {
-        width: 60px;
-        height: 4px;
-        background: white;
-        margin: 20px auto;
-        border-radius: 10px;
-    }
-
-    .branding h5 {
-        margin-top: 10px;
-        font-weight: 600;
-    }
-
-    /* RIGHT SIDE */
-    .login-right {
-        flex: 1;
-        background: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 40px;
-    }
-
-    .login-form-box {
-        width: 100%;
-        max-width: 380px;
-    }
-
-    .login-form-box h3 {
-        font-weight: 700;
-        color: #1e293b;
-    }
-
-    .form-group label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #475569;
-        margin-bottom: 6px;
-    }
-
-    .form-control {
-        border-radius: 8px;
-        padding: 12px;
-        border: 1px solid #cbd5e1;
-    }
-
-    .form-control:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.25);
-    }
-
-    .btn-primary {
-        background: #2563eb;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        padding: 12px;
-    }
-
-    .btn-primary:hover {
-        background: #1d4ed8;
-    }
-
-    /* IMPORTANT: Razor requires @@ for @media */
-    @@media (max-width: 768px) {
-        .login-left {
-            display: none;
-        }
-
-        .login-right {
-            flex: 1;
-        }
-    }
-</style>
+</div> 
