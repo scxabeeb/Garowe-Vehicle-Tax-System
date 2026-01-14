@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5iiSQ0RDyAg=",
+  "dgSpecHash": "AH8kYvGtdwE=",
   "success": true,
   "projectFilePath": "/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/VehicleTax.Web.csproj",
   "expectedPackageFiles": [
@@ -124,10 +124,7 @@
     "/Users/saedhabeb/.nuget/packages/system.threading.thread/4.3.0/system.threading.thread.4.3.0.nupkg.sha512",
     "/Users/saedhabeb/.nuget/packages/system.threading.threadpool/4.3.0/system.threading.threadpool.4.3.0.nupkg.sha512",
     "/Users/saedhabeb/.nuget/packages/system.xml.readerwriter/4.3.0/system.xml.readerwriter.4.3.0.nupkg.sha512",
-    "/Users/saedhabeb/.nuget/packages/system.xml.xmldocument/4.3.0/system.xml.xmldocument.4.3.0.nupkg.sha512",
-    "/Users/saedhabeb/.nuget/packages/microsoft.netcore.app.ref/8.0.13/microsoft.netcore.app.ref.8.0.13.nupkg.sha512",
-    "/Users/saedhabeb/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.13/microsoft.aspnetcore.app.ref.8.0.13.nupkg.sha512",
-    "/Users/saedhabeb/.nuget/packages/microsoft.netcore.app.host.osx-arm64/8.0.13/microsoft.netcore.app.host.osx-arm64.8.0.13.nupkg.sha512"
+    "/Users/saedhabeb/.nuget/packages/system.xml.xmldocument/4.3.0/system.xml.xmldocument.4.3.0.nupkg.sha512"
   ],
   "logs": []
 }
