@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
+using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +13,13 @@ builder.Configuration.AddEnvironmentVariables();
 // =========================
 // Database
 // =========================
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Railway uses MySQL 8.x
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    )
+    options.UseMySql(connectionString, serverVersion)
 );
 
 // =========================
@@ -62,6 +65,15 @@ builder.Services.AddSession(options =>
 var app = builder.Build();
 
 // =========================
+// Auto migrate database (optional but recommended)
+// =========================
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
+// =========================
 // Middleware Pipeline
 // =========================
 if (!app.Environment.IsDevelopment())
@@ -70,7 +82,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Railway already handles HTTPS
+// app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 app.UseRouting();
 
