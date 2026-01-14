@@ -6,19 +6,19 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center">
+<div class="login-wrapper d-flex justify-content-center align-items-center min-vh-100">
 
-    <div class="card login-card shadow-lg border-0" style="width: 420px;">
+    <div class="card login-card border-0 shadow-lg">
 
         <!-- HEADER -->
-        <div class="login-header text-center p-4">
+        <div class="text-center p-4 border-bottom">
             <img src="/images/Logo_of_Garowe_District.jpg"
                  alt="Garowe District Logo"
                  width="90"
                  height="90"
-                 class="mb-3" />
+                 class="mb-3 rounded-circle shadow-sm" />
 
-            <h5 class="fw-bold mb-1 login-title">
+            <h5 class="fw-bold mb-1">
                 Dowladda Hoose ee Degmada Garoowe
             </h5>
             <small class="text-muted">
@@ -28,19 +28,20 @@
 
         <!-- BODY -->
         <div class="p-4">
+
             <h6 class="text-center mb-4 fw-semibold text-secondary">
                 Vehicle Tax System Login
             </h6>
 
-            <form method="post">
+            <form method="post" novalidate>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small text-muted">
+                    <label class="form-label small fw-semibold text-muted">
                         Username
                     </label>
                     <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-person"></i>
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-person-fill text-primary"></i>
                         </span>
                         <input asp-for="Username"
                                class="form-control"
@@ -50,12 +51,12 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold small text-muted">
+                    <label class="form-label small fw-semibold text-muted">
                         Password
                     </label>
                     <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-lock"></i>
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-lock-fill text-primary"></i>
                         </span>
                         <input asp-for="Password"
                                type="password"
@@ -65,26 +66,57 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-login w-100">
-                    <i class="bi bi-shield-lock me-1"></i> Secure Login
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-shield-lock-fill me-1"></i>
+                    Secure Login
                 </button>
 
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {
                     <div class="alert alert-danger text-center mt-3 mb-0 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
                         @Model.ErrorMessage
                     </div>
                 }
+
             </form>
         </div>
 
         <!-- FOOTER -->
-        <div class="login-footer text-center py-2">
+        <div class="text-center py-3 border-top">
             <small class="text-muted">
-                © @DateTime.Now.Year Garowe District
+                © @DateTime.Now.Year Garowe District Administration
             </small>
         </div>
 
     </div>
 </div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #0d6efd 0%, #1e3c72 100%);
+    }
+
+    .login-wrapper {
+        padding: 20px;
+    }
+
+    .login-card {
+        width: 420px;
+        border-radius: 16px;
+        background-color: #ffffff;
+    }
+
+    .form-control {
+        border-left: 0;
+    }
+
+    .input-group-text {
+        border-right: 0;
+    }
+
+    .btn-primary {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+</style>
