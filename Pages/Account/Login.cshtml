@@ -33,7 +33,8 @@
                     <label>Username</label>
                     <input asp-for="Username"
                            class="form-control form-control-lg"
-                           placeholder="Enter your username" />
+                           placeholder="Enter your username"
+                           autocomplete="username" />
                 </div>
 
                 <div class="form-group mb-4">
@@ -41,7 +42,8 @@
                     <input asp-for="Password"
                            type="password"
                            class="form-control form-control-lg"
-                           placeholder="Enter your password" />
+                           placeholder="Enter your password"
+                           autocomplete="current-password" />
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg w-100">
@@ -173,7 +175,8 @@
         background: #1d4ed8;
     }
 
-    @media (max-width: 768px) {
+    /* IMPORTANT: Razor requires @@ for @media */
+    @@media (max-width: 768px) {
         .login-left {
             display: none;
         }
