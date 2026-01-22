@@ -46,7 +46,6 @@
         <div class="collapse navbar-collapse" id="mainNav">
 
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     var isAdmin = User.IsInRole("Admin");
@@ -57,7 +56,6 @@
                         </a>
                     </li>
 
-                    @* VEHICLES *@
                     @if (isAdmin || User.HasClaim("permission", "vehicle.view"))
                     {
                         <li class="nav-item">
@@ -67,7 +65,6 @@
                         </li>
                     }
 
-                    @* CAR TYPES *@
                     @if (isAdmin || User.HasClaim("permission", "vehicle.view"))
                     {
                         <li class="nav-item">
@@ -77,7 +74,6 @@
                         </li>
                     }
 
-                    @* MOVEMENTS *@
                     @if (isAdmin || User.HasClaim("permission", "vehicle.view"))
                     {
                         <li class="nav-item">
@@ -87,7 +83,6 @@
                         </li>
                     }
 
-                    @* TAX AMOUNTS *@
                     @if (isAdmin || User.HasClaim("permission", "vehicle.view"))
                     {
                         <li class="nav-item">
@@ -97,17 +92,15 @@
                         </li>
                     }
 
-                    @* RECEIPT REFERENCES *@
                     @if (isAdmin || User.HasClaim("permission", "payment.view"))
                     {
                         <li class="nav-item">
                             <a class="nav-link" asp-page="/ReceiptReferences/Index">
-                                <i class="bi bi-upload"></i> Upload Ref
+                                <i class="bi bi-upload"></i> Manage Ref
                             </a>
                         </li>
                     }
 
-                    @* COLLECT TAX *@
                     @if (isAdmin || User.HasClaim("permission", "payment.create"))
                     {
                         <li class="nav-item">
@@ -117,41 +110,137 @@
                         </li>
                     }
 
-                    @* REPORTS *@
                     @if (isAdmin || User.HasClaim("permission", "reports.view"))
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-page="/Reports/Index">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-1"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown">
                                 <i class="bi bi-bar-chart-line"></i> Reports
                             </a>
+
+                            <ul class="dropdown-menu shadow border-0">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/Index">
+                                        <i class="bi bi-graph-up-arrow"></i>
+                                        Payment Report
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Transactions/Index">
+                                        <i class="bi bi-journal-text"></i>
+                                        Payment Logs
+                                    </a>
+                                </li>
+                                 <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/vehicles">
+                                        <i class="bi bi-journal-text"></i>
+                                        Vehicle Report
+                                    </a>
+                                </li>
+                                 <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/movements">
+                                        <i class="bi bi-journal-text"></i>
+                                        Movement List Report
+                                    </a>
+                                </li>
+                                   <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/taxmovement">
+                                        <i class="bi bi-journal-text"></i>
+                                        Movement Overal Report
+                                    </a>
+                                </li>
+                                  <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/taxmovementcartype">
+                                        <i class="bi bi-journal-text"></i>
+                                        Movement Tax Report
+                                    </a>
+                                </li>
+                                   <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/usersreport">
+                                        <i class="bi bi-journal-text"></i>
+                                        Users Report
+                                    </a>
+                                </li>
+                                  <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/TaxAmountReport">
+                                        <i class="bi bi-journal-text"></i>
+                                        Tax Amount Report
+                                    </a>
+                                </li>
+                                  <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/ReceiptReferences">
+                                        <i class="bi bi-journal-text"></i>
+                                        ReceiptReferences Report
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     }
 
-                    @* MANAGE USERS *@
-                    @if (isAdmin || User.HasClaim("permission", "user.view"))
+                    @if (isAdmin ||
+                         User.HasClaim("permission", "user.view") ||
+                         User.HasClaim("permission", "user.create"))
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-page="/Account/Users">
-                                <i class="bi bi-people"></i> Manage Users
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-1"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown">
+                                <i class="bi bi-people"></i> Users
                             </a>
-                        </li>
-                    }
 
-                    @* REGISTER USER *@
-                    @if (isAdmin || User.HasClaim("permission", "user.create"))
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-page="/Account/Register">
-                                <i class="bi bi-person-plus"></i> Register User
-                            </a>
+                            <ul class="dropdown-menu shadow border-0">
+                                @if (isAdmin || User.HasClaim("permission", "user.view"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2"
+                                           asp-page="/Account/Users">
+                                            <i class="bi bi-list-ul"></i>
+                                            Manage Users
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (isAdmin || User.HasClaim("permission", "user.create"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2"
+                                           asp-page="/Account/Register">
+                                            <i class="bi bi-person-plus"></i>
+                                            Create User
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (isAdmin || User.HasClaim("permission", "user.view"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2"
+                                           asp-page="/Account/UserSecurity">
+                                            <i class="bi bi-shield-lock"></i>
+                                            User Security
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
                         </li>
                     }
                 }
-
             </ul>
 
             <ul class="navbar-nav ms-auto align-items-center">
-
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <li class="nav-item dropdown">
@@ -178,12 +267,25 @@
 
                             <li><hr class="dropdown-divider" /></li>
 
+                            <!-- 🔐 Change Password -->
                             <li>
-                                <form method="post" asp-page="/Account/Logout">
-                                    <button type="submit" class="dropdown-item text-danger">
-                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
-                                    </button>
-                                </form>
+                                <a class="dropdown-item d-flex align-items-center"
+                                   asp-page="/Account/ChangePassword">
+                                    <i class="bi bi-key me-2"></i>
+                                    Change Password
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider" /></li>
+
+                            <!-- 🚪 Logout -->
+                            <li>
+                                <button type="button"
+                                        class="dropdown-item text-danger d-flex align-items-center"
+                                        onclick="logoutUser()">
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+                                    Logout
+                                </button>
                             </li>
                         </ul>
                     </li>
@@ -196,7 +298,6 @@
                         </a>
                     </li>
                 }
-
             </ul>
 
         </div>
@@ -216,11 +317,26 @@
 @RenderSection("Scripts", required: false)
 
 <script>
-    window.onpageshow = function (event) {
+    function logoutUser() {
+        fetch('/Account/Logout', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(() => {
+            window.location.replace('/Account/Login');
+        })
+        .catch(() => {
+            window.location.replace('/Account/Login');
+        });
+    }
+
+    window.addEventListener("pageshow", function (event) {
         if (event.persisted) {
-            window.location.reload();
+            window.location.replace('/Account/Login');
         }
-    };
+    });
 </script>
 
 </body>

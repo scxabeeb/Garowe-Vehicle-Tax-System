@@ -22,25 +22,12 @@ namespace VehicleTax.Web.Controllers
         [HttpPost]
         public IActionResult Pay([FromBody] PaymentDto dto)
         {
+            if (dto == null)
+                return BadRequest(new { status = "error", message = "Invalid request data" });
+
             var vehicle = _context.Vehicles.Find(dto.VehicleId);
             if (vehicle == null)
                 return BadRequest(new { status = "error", message = "Vehicle not found" });
-
-            // 🔴 Ignore reverted payments in duplicate check
-            var lastPayment = _context.Payments
-                .Where(p => p.VehicleId == dto.VehicleId && !p.IsReverted)
-                .OrderByDescending(p => p.PaidAt)
-                .FirstOrDefault();
-
-            if (lastPayment != null &&
-                (DateTime.UtcNow - lastPayment.PaidAt).TotalMinutes < 10)
-            {
-                return BadRequest(new
-                {
-                    status = "duplicate",
-                    message = "Payment already made in the last 10 minutes."
-                });
-            }
 
             var reference = _context.ReceiptReferences
                 .FirstOrDefault(r => r.ReferenceNumber == dto.ReferenceNumber);
@@ -57,6 +44,11 @@ namespace VehicleTax.Web.Controllers
             if (movement == null)
                 return BadRequest(new { status = "error", message = "Invalid movement" });
 
+            // 🔍 Get collector user so we can store the NAME, not just the ID
+            var collector = _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId);
+            if (collector == null)
+                return BadRequest(new { status = "error", message = "Collector not found" });
+
             var payment = new Payment
             {
                 VehicleId = dto.VehicleId,
@@ -69,22 +61,26 @@ namespace VehicleTax.Web.Controllers
                 IsReverted = false
             };
 
-            // lock receipt
+            _context.Payments.Add(payment);
+
+            // 🔴 Save complete receipt info for reporting & Flutter
             reference.IsUsed = true;
             reference.UsedAt = DateTime.UtcNow;
+            reference.VehicleId = dto.VehicleId;
+            reference.UsedBy = collector.Username;   // 👈 human name, not ID
 
-            _context.Payments.Add(payment);
             _context.SaveChanges();
 
             return Ok(new
             {
                 status = "success",
-                message = "Payment saved successfully"
+                message = "Payment saved successfully",
+                collector = collector.Username   // Flutter can display directly
             });
         }
 
         // =======================
-        // GET PAYMENTS BY COLLECTOR (ONLY VALID PAYMENTS)
+        // GET PAYMENTS BY COLLECTOR
         // =======================
         [HttpGet("collector/{collectorId}")]
         public IActionResult GetByCollector(int collectorId)
@@ -92,7 +88,7 @@ namespace VehicleTax.Web.Controllers
             var payments = _context.Payments
                 .Include(p => p.Vehicle)
                 .Include(p => p.ReceiptReference)
-                .Where(p => p.CollectorId == collectorId && !p.IsReverted)   // 🔴 DO NOT COUNT REVERTED
+                .Where(p => p.CollectorId == collectorId && !p.IsReverted)
                 .OrderByDescending(p => p.PaidAt)
                 .Select(p => new
                 {
@@ -100,11 +96,14 @@ namespace VehicleTax.Web.Controllers
                     p.Amount,
                     p.PaidAt,
                     p.MovementType,
-                    p.IsReverted,    // 🔴 send flag to Flutter
+                    p.IsReverted,
                     plate = p.Vehicle!.PlateNumber,
                     owner = p.Vehicle.OwnerName,
                     receipt = p.ReceiptReference != null
                         ? p.ReceiptReference.ReferenceNumber
+                        : null,
+                    collector = p.ReceiptReference != null
+                        ? p.ReceiptReference.UsedBy   // already the name
                         : null
                 })
                 .ToList();
@@ -112,7 +111,6 @@ namespace VehicleTax.Web.Controllers
             return Ok(new
             {
                 status = "success",
-                message = "Payments loaded",
                 items = payments
             });
         }
@@ -127,6 +125,8 @@ namespace VehicleTax.Web.Controllers
         public string Movement { get; set; } = "";
         public decimal Amount { get; set; }
         public string ReferenceNumber { get; set; } = "";
+
+        // CollectorId stays INT (machine identity)
         public int CollectorId { get; set; }
     }
 }

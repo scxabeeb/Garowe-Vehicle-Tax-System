@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using System.Linq;
 
 namespace VehicleTax.Web.Pages.Account;
 
@@ -44,9 +45,9 @@ public class RegisterModel : PageModel
         var user = new User
         {
             Username = Username.Trim(),
-            Password = Password.Trim(),   // later replace with hashing
+            Password = Password.Trim(), // later hash
             Role = Role,
-            Permissions = ""              // permissions added later
+            Permissions = ""
         };
 
         _context.Users.Add(user);

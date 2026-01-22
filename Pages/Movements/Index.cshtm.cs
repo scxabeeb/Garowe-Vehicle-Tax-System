@@ -34,7 +34,8 @@ public class IndexModel : PageModel
 
     public void OnGet()
     {
-        IQueryable<Movement> query = _context.Movements;
+        IQueryable<Movement> query = _context.Movements
+            .Include(m => m.CarType); // <<< THIS LINE IS THE MAGIC
 
         if (!string.IsNullOrWhiteSpace(Search))
         {

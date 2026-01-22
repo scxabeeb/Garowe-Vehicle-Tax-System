@@ -18,7 +18,8 @@ public class PermissionsModel : PageModel
 
     public User UserInfo { get; set; } = null!;
 
-    public List<string> AllPermissions = new()
+    // ALL system permissions (must match your menu & pages)
+    public List<string> AllPermissions { get; set; } = new()
     {
         // Dashboard
         "dashboard.view",
@@ -47,11 +48,12 @@ public class PermissionsModel : PageModel
         "tax.edit",
         "tax.delete",
 
-        // Receipts
+        // Receipt References
         "receipt.view",
         "receipt.upload",
 
         // Payments / Collection
+        "payment.view",
         "payment.create",
         "payment.edit",
         "payment.delete",
@@ -60,12 +62,11 @@ public class PermissionsModel : PageModel
         "reports.view",
         "reports.export",
 
-        // Users
-        "user.view",
-        "user.create",
-        "user.edit",
-        "user.delete",
-        "user.permissions"
+        // Users / Accounts
+        "user.view",         // Open Users list
+        "user.create",       // Register new user
+        "user.security",     // Lock/Unlock + Change password
+        "user.permissions"   // Manage permissions
     };
 
     [BindProperty]
@@ -73,22 +74,24 @@ public class PermissionsModel : PageModel
 
     public void OnGet(int id)
     {
-        UserInfo = _context.Users.First(x => x.Id == id);
+        UserInfo = _context.Users.First(u => u.Id == id);
 
         SelectedPermissions =
             (UserInfo.Permissions ?? "")
             .Split(",", StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
             .ToList();
     }
 
     public IActionResult OnPost(int id)
     {
-        var user = _context.Users.First(x => x.Id == id);
+        var user = _context.Users.First(u => u.Id == id);
 
         user.Permissions = string.Join(",", SelectedPermissions);
 
         _context.SaveChanges();
 
+        TempData["Message"] = "Permissions updated successfully";
         return RedirectToPage("/Account/Users");
     }
 }

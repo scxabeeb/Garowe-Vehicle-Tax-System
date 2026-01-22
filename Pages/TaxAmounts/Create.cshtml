@@ -6,65 +6,58 @@
 
         <div class="card shadow-sm border-0">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-cash-coin"></i>
-                    Register Tax Amount
+                <h5 class="mb-0">
+                    <i class="bi bi-cash-coin"></i> Register Tax Amount
                 </h5>
             </div>
 
             <div class="card-body">
 
-                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
 
                 <form method="post">
 
+                    <!-- Car Type -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Car Type</label>
                         <select asp-for="Tax.CarTypeId"
                                 asp-items="Model.CarTypes"
-                                class="form-select">
+                                class="form-select"
+                                id="carTypeSelect">
                             <option value="">-- Select Car Type --</option>
                         </select>
                         <span asp-validation-for="Tax.CarTypeId" class="text-danger"></span>
                     </div>
 
+                    <!-- Movement -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Movement</label>
                         <select asp-for="Tax.MovementId"
-                                asp-items="Model.Movements"
-                                class="form-select">
+                                class="form-select"
+                                id="movementSelect">
                             <option value="">-- Select Movement --</option>
                         </select>
                         <span asp-validation-for="Tax.MovementId" class="text-danger"></span>
                     </div>
 
+                    <!-- Amount -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Amount</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-currency-dollar"></i>
-                            </span>
-                            <input asp-for="Tax.Amount"
-                                   type="number"
-                                   step="0.01"
-                                   class="form-control" />
-                        </div>
+                        <input asp-for="Tax.Amount"
+                               type="number"
+                               step="0.01"
+                               class="form-control" />
                         <span asp-validation-for="Tax.Amount" class="text-danger"></span>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
-
-                        <a asp-page="/TaxAmounts/Index"
-                           class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i>
+                        <a asp-page="/TaxAmounts/Index" class="btn btn-outline-secondary">
                             Back
                         </a>
 
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check2-circle"></i>
                             Save
                         </button>
-
                     </div>
 
                 </form>
@@ -76,5 +69,28 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+<script>
+document.getElementById("carTypeSelect").addEventListener("change", function () {
+    const carTypeId = this.value;
+    const movementSelect = document.getElementById("movementSelect");
+
+    movementSelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (!carTypeId) {
+        movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+        return;
+    }
+
+    fetch(`?handler=Movements&carTypeId=${carTypeId}`)
+        .then(res => res.json())
+        .then(data => {
+            movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+            data.forEach(m => {
+                movementSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+        });
+});
+</script>
+
+<partial name="_ValidationScriptsPartial" />
 }

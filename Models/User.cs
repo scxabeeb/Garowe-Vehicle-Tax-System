@@ -12,4 +12,7 @@ public class User
 
     // Stored as: vehicle.create,vehicle.edit,payment.create
     public string Permissions { get; set; } = "";
+
+    // New: lock / unlock support
+    public bool IsLocked { get; set; } = false;
 }

@@ -1,90 +1,71 @@
 @page
 @model VehicleTax.Web.Pages.Account.LoginModel
-
 @{
     Layout = "_LoginLayout";
     ViewData["Title"] = "Login";
 }
 
-<div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center">
+<div class="card border-0 shadow-lg"
+     style="max-width:360px;
+            width:100%;
+            border-radius:16px;
+            background:white;">
 
-    <div class="card login-card shadow-lg border-0" style="width: 420px;">
+    <div class="card-body p-4">
 
-        <!-- HEADER -->
-        <div class="login-header text-center p-4">
+        <div class="text-center mb-3">
             <img src="/images/Logo_of_Garowe_District.jpg"
-                 alt="Garowe District Logo"
-                 width="90"
-                 height="90"
-                 class="mb-3" />
+                 width="70"
+                 height="70"
+                 class="mb-2 rounded-circle shadow-sm" />
 
-            <h5 class="fw-bold mb-1 login-title">
-                Dowladda Hoose ee Degmada Garoowe
-            </h5>
-            <small class="text-muted">
-                Garowe Local Government
-            </small>
+            <h6 class="fw-bold mb-0">Garowe Municipality</h6>
+            <small class="text-muted">Vehicle Tax System</small>
         </div>
 
-        <!-- BODY -->
-        <div class="p-4">
-            <h6 class="text-center mb-4 fw-semibold text-secondary">
-                Vehicle Tax System Login
-            </h6>
+        <form method="post">
 
-            <form method="post">
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small text-muted">
-                        Username
-                    </label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-person"></i>
-                        </span>
-                        <input asp-for="Username"
-                               class="form-control"
-                               placeholder="Enter username"
-                               autocomplete="username" />
-                    </div>
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-person text-primary"></i>
+                    </span>
+                    <input asp-for="Username"
+                           class="form-control"
+                           placeholder="Username"
+                           required />
                 </div>
+            </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold small text-muted">
-                        Password
-                    </label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-lock"></i>
-                        </span>
-                        <input asp-for="Password"
-                               type="password"
-                               class="form-control"
-                               placeholder="Enter password"
-                               autocomplete="current-password" />
-                    </div>
+            <div class="mb-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-lock text-primary"></i>
+                    </span>
+                    <input asp-for="Password"
+                           type="password"
+                           class="form-control"
+                           placeholder="Password"
+                           required />
                 </div>
+            </div>
 
-                <button type="submit" class="btn btn-primary btn-login w-100">
-                    <i class="bi bi-shield-lock me-1"></i> Secure Login
-                </button>
+            <button type="submit"
+                    class="btn btn-primary w-100 fw-semibold">
+                Login
+            </button>
 
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                {
-                    <div class="alert alert-danger text-center mt-3 mb-0 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        @Model.ErrorMessage
-                    </div>
-                }
-            </form>
-        </div>
-
-        <!-- FOOTER -->
-        <div class="login-footer text-center py-2">
-            <small class="text-muted">
-                © @DateTime.Now.Year Garowe District
-            </small>
-        </div>
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger text-center mt-3 mb-0 py-2 small">
+                    @Model.ErrorMessage
+                </div>
+            }
+        </form>
 
     </div>
-</div> 
+</div>
+
+<div class="text-white-50 small mt-3">
+    © @DateTime.Now.Year Garowe Municipality
+</div>

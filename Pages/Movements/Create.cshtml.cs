@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 
@@ -15,36 +16,65 @@ public class CreateModel : PageModel
     }
 
     [BindProperty]
-    public Movement Movement { get; set; } = new();
+    public string MovementName { get; set; } = "";
 
-    public IActionResult OnGet()
+    [BindProperty]
+    public List<int> SelectedCarTypeIds { get; set; } = new();
+
+    public List<SelectListItem> CarTypes { get; set; } = new();
+
+    public void OnGet()
     {
-        return Page();
+        LoadCarTypes();
     }
 
     public IActionResult OnPost()
     {
-        if (!ModelState.IsValid)
-            return Page();
+        LoadCarTypes();
 
-        // ❌ Prevent duplicate movement name
-        bool exists = _context.Movements
-            .Any(m => m.Name.ToLower() == Movement.Name.ToLower());
-
-        if (exists)
+        if (string.IsNullOrWhiteSpace(MovementName))
         {
-            ModelState.AddModelError(
-                "Movement.Name",
-                "This movement already exists."
-            );
+            ModelState.AddModelError("MovementName", "Movement name is required.");
             return Page();
         }
 
-        _context.Movements.Add(Movement);
+        if (SelectedCarTypeIds.Count == 0)
+        {
+            ModelState.AddModelError("SelectedCarTypeIds", "Please select at least one car type.");
+            return Page();
+        }
+
+        foreach (var carTypeId in SelectedCarTypeIds)
+        {
+            bool exists = _context.Movements.Any(m =>
+                m.Name.ToLower() == MovementName.ToLower() &&
+                m.CarTypeId == carTypeId);
+
+            if (!exists)
+            {
+                _context.Movements.Add(new Movement
+                {
+                    Name = MovementName.Trim(),
+                    CarTypeId = carTypeId
+                });
+            }
+        }
+
         _context.SaveChanges();
 
-        // ✅ Inline success alert
-        TempData["Success"] = "Movement created successfully.";
+        TempData["Success"] = "Movement created successfully for selected car types.";
         return RedirectToPage("Index");
+    }
+
+    private void LoadCarTypes()
+    {
+        CarTypes = _context.CarTypes
+            .OrderBy(c => c.Name)
+            .Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            })
+            .ToList();
     }
 }

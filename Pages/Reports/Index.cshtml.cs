@@ -2,179 +2,209 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using OfficeOpenXml;
+using System.Text;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 
-namespace VehicleTax.Web.Pages.Reports;
-
-public class IndexModel : PageModel
+namespace VehicleTax.Web.Pages.Reports
 {
-    private readonly AppDbContext _context;
-
-    public IndexModel(AppDbContext context)
+    public class CollectorSummary
     {
-        _context = context;
+        public string CollectorName { get; set; } = "";
+        public decimal TotalAmount { get; set; }
+        public int TotalPayments { get; set; }
     }
 
-    // ===== FILTERS =====
-    [BindProperty(SupportsGet = true)] public DateTime? FromDate { get; set; }
-    [BindProperty(SupportsGet = true)] public DateTime? ToDate { get; set; }
-    [BindProperty(SupportsGet = true)] public string? PlateNumber { get; set; }
-    [BindProperty(SupportsGet = true)] public int? CarTypeId { get; set; }
-    [BindProperty(SupportsGet = true)] public int? MovementId { get; set; }
-
-    // ===== PAGINATION =====
-    [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
-    [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
-    public int TotalPages { get; set; }
-
-    // ===== DATA =====
-    public List<Payment> Payments { get; set; } = new();
-    public SelectList CarTypes { get; set; } = null!;
-    public SelectList Movements { get; set; } = null!;
-
-    // ===== TOTALS =====
-    public int TotalVehicles { get; set; }
-    public int TotalPayments { get; set; }
-    public decimal TotalAmount { get; set; }
-
-    public async Task OnGetAsync()
+    public class IndexModel : PageModel
     {
-        CarTypes = new SelectList(_context.CarTypes, "Id", "Name");
-        Movements = new SelectList(_context.Movements, "Id", "Name");
+        private readonly AppDbContext _context;
 
-        // Base query: ONLY non-reverted payments
-        var query = _context.Payments
-            .Where(p => !p.IsReverted)
-            .Include(p => p.Vehicle)
-                .ThenInclude(v => v.CarType)
-            .Include(p => p.Movement)
-            .Include(p => p.ReceiptReference)
-            .AsQueryable();
-
-        // 🔴 DATE FILTER (NO .Date in LINQ)
-        if (FromDate.HasValue)
+        public IndexModel(AppDbContext context)
         {
-            var from = FromDate.Value.Date;
-            query = query.Where(p => p.PaidAt >= from);
+            _context = context;
         }
 
-        if (ToDate.HasValue)
+        // Filters
+        [BindProperty(SupportsGet = true)] public DateTime? FromDate { get; set; }
+        [BindProperty(SupportsGet = true)] public DateTime? ToDate { get; set; }
+        [BindProperty(SupportsGet = true)] public string? PlateNumber { get; set; }
+        [BindProperty(SupportsGet = true)] public int? CarTypeId { get; set; }
+        [BindProperty(SupportsGet = true)] public int? MovementId { get; set; }
+        [BindProperty(SupportsGet = true)] public int? CollectorId { get; set; }
+
+        // Pagination
+        [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
+        [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; }
+
+        // Data
+        public List<Payment> Payments { get; set; } = new();
+        public SelectList CarTypes { get; set; } = null!;
+        public SelectList Movements { get; set; } = null!;
+        public SelectList Collectors { get; set; } = null!;
+        public List<CollectorSummary> CollectorSummaries { get; set; } = new();
+
+        // Totals
+        public int TotalVehicles { get; set; }
+        public int TotalPayments { get; set; }
+        public decimal TotalAmount { get; set; }
+
+        public async Task OnGetAsync()
         {
-            var to = ToDate.Value.Date.AddDays(1);
-            query = query.Where(p => p.PaidAt < to);
+            // Car Types
+            CarTypes = new SelectList(
+                await _context.CarTypes
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync(),
+                "Id",
+                "Name"
+            );
+
+            // Movements (UNIQUE BY NAME, even if many vehicles/payments use it)
+            Movements = new SelectList(
+                await _context.Movements
+                    .AsNoTracking()
+                    .GroupBy(m => m.Name)
+                    .Select(g => new
+                    {
+                        Id = g.Min(x => x.Id),   // take one Id per movement name
+                        Name = g.Key
+                    })
+                    .OrderBy(x => x.Name)
+                    .ToListAsync(),
+                "Id",
+                "Name"
+            );
+
+            // Collectors
+            Collectors = new SelectList(
+                await _context.Users
+                    .AsNoTracking()
+                    .OrderBy(u => u.Username)
+                    .ToListAsync(),
+                "Id",
+                "Username"
+            );
+
+            var query = _context.Payments
+                .Where(p => !p.IsReverted)
+                .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
+                .Include(p => p.Movement)
+                .Include(p => p.ReceiptReference)
+                .Include(p => p.Collector)
+                .AsQueryable();
+
+            if (FromDate.HasValue)
+                query = query.Where(p => p.PaidAt >= FromDate.Value.Date);
+
+            if (ToDate.HasValue)
+                query = query.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
+
+            if (!string.IsNullOrWhiteSpace(PlateNumber))
+                query = query.Where(p => p.Vehicle != null && p.Vehicle.PlateNumber.Contains(PlateNumber));
+
+            if (CarTypeId.HasValue)
+                query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);
+
+            if (MovementId.HasValue)
+                query = query.Where(p => p.MovementId == MovementId.Value);
+
+            if (CollectorId.HasValue)
+                query = query.Where(p => p.CollectorId == CollectorId.Value);
+
+            // Totals
+            TotalPayments = await query.CountAsync();
+            TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0;
+            TotalVehicles = await query.Select(p => p.VehicleId).Distinct().CountAsync();
+
+            // Collector summary
+            CollectorSummaries = await query
+                .Where(p => p.Collector != null)
+                .GroupBy(p => p.Collector!.Username)
+                .Select(g => new CollectorSummary
+                {
+                    CollectorName = g.Key,
+                    TotalPayments = g.Count(),
+                    TotalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .ToListAsync();
+
+            var totalCount = await query.CountAsync();
+
+            // Pagination
+            if (PageSize == -1)
+            {
+                TotalPages = 1;
+                Payments = await query
+                    .OrderByDescending(p => p.PaidAt)
+                    .ToListAsync();
+            }
+            else
+            {
+                TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+
+                Payments = await query
+                    .OrderByDescending(p => p.PaidAt)
+                    .Skip((CurrentPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToListAsync();
+            }
         }
 
-        // Plate filter
-        if (!string.IsNullOrWhiteSpace(PlateNumber))
-            query = query.Where(p =>
-                p.Vehicle != null &&
-                p.Vehicle.PlateNumber.Contains(PlateNumber));
-
-        // Car type filter
-        if (CarTypeId.HasValue && CarTypeId > 0)
-            query = query.Where(p =>
-                p.Vehicle != null &&
-                p.Vehicle.CarTypeId == CarTypeId);
-
-        // Movement filter
-        if (MovementId.HasValue && MovementId > 0)
-            query = query.Where(p => p.MovementId == MovementId);
-
-        // ===== TOTALS =====
-        TotalPayments = await query.CountAsync();
-        TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0;
-        TotalVehicles = await query.Select(p => p.VehicleId).Distinct().CountAsync();
-
-        TotalPages = (int)Math.Ceiling(TotalPayments / (double)PageSize);
-
-        // ===== PAGED DATA =====
-        Payments = await query
-            .OrderByDescending(p => p.PaidAt)
-            .Skip((PageNumber - 1) * PageSize)
-            .Take(PageSize)
-            .ToListAsync();
-    }
-
-    // ===== EXCEL EXPORT =====
-    public async Task<IActionResult> OnPostExportExcelAsync()
-    {
-        ExcelPackage.License.SetNonCommercialOrganization("Garowe Municipality");
-
-        var query = _context.Payments
-            .Where(p => !p.IsReverted)
-            .Include(p => p.Vehicle)
-                .ThenInclude(v => v.CarType)
-            .Include(p => p.Movement)
-            .Include(p => p.ReceiptReference)
-            .AsQueryable();
-
-        // Same filters as OnGet
-
-        if (FromDate.HasValue)
+        public async Task<IActionResult> OnGetExportExcelAsync()
         {
-            var from = FromDate.Value.Date;
-            query = query.Where(p => p.PaidAt >= from);
+            var query = _context.Payments
+                .Where(p => !p.IsReverted)
+                .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
+                .Include(p => p.Movement)
+                .Include(p => p.ReceiptReference)
+                .Include(p => p.Collector)
+                .AsQueryable();
+
+            if (FromDate.HasValue)
+                query = query.Where(p => p.PaidAt >= FromDate.Value.Date);
+
+            if (ToDate.HasValue)
+                query = query.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
+
+            if (!string.IsNullOrWhiteSpace(PlateNumber))
+                query = query.Where(p => p.Vehicle != null && p.Vehicle.PlateNumber.Contains(PlateNumber));
+
+            if (CarTypeId.HasValue)
+                query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);
+
+            if (MovementId.HasValue)
+                query = query.Where(p => p.MovementId == MovementId.Value);
+
+            if (CollectorId.HasValue)
+                query = query.Where(p => p.CollectorId == CollectorId.Value);
+
+            var payments = await query
+                .OrderByDescending(p => p.PaidAt)
+                .ToListAsync();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Collector,Receipt Ref,Amount");
+
+            foreach (var p in payments)
+            {
+                sb.AppendLine(string.Join(",",
+                    p.PaidAt.ToString("yyyy-MM-dd"),
+                    p.Vehicle?.PlateNumber,
+                    p.Vehicle?.OwnerName,
+                    p.Vehicle?.Mobile,
+                    p.Vehicle?.CarType?.Name,
+                    p.Movement?.Name ?? p.MovementType,
+                    p.Collector?.Username ?? "System",
+                    p.ReceiptReference?.ReferenceNumber ?? "-",
+                    p.Amount
+                ));
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+            return File(bytes, "text/csv", $"Payments_{DateTime.Now:yyyyMMddHHmmss}.csv");
         }
-
-        if (ToDate.HasValue)
-        {
-            var to = ToDate.Value.Date.AddDays(1);
-            query = query.Where(p => p.PaidAt < to);
-        }
-
-        if (!string.IsNullOrWhiteSpace(PlateNumber))
-            query = query.Where(p =>
-                p.Vehicle != null &&
-                p.Vehicle.PlateNumber.Contains(PlateNumber));
-
-        if (CarTypeId.HasValue && CarTypeId > 0)
-            query = query.Where(p =>
-                p.Vehicle != null &&
-                p.Vehicle.CarTypeId == CarTypeId);
-
-        if (MovementId.HasValue && MovementId > 0)
-            query = query.Where(p => p.MovementId == MovementId);
-
-        var data = await query
-            .OrderByDescending(p => p.PaidAt)
-            .ToListAsync();
-
-        using var package = new ExcelPackage();
-        var sheet = package.Workbook.Worksheets.Add("Vehicle Tax Report");
-
-        string[] headers =
-        {
-            "Date", "Plate", "Owner", "Mobile",
-            "Car Type", "Movement", "Receipt Ref", "Amount"
-        };
-
-        for (int i = 0; i < headers.Length; i++)
-            sheet.Cells[1, i + 1].Value = headers[i];
-
-        sheet.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
-
-        int row = 2;
-        foreach (var p in data)
-        {
-            sheet.Cells[row, 1].Value = p.PaidAt.ToString("yyyy-MM-dd");
-            sheet.Cells[row, 2].Value = p.Vehicle?.PlateNumber;
-            sheet.Cells[row, 3].Value = p.Vehicle?.OwnerName;
-            sheet.Cells[row, 4].Value = p.Vehicle?.Mobile;
-            sheet.Cells[row, 5].Value = p.Vehicle?.CarType?.Name;
-            sheet.Cells[row, 6].Value = p.Movement?.Name;
-            sheet.Cells[row, 7].Value = p.ReceiptReference?.ReferenceNumber;
-            sheet.Cells[row, 8].Value = p.Amount;
-            row++;
-        }
-
-        sheet.Cells.AutoFitColumns();
-
-        return File(
-            package.GetAsByteArray(),
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"VehicleTaxReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
-        );
     }
 }

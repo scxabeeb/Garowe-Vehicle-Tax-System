@@ -1,0 +1,135 @@
+@page
+@model VehicleTax.Web.Pages.Transactions.IndexModel
+
+<div class="container mt-4">
+
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-filter-square"></i>
+        All Transactions
+    </h3>
+
+    <!-- FILTERS -->
+    <form method="get" class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" asp-for="FromDate" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" asp-for="ToDate" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">User</label>
+                    <select asp-for="UserId" class="form-select">
+                        <option value="">-- All Users --</option>
+                        @foreach (var u in Model.Users)
+                        {
+                            <option value="@u.Id">@u.Username</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Action</label>
+                    <select asp-for="Action" class="form-select">
+                        <option value="All">All</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Reverted">Reverted</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="mt-3 text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+
+                <a asp-page="/Transactions/Index" class="btn btn-secondary">
+                    Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- PAGE SIZE + EXPORT -->
+    <div class="d-flex justify-content-between mb-2">
+        <form method="get" class="d-inline">
+            <input type="hidden" name="FromDate" value="@Model.FromDate" />
+            <input type="hidden" name="ToDate" value="@Model.ToDate" />
+            <input type="hidden" name="UserId" value="@Model.UserId" />
+            <input type="hidden" name="Action" value="@Model.Action" />
+
+            <select name="PageSize"
+                    class="form-select d-inline w-auto"
+                    onchange="this.form.submit()">
+                <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                <option value="20" selected="@(Model.PageSize == 20)">20</option>
+                <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                <option value="200" selected="@(Model.PageSize == 200)">200</option>
+                <option value="0" selected="@(Model.PageSize == 0)">All</option>
+            </select>
+            <span class="ms-1">rows</span>
+        </form>
+
+        <a href="~/Transactions/Index?handler=ExportFiltered&FromDate=@Model.FromDate&ToDate=@Model.ToDate&UserId=@Model.UserId&Action=@Model.Action"
+           class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export Filtered
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Plate</th>
+                            <th>Car Type</th>
+                            <th>Movement</th>
+                            <th>Collector</th>
+                            <th>Amount</th>
+                            <th>Receipt</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var t in Model.Transactions)
+                        {
+                            <tr class="@(t.IsReverted ? "table-danger" : "")">
+                                <td>@t.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@t.Vehicle?.PlateNumber</td>
+                                <td>@t.Vehicle?.CarType?.Name</td>
+                                <td>@t.MovementType</td>
+                                <td>@(t.Collector?.Username ?? "System")</td>
+                                <td>@t.Amount</td>
+                                <td>@t.ReceiptReference?.ReferenceNumber</td>
+                                <td>
+                                    @if (t.IsReverted)
+                                    {
+                                        <span class="badge bg-danger">Reverted</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Completed</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

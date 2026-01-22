@@ -1,0 +1,131 @@
+@page
+@model VehicleTax.Web.Pages.Reports.MovementsModel
+@{
+    ViewData["Title"] = "Movement Report";
+}
+
+<h3 class="fw-bold mb-4">Movement Report</h3>
+
+<form method="get" class="card p-3 shadow-sm mb-4">
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <label class="form-label">Movement Name</label>
+            <input asp-for="MovementName" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Car Type</label>
+            <select asp-for="CarTypeId" asp-items="Model.CarTypes" class="form-select">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Show</label>
+            <select asp-for="PageSize" class="form-select">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="-1">All</option>
+            </select>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Filter</button>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <a asp-page-handler="ExportCsv"
+               asp-route-movementName="@Model.MovementName"
+               asp-route-carTypeId="@Model.CarTypeId"
+               class="btn btn-success w-100">
+                CSV
+            </a>
+        </div>
+
+    </div>
+</form>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6>Total Movements</h6>
+                <h4>@Model.TotalRecords</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Movement</th>
+            <th>Car Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Movements.Any())
+        {
+            <tr>
+                <td colspan="2" class="text-center text-muted">
+                    No movement records found.
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var m in Model.Movements)
+            {
+                <tr>
+                    <td>@m.Name</td>
+                    <td>@m.CarType?.Name</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@if (Model.PageSize != -1 && Model.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination justify-content-center">
+
+            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-route-PageNumber="@(Model.PageNumber - 1)"
+                   asp-route-PageSize="@Model.PageSize"
+                   asp-route-MovementName="@Model.MovementName"
+                   asp-route-CarTypeId="@Model.CarTypeId">
+                    Previous
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link"
+                       asp-route-PageNumber="@i"
+                       asp-route-PageSize="@Model.PageSize"
+                       asp-route-MovementName="@Model.MovementName"
+                       asp-route-CarTypeId="@Model.CarTypeId">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-route-PageNumber="@(Model.PageNumber + 1)"
+                   asp-route-PageSize="@Model.PageSize"
+                   asp-route-MovementName="@Model.MovementName"
+                   asp-route-CarTypeId="@Model.CarTypeId">
+                    Next
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+}

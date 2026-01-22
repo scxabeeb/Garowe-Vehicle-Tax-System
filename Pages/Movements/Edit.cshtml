@@ -4,42 +4,64 @@
     ViewData["Title"] = "Edit Movement";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
 <div class="row justify-content-center">
     <div class="col-md-6">
 
-        <!-- PAGE TITLE -->
         <div class="mb-4 text-center">
             <h3 class="fw-bold">Edit Movement</h3>
             <p class="text-muted">
-                Update movement type (Passing / Staying)
+                Update movement and car type
             </p>
         </div>
 
-        <!-- FORM CARD -->
         <form method="post" class="card shadow-sm border-0">
 
             <div class="card-body p-4">
 
                 <input type="hidden" asp-for="Movement.Id" />
 
+                <!-- Movement Name -->
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Movement Name
-                    </label>
-
+                    <label class="form-label fw-semibold">Movement Name</label>
                     <input asp-for="Movement.Name"
                            class="form-control"
                            required />
-
                     <span asp-validation-for="Movement.Name"
+                          class="text-danger small"></span>
+                </div>
+
+                <!-- Car Type Dropdown -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Car Type</label>
+                    <select asp-for="Movement.CarTypeId"
+                            class="form-select"
+                            asp-items="Model.CarTypes">
+                        <option value="">-- Select Car Type --</option>
+                    </select>
+                    <span asp-validation-for="Movement.CarTypeId"
                           class="text-danger small"></span>
                 </div>
 
             </div>
 
-            <!-- CARD FOOTER -->
             <div class="card-footer bg-light text-end">
-
                 <a asp-page="Index"
                    class="btn btn-outline-secondary me-2">
                     Cancel
@@ -49,10 +71,13 @@
                         class="btn btn-primary px-4">
                     Save Changes
                 </button>
-
             </div>
 
         </form>
 
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -16,6 +16,9 @@ public class LogoutModel : PageModel
     public async Task<IActionResult> OnPostAsync()
     {
         await _signInManager.SignOutAsync();
-        return RedirectToPage("/Account/Login");
+        Response.Cookies.Delete(".AspNetCore.Identity.Application");
+
+        // Just return OK, JS will handle navigation
+        return new OkResult();
     }
 }

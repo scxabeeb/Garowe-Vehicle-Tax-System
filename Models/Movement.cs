@@ -1,8 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace VehicleTax.Web.Models
 {
     public class Movement
     {
         public int Id { get; set; }
-        public string Name { get; set; } = ""; // Passing, Staying
+
+        [Required]
+        public string Name { get; set; } = "";
+
+        [Required]
+        public int? CarTypeId { get; set; }   // 🔑 MUST be nullable
+
+        public CarType? CarType { get; set; }
     }
 }

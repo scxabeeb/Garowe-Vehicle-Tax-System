@@ -15,82 +15,75 @@ public class CreateModel : PageModel
         _context = context;
     }
 
-    // ======================
-    // FORM MODEL
-    // ======================
     [BindProperty]
     public TaxAmount Tax { get; set; } = new();
 
-    // ======================
-    // DROPDOWNS
-    // ======================
     public SelectList CarTypes { get; set; } = null!;
     public SelectList Movements { get; set; } = null!;
 
-    // ======================
-    // GET
-    // ======================
     public void OnGet()
     {
-        LoadDropdowns();
+        LoadCarTypes();
+        Movements = new SelectList(Enumerable.Empty<SelectListItem>());
     }
 
-    // ======================
-    // POST
-    // ======================
     public IActionResult OnPost()
     {
-        // 🔒 Validate dropdown selection
         if (Tax.CarTypeId == 0 || Tax.MovementId == 0)
         {
-            ModelState.AddModelError(
-                string.Empty,
-                "Please select both Car Type and Movement."
-            );
+            ModelState.AddModelError("", "Please select both Car Type and Movement.");
         }
 
-        // 🔒 Prevent duplicate CarType + Movement
         bool exists = _context.TaxAmounts.Any(t =>
             t.CarTypeId == Tax.CarTypeId &&
-            t.MovementId == Tax.MovementId
-        );
+            t.MovementId == Tax.MovementId);
 
         if (exists)
         {
-            ModelState.AddModelError(
-                string.Empty,
-                "A tax amount for the selected Car Type and Movement already exists."
-            );
+            ModelState.AddModelError("", "This tax amount already exists.");
         }
 
         if (!ModelState.IsValid)
         {
-            LoadDropdowns();
+            LoadCarTypes();
+            LoadMovements(Tax.CarTypeId);
             return Page();
         }
 
         _context.TaxAmounts.Add(Tax);
         _context.SaveChanges();
 
-        // ✅ Inline success alert on Index
         TempData["Success"] = "Tax amount created successfully.";
-
         return RedirectToPage("Index");
     }
 
-    // ======================
-    // HELPERS
-    // ======================
-    private void LoadDropdowns()
+    // 🔁 Ajax endpoint
+    public JsonResult OnGetMovements(int carTypeId)
+    {
+        var data = _context.Movements
+            .Where(m => m.CarTypeId == carTypeId)
+            .OrderBy(m => m.Name)
+            .Select(m => new { m.Id, m.Name })
+            .ToList();
+
+        return new JsonResult(data);
+    }
+
+    private void LoadCarTypes()
     {
         CarTypes = new SelectList(
             _context.CarTypes.OrderBy(c => c.Name),
             "Id",
             "Name"
         );
+    }
 
+    private void LoadMovements(int carTypeId)
+    {
         Movements = new SelectList(
-            _context.Movements.OrderBy(m => m.Name),
+            _context.Movements
+                .Where(m => m.CarTypeId == carTypeId)
+                .OrderBy(m => m.Name),
             "Id",
             "Name"
         );

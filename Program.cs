@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using VehicleTax.Web.Data;
 using MySqlConnector;
 
@@ -14,8 +14,6 @@ builder.Configuration.AddEnvironmentVariables();
 // Database
 // =========================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// Railway uses MySQL 8.x
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -23,19 +21,30 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // =========================
-// Identity (Users + Roles)
+// 🔐 Authentication (COOKIE BASED)
 // =========================
-builder.Services
-    .AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    });
 
-builder.Services.ConfigureApplicationCookie(options =>
+// =========================
+// 🔑 Authorization (Roles + Permissions)
+// =========================
+builder.Services.AddAuthorization(options =>
 {
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-    options.SlidingExpiration = true;
+    options.AddPolicy("CanViewDashboard", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") ||
+            context.User.IsInRole("Auditor") ||
+            context.User.HasClaim("permission", "Dashboard.View")
+        )
+    );
 });
 
 // =========================
@@ -45,6 +54,8 @@ builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/");
     options.Conventions.AllowAnonymousToPage("/Account/Login");
+    options.Conventions.AllowAnonymousToPage("/Account/Logout");
+    options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
 });
 
 // =========================
@@ -65,7 +76,7 @@ builder.Services.AddSession(options =>
 var app = builder.Build();
 
 // =========================
-// Auto migrate database (optional but recommended)
+// Auto migrate DB
 // =========================
 using (var scope = app.Services.CreateScope())
 {
@@ -74,7 +85,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // =========================
-// Middleware Pipeline
+// Pipeline
 // =========================
 if (!app.Environment.IsDevelopment())
 {
@@ -82,28 +93,33 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Railway already handles HTTPS
-// app.UseHttpsRedirection();
-
+app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
-// ==========================================
-// Prevent cached pages appearing after logout
-// ==========================================
+app.UseSession();
+app.UseAuthentication();
+
+// 🔥 GLOBAL CACHE + HISTORY KILLER
 app.Use(async (context, next) =>
 {
-    context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
     context.Response.Headers["Pragma"] = "no-cache";
     context.Response.Headers["Expires"] = "0";
     await next();
 });
 
-app.UseSession();
-app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapRazorPages();
+// =========================
+// Map API Controllers
+// =========================
 app.MapControllers();
+
+// =========================
+// Razor Pages
+// =========================
+app.MapRazorPages();
 
 app.Run();

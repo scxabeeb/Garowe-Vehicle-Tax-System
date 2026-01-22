@@ -29,8 +29,11 @@
 
                     <div class="mb-3">
                         <strong>Status</strong><br />
-
-                        @if (Model.Item.IsUsed)
+                        @if (Model.Item.IsCancelled)
+                        {
+                            <span class="badge bg-dark">Cancelled</span>
+                        }
+                        else if (Model.Item.IsUsed)
                         {
                             <span class="badge bg-danger">Used</span>
                         }
@@ -40,15 +43,45 @@
                         }
                     </div>
 
-                    <div class="mb-3">
-                        <strong>Used By</strong>
-                        <div>@(Model.Item.UsedBy ?? "-")</div>
-                    </div>
+                    @* USED DETAILS *@
+                    @if (Model.Item.IsUsed)
+                    {
+                        <hr />
+                        <div class="mb-3">
+                            <strong>Vehicle</strong>
+                            <div>@Model.Item.Vehicle?.PlateNumber</div>
+                        </div>
 
-                    <div class="mb-3">
-                        <strong>Used At</strong>
-                        <div>@(Model.Item.UsedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</div>
-                    </div>
+                        <div class="mb-3">
+                            <strong>Collector</strong>
+                            <div>@Model.Item.UsedBy</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Used At</strong>
+                            <div>@Model.Item.UsedAt?.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    }
+
+                    @* CANCELLED DETAILS *@
+                    @if (Model.Item.IsCancelled)
+                    {
+                        <hr />
+                        <div class="mb-3">
+                            <strong>Cancelled By</strong>
+                            <div>@Model.Item.CancelledBy</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Cancelled At</strong>
+                            <div>@Model.Item.CancelledAt?.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Reason</strong>
+                            <div class="text-danger">@Model.Item.CancelledReason</div>
+                        </div>
+                    }
 
                 </div>
 
@@ -58,16 +91,43 @@
                         Back
                     </a>
 
-                    <form method="post" asp-page-handler="Toggle" asp-route-id="@Model.Item.Id">
-                        <button class="btn btn-outline-primary">
-                            @(Model.Item.IsUsed ? "Mark as Unused" : "Mark as Used")
+                    @* Only show Cancel when Available *@
+                    @if (!Model.Item.IsUsed && !Model.Item.IsCancelled)
+                    {
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            Cancel Reference
                         </button>
-                    </form>
+                    }
 
                 </div>
 
             </div>
         }
 
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-page-handler="Cancel" asp-route-id="@Model.Item.Id" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Receipt Reference</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Reason for Cancellation</label>
+                    <textarea name="Reason" class="form-control" rows="3" required></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-danger">
+                    Confirm Cancel
+                </button>
+            </div>
+        </form>
     </div>
 </div>

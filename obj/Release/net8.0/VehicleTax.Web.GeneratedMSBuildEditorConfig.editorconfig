@@ -1,0 +1,163 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = VehicleTax.Web
+build_property.RootNamespace = VehicleTax.Web
+build_property.ProjectDir = /Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/saedhabeb/Desktop/Tax System/VehicleTax.Web
+build_property._RazorSourceGeneratorDebug = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Account/Permissions.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWNjb3VudC9QZXJtaXNzaW9ucy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Account/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWNjb3VudC9SZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Account/Users.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWNjb3VudC9Vc2Vycy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/CarTypes/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2FyVHlwZXMvQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/CarTypes/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2FyVHlwZXMvRGVsZXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/CarTypes/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2FyVHlwZXMvRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/CarTypes/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2FyVHlwZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Movements/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTW92ZW1lbnRzL0NyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Movements/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTW92ZW1lbnRzL0RlbGV0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Movements/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTW92ZW1lbnRzL0VkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Movements/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTW92ZW1lbnRzL0luZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Payments/Collect.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUGF5bWVudHMvQ29sbGVjdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Payments/Receipt.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUGF5bWVudHMvUmVjZWlwdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/ReceiptReferences/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVjZWlwdFJlZmVyZW5jZXMvQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/ReceiptReferences/index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVjZWlwdFJlZmVyZW5jZXMvaW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/ReceiptReferences/Upload.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVjZWlwdFJlZmVyZW5jZXMvVXBsb2FkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/ReceiptReferences/View.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVjZWlwdFJlZmVyZW5jZXMvVmlldy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Reports/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVwb3J0cy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Reports/Payments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVwb3J0cy9QYXltZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Reports/TaxCollection.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVwb3J0cy9UYXhDb2xsZWN0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Reports/Vehicles.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVwb3J0cy9WZWhpY2xlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2hhcmVkL19MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Shared/_LoginLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2hhcmVkL19Mb2dpbkxheW91dC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/TaxAmounts/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVGF4QW1vdW50cy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/TaxAmounts/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVGF4QW1vdW50cy9EZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/TaxAmounts/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVGF4QW1vdW50cy9FZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/TaxAmounts/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVGF4QW1vdW50cy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Vehicles/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Vehicles/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvRGVsZXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Vehicles/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/Vehicles/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVmVoaWNsZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/saedhabeb/Desktop/Tax System/VehicleTax.Web/Pages/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 

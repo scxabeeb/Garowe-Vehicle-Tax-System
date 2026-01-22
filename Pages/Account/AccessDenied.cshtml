@@ -1,0 +1,27 @@
+@page
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Access Denied";
+    var permissions = User.Claims
+        .Where(c => c.Type == "permission")
+        .Select(c => c.Value)
+        .ToList();
+}
+
+<div class="container mt-5 text-center">
+    <h2 class="text-danger">Access Denied</h2>
+    <p>You do not have permission to access this page.</p>
+
+    @if (permissions.Any())
+    {
+        <div class="alert alert-info mt-3">
+            <strong>Your permissions:</strong>
+            <br />
+            @string.Join(", ", permissions)
+        </div>
+    }
+
+    <a asp-page="/Account/Login" class="btn btn-primary mt-3">
+        Login with another account
+    </a>
+</div>

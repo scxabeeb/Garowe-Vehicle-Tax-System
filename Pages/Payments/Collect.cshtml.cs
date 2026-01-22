@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -7,6 +8,7 @@ using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Pages.Payments;
 
+[Authorize] 
 public class CollectModel : PageModel
 {
     private readonly AppDbContext _context;
@@ -16,56 +18,89 @@ public class CollectModel : PageModel
         _context = context;
     }
 
-    // ===== Bindings =====
+    // =======================
+    // BINDINGS
+    // =======================
     [BindProperty] public string PlateNumber { get; set; } = "";
     [BindProperty] public int MovementId { get; set; }
     [BindProperty] public int Quantity { get; set; } = 1;
     [BindProperty] public string ReferenceNumber { get; set; } = "";
 
-    // ===== View Data =====
+    // =======================
+    // VIEW DATA
+    // =======================
     public Vehicle? Vehicle { get; set; }
     public SelectList Movements { get; set; } = null!;
     public decimal UnitAmount { get; set; }
     public decimal Amount { get; set; }
 
-    public bool ReferenceValid { get; set; }
     public bool ReferenceChecked { get; set; }
+    public bool ReferenceValid { get; set; }
     public string? ReferenceMessage { get; set; }
+
     public string? ErrorMessage { get; set; }
 
-    // 🔍 Payment History
     public List<Payment> Payments { get; set; } = new();
 
-    // ===== GET =====
+    // =======================
+    // GET
+    // =======================
     public void OnGet()
     {
-        Quantity = 1;
         LoadMovements();
     }
 
-    // 🔍 SEARCH
+    // =======================
+    // SEARCH
+    // =======================
     public void OnPostSearch()
     {
-        NormalizeQuantity();
-        LoadMovements();
-        LoadVehicle();
+        MovementId = 0;
+        Quantity = 1;
+        UnitAmount = 0;
+        Amount = 0;
+        ReferenceNumber = "";
+        ReferenceChecked = false;
+        ReferenceValid = false;
+        ReferenceMessage = null;
+        ErrorMessage = null;
 
-        if (Vehicle == null)
-            ErrorMessage = "Vehicle not found";
+        LoadVehicle();
+        LoadMovements();
     }
 
-    // 💰 CALCULATE
+    // =======================
+    // CALCULATE
+    // =======================
     public void OnPostCalculate()
     {
-        NormalizeQuantity();
-        LoadMovements();
         LoadVehicle();
+        LoadMovements();
 
         if (Vehicle == null || MovementId == 0)
             return;
 
-        if (!ValidateReference())
+        ReferenceChecked = true;
+
+        var receipt = _context.ReceiptReferences
+            .FirstOrDefault(r => r.ReferenceNumber == ReferenceNumber);
+
+        if (receipt == null)
+        {
+            ReferenceValid = false;
+            ReferenceMessage = "Receipt not found";
             return;
+        }
+
+        if (receipt.IsUsed)
+        {
+            ReferenceValid = false;
+            ReferenceMessage = "Receipt already used";
+            return;
+        }
+
+        ReferenceValid = true;
+        ReferenceMessage = "Receipt is available";
 
         var tax = _context.TaxAmounts
             .Include(t => t.Movement)
@@ -74,164 +109,132 @@ public class CollectModel : PageModel
                 t.MovementId == MovementId);
 
         if (tax == null)
+        {
+            ErrorMessage = "Tax not configured for this movement and car type";
             return;
+        }
 
         UnitAmount = tax.Amount;
         Amount = UnitAmount * Quantity;
     }
 
-    // ✅ COLLECT PAYMENT (SAFE VERSION)
+    // =======================
+    // COLLECT PAYMENT  (FIXED)
+    // =======================
     public IActionResult OnPostCollect()
     {
-        using var transaction = _context.Database.BeginTransaction();
-
+        using var tx = _context.Database.BeginTransaction();
         try
         {
-            NormalizeQuantity();
-            LoadMovements();
             LoadVehicle();
+            LoadMovements();
 
-            if (Vehicle == null)
-                throw new Exception("Vehicle not found");
-
-            if (MovementId == 0)
-                throw new Exception("Movement type is required");
-
-            if (!ValidateReference())
-                throw new Exception(ReferenceMessage);
-
-            // Load tax + movement safely
-            var tax = _context.TaxAmounts
-                .Include(t => t.Movement)
-                .FirstOrDefault(t =>
-                    t.CarTypeId == Vehicle.CarTypeId &&
-                    t.MovementId == MovementId);
-
-            if (tax == null)
-                throw new Exception("Tax amount not configured");
-
-            // Load receipt safely
             var receipt = _context.ReceiptReferences
                 .FirstOrDefault(r => r.ReferenceNumber == ReferenceNumber);
 
-            if (receipt == null)
-                throw new Exception("Receipt number not found");
+            if (receipt == null || receipt.IsUsed)
+                throw new Exception("Invalid or already used receipt reference.");
 
-            if (receipt.IsUsed)
-                throw new Exception("Receipt number already used");
+            var tax = _context.TaxAmounts
+                .Include(t => t.Movement)
+                .FirstOrDefault(t =>
+                    t.CarTypeId == Vehicle!.CarTypeId &&
+                    t.MovementId == MovementId);
+
+            if (tax == null)
+                throw new Exception("Tax configuration not found.");
+
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+                throw new Exception("Collector not logged in.");
+
+            var collector = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (collector == null)
+                throw new Exception("Collector user not found.");
 
             var payment = new Payment
             {
-                VehicleId = Vehicle.Id,
-                MovementId = tax.MovementId,
-                MovementType = tax.Movement?.Name ?? "Unknown",
+                VehicleId = Vehicle!.Id,
+                MovementId = MovementId,
+                MovementType = tax.Movement!.Name,
                 Amount = tax.Amount * Quantity,
                 PaidAt = DateTime.UtcNow,
                 ReceiptReferenceId = receipt.Id,
-
-                // TODO: replace with logged-in user id
-                CollectorId = 1
+                CollectorId = collector.Id
             };
 
             _context.Payments.Add(payment);
 
-            // Lock receipt
+            // 🔴 THIS IS THE KEY PART FOR YOUR REPORT
             receipt.IsUsed = true;
             receipt.UsedAt = DateTime.UtcNow;
+            receipt.UsedBy = collector.Username;   // Collector name
+            receipt.VehicleId = Vehicle.Id;        // Vehicle that used the receipt
 
             _context.SaveChanges();
-            transaction.Commit();
+            tx.Commit();
 
-            TempData["SuccessMessage"] = "Payment collected successfully";
+            TempData["SuccessMessage"] = "Payment collected successfully.";
             return RedirectToPage();
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
+            tx.Rollback();
             ErrorMessage = ex.Message;
             return Page();
         }
     }
 
-    // 🔁 REVERT PAYMENT
+    // =======================
+    // REVERT (ADMIN ONLY)  (FIXED)
+    // =======================
+    [Authorize(Roles = "Admin")]
     public IActionResult OnPostRevert(int paymentId, string reason)
     {
-        using var transaction = _context.Database.BeginTransaction();
-
         try
         {
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new Exception("Revert reason is required.");
+
             var payment = _context.Payments
                 .Include(p => p.ReceiptReference)
                 .FirstOrDefault(p => p.Id == paymentId);
 
-            if (payment == null)
-                throw new Exception("Payment not found");
+            if (payment == null || payment.IsReverted)
+                throw new Exception("Invalid payment or already reverted.");
 
-            if (payment.IsReverted)
-                throw new Exception("Payment already reverted");
+            var username = User.Identity?.Name;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
 
             payment.IsReverted = true;
-            payment.RevertReason = reason;
             payment.RevertedAt = DateTime.UtcNow;
+            payment.RevertReason = reason;
+            payment.RevertedByUserId = user!.Id;
 
+            // Reset receipt so it becomes available again
             if (payment.ReceiptReference != null)
             {
                 payment.ReceiptReference.IsUsed = false;
                 payment.ReceiptReference.UsedAt = null;
+                payment.ReceiptReference.UsedBy = null;
+                payment.ReceiptReference.VehicleId = null;
             }
 
             _context.SaveChanges();
-            transaction.Commit();
 
-            TempData["SuccessMessage"] = "Payment reverted successfully";
+            TempData["SuccessMessage"] = "Payment reverted successfully.";
             return RedirectToPage();
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
             ErrorMessage = ex.Message;
             return Page();
         }
     }
 
-    // ===== Helpers =====
-    private void NormalizeQuantity()
-    {
-        Quantity = Quantity <= 0 ? 1 : Quantity;
-    }
-
-    private bool ValidateReference()
-    {
-        ReferenceChecked = true;
-
-        if (string.IsNullOrWhiteSpace(ReferenceNumber))
-        {
-            ReferenceMessage = "Receipt number is required";
-            ReferenceValid = false;
-            return false;
-        }
-
-        var reference = _context.ReceiptReferences
-            .FirstOrDefault(r => r.ReferenceNumber == ReferenceNumber);
-
-        if (reference == null)
-        {
-            ReferenceMessage = "Receipt number not found";
-            ReferenceValid = false;
-            return false;
-        }
-
-        if (reference.IsUsed)
-        {
-            ReferenceMessage = "Receipt number already used";
-            ReferenceValid = false;
-            return false;
-        }
-
-        ReferenceValid = true;
-        return true;
-    }
-
+    // =======================
+    // HELPERS
+    // =======================
     private void LoadVehicle()
     {
         var plate = PlateNumber.Trim().ToUpper();
@@ -252,8 +255,22 @@ public class CollectModel : PageModel
 
     private void LoadMovements()
     {
+        if (Vehicle == null)
+        {
+            Movements = new SelectList(Enumerable.Empty<SelectListItem>());
+            return;
+        }
+
+        var movementIds = _context.TaxAmounts
+            .Where(t => t.CarTypeId == Vehicle.CarTypeId)
+            .Select(t => t.MovementId)
+            .Distinct()
+            .ToList();
+
         Movements = new SelectList(
-            _context.Movements.AsNoTracking(),
+            _context.Movements
+                .Where(m => movementIds.Contains(m.Id))
+                .OrderBy(m => m.Name),
             "Id",
             "Name"
         );

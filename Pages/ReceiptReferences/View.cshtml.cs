@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 
@@ -16,38 +17,34 @@ public class ViewModel : PageModel
 
     public ReceiptReference? Item { get; set; }
 
-    public IActionResult OnGet(int id)
+    public async Task<IActionResult> OnGetAsync(int id)
     {
-        Item = _context.ReceiptReferences.FirstOrDefault(x => x.Id == id);
+        Item = await _context.ReceiptReferences
+            .Include(r => r.Vehicle)
+            .FirstOrDefaultAsync(r => r.Id == id);
 
         if (Item == null)
-            return RedirectToPage("Index");
+            return NotFound();
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostToggleAsync(int id)
+    // Cancel only when AVAILABLE
+    public async Task<IActionResult> OnPostCancelAsync(int id, string reason)
     {
-        var r = _context.ReceiptReferences.FirstOrDefault(x => x.Id == id);
+        var item = await _context.ReceiptReferences.FindAsync(id);
+        if (item == null)
+            return NotFound();
 
-        if (r == null)
-            return RedirectToPage("Index");
+        if (item.IsUsed || item.IsCancelled)
+            return RedirectToPage(new { id });
 
-        if (r.IsUsed)
-        {
-            r.IsUsed = false;
-            r.UsedAt = null;
-            r.UsedBy = null;
-        }
-        else
-        {
-            r.IsUsed = true;
-            r.UsedAt = DateTime.Now;
-            r.UsedBy = User.Identity?.Name ?? "System";
-        }
+        item.IsCancelled = true;
+        item.CancelledReason = reason;
+        item.CancelledAt = DateTime.Now;
+        item.CancelledBy = User.Identity?.Name ?? "System";
 
         await _context.SaveChangesAsync();
-
         return RedirectToPage(new { id });
     }
 }

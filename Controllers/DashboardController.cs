@@ -18,14 +18,22 @@ namespace VehicleTax.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetDashboard()
+        public IActionResult GetDashboard([FromQuery] int? collectorId = null)
         {
-            // Always use UTC for consistency
+            // Always use UTC
             var today = DateTime.UtcNow.Date;
 
-            // 🔴 IMPORTANT: Only VALID (not reverted) payments
+            // 🔴 Only valid (not reverted) payments
             var validPayments = _context.Payments
+                .Include(p => p.Vehicle)
                 .Where(p => !p.IsReverted);
+
+            // 🔵 Filter by collector if provided
+            if (collectorId.HasValue)
+            {
+                validPayments = validPayments
+                    .Where(p => p.CollectorId == collectorId.Value);
+            }
 
             var totalVehicles = _context.Vehicles.Count();
 
@@ -35,22 +43,26 @@ namespace VehicleTax.Web.Controllers
                 .Where(p => p.PaidAt >= today && p.PaidAt < today.AddDays(1))
                 .Sum(p => (decimal?)p.Amount) ?? 0;
 
+            // 🔥 IMPORTANT:
+            // Match the exact keys Flutter is using:
+            // plateNumber, movementType, amount, paidAt, isReverted
             var todaysPayments = validPayments
-                .Include(p => p.Vehicle)
                 .Where(p => p.PaidAt >= today && p.PaidAt < today.AddDays(1))
                 .OrderByDescending(p => p.PaidAt)
                 .Take(50)
                 .Select(p => new
                 {
-                    plate = p.Vehicle != null ? p.Vehicle.PlateNumber : "N/A",
-                    movement = p.MovementType,
+                    plateNumber = p.Vehicle != null ? p.Vehicle.PlateNumber : "Unknown",
+                    movementType = p.MovementType,
                     amount = p.Amount,
-                    time = p.PaidAt.ToString("HH:mm")
+                    paidAt = p.PaidAt,        // Flutter parses this
+                    isReverted = p.IsReverted
                 })
                 .ToList();
 
             return Ok(new
             {
+                collectorId,
                 totalVehicles,
                 totalPayments,
                 todayTotal,

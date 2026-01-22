@@ -11,12 +11,13 @@
     </div>
 </div>
 
+<!-- TOP CARDS -->
 <div class="row g-4 mb-4">
     <div class="col-md-4">
         <div class="card shadow-sm border-0 bg-primary text-white">
             <div class="card-body">
-                <h6 class="opacity-75">Total Vehicles</h6>
-                <h2 class="fw-bold">@Model.TotalVehicles</h2>
+                <h6>Total Vehicles</h6>
+                <h2>@Model.TotalVehicles</h2>
             </div>
         </div>
     </div>
@@ -24,8 +25,8 @@
     <div class="col-md-4">
         <div class="card shadow-sm border-0 bg-dark text-white">
             <div class="card-body">
-                <h6 class="opacity-75">Total Payments</h6>
-                <h2 class="fw-bold">@Model.TotalPayments</h2>
+                <h6>Total Payments</h6>
+                <h2>@Model.TotalPayments</h2>
             </div>
         </div>
     </div>
@@ -33,146 +34,223 @@
     <div class="col-md-4">
         <div class="card shadow-sm border-0 bg-success text-white">
             <div class="card-body">
-                <h6 class="opacity-75">Today’s Collection</h6>
-                <h2 class="fw-bold">$@Model.TodayTotal</h2>
+                <h6>Today’s Collection</h6>
+                <h2>$@Model.TodayTotal</h2>
             </div>
         </div>
     </div>
 </div>
 
+<!-- CHARTS -->
 <div class="row g-4 mb-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
+
+    <!-- DAILY -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
             <div class="card-body">
-                <h6 class="fw-bold text-primary mb-3">
-                    Daily Collection (Last 7 Days)
-                </h6>
-                <canvas id="dailyChart" height="120"></canvas>
-            </div>
-            <div class="card-footer border-top text-muted small">
-                Hover to see values • Auto refresh every 10 seconds
+                <h6>Daily Collection</h6>
+                <canvas id="dailyChart"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
+    <!-- MOVEMENT -->
+    <div class="col-md-3">
+        <div class="card shadow-sm">
             <div class="card-body">
-                <h6 class="fw-bold text-primary mb-3">
-                    Movement Type
-                </h6>
-                <canvas id="movementChart" height="200"></canvas>
-            </div>
-            <div class="card-footer border-top text-muted small">
-                Click section to highlight • Auto refresh every 10 seconds
-            </div>
-        </div>
-    </div>
-</div>
+                <h6>Movement Types</h6>
+                <canvas id="movementChart"></canvas>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold text-primary mb-0">Recent Payments</h6>
-            <input type="text"
-                   id="searchInput"
-                   class="form-control form-control-sm w-25"
-                   placeholder="Search plate or mobile..." />
-        </div>
-
-        @if (!Model.RecentPayments.Any())
-        {
-            <p class="text-muted">No payments recorded.</p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-striped table-hover table-bordered table-sm align-middle" id="paymentsTable">
-                    <thead class="table-primary">
+                <table class="table table-sm table-bordered mt-3" id="movementTable">
+                    <thead class="table-light">
                         <tr>
-                            <th>Date</th>
-                            <th>Plate</th>
-                            <th>Mobile</th>
                             <th>Movement</th>
-                            <th class="text-end">Amount</th>
+                            <th class="text-end">Count</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var p in Model.RecentPayments)
-                    {
-                        <tr>
-                            <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
-                            <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
-                            <td>@p.Vehicle?.Mobile</td>
-                            <td>
-                                <span class="badge @(p.MovementType == "Passing" ? "bg-primary" : "bg-warning text-dark")">
-                                    @p.MovementType
-                                </span>
-                            </td>
-                            <td class="text-end fw-bold text-success">$@p.Amount</td>
-                        </tr>
-                    }
+                        @foreach (var m in Model.MovementTable)
+                        {
+                            <tr>
+                                <td>@m.Movement</td>
+                                <td class="text-end fw-bold">@m.Count</td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
+
+                <!-- Movement Pagination -->
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-center" id="movementPagination"></ul>
+                </nav>
             </div>
-        }
+        </div>
+    </div>
+
+    <!-- COLLECTOR -->
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6>Collector Performance</h6>
+                <canvas id="collectorChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- RECENT PAYMENTS -->
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0">Recent Payments</h6>
+
+            <!-- Search -->
+            <input type="text"
+                   id="paymentSearch"
+                   class="form-control form-control-sm w-25"
+                   placeholder="Search all fields..." />
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-sm align-middle" id="paymentsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Plate</th>
+                        <th>Mobile</th>
+                        <th>Movement</th>
+                        <th>Collector</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model.RecentPayments)
+                {
+                    <tr>
+                        <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
+                        <td>@p.Vehicle?.PlateNumber</td>
+                        <td>@p.Vehicle?.Mobile</td>
+                        <td>@p.MovementType</td>
+                        <td>@(p.Collector?.Username ?? "N/A")</td>
+                        <td class="text-end fw-bold">$@p.Amount</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payments Pagination -->
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center" id="paymentsPagination"></ul>
+        </nav>
+
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-document.getElementById("searchInput").addEventListener("keyup", function () {
+/* =========================
+   CHARTS
+========================= */
+const dailyChart = new Chart(document.getElementById('dailyChart'), {
+    type: 'line',
+    data: {
+        labels: @Html.Raw(Model.DailyLabels),
+        datasets: [{
+            label: 'Daily Collection',
+            data: @Html.Raw(Model.DailyAmounts),
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,.25)',
+            fill: true
+        }]
+    }
+});
+
+const movementChart = new Chart(document.getElementById('movementChart'), {
+    type: 'doughnut',
+    data: {
+        labels: @Html.Raw(Model.MovementLabels),
+        datasets: [{
+            data: @Html.Raw(Model.MovementCounts),
+            backgroundColor: ['#0d6efd','#198754','#ffc107','#dc3545','#6610f2','#20c997']
+        }]
+    }
+});
+
+const collectorChart = new Chart(document.getElementById('collectorChart'), {
+    type: 'bar',
+    data: {
+        labels: @Html.Raw(Model.CollectorLabels),
+        datasets: [{
+            label: 'Collected Amount',
+            data: @Html.Raw(Model.CollectorAmounts),
+            backgroundColor: '#198754'
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        scales: { x: { beginAtZero: true } }
+    }
+});
+
+/* =========================
+   RECENT PAYMENTS SEARCH
+========================= */
+document.getElementById("paymentSearch").addEventListener("keyup", function () {
     const value = this.value.toLowerCase();
     document.querySelectorAll("#paymentsTable tbody tr").forEach(row => {
         row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
     });
 });
 
-let dailyChart;
-let movementChart;
+/* =========================
+   PAGINATION FUNCTION
+========================= */
+function setupPagination(tableId, paginationId, rowsPerPage) {
+    const table = document.getElementById(tableId);
+    const pagination = document.getElementById(paginationId);
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
 
-function renderDailyChart() {
-    if (dailyChart) dailyChart.destroy();
+    let currentPage = 1;
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
 
-    dailyChart = new Chart(document.getElementById('dailyChart'), {
-        type: 'line',
-        data: {
-            labels: @Html.Raw(Model.DailyLabels),
-            datasets: [{
-                label: 'Collection ($)',
-                data: @Html.Raw(Model.DailyAmounts),
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13,110,253,.25)',
-                fill: true,
-                tension: 0.45,
-                pointRadius: 5,
-                pointHoverRadius: 8
-            }]
+    function render() {
+        rows.forEach((row, index) => {
+            row.style.display =
+                index >= (currentPage - 1) * rowsPerPage &&
+                index < currentPage * rowsPerPage ? "" : "none";
+        });
+
+        pagination.innerHTML = "";
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement("li");
+            li.className = "page-item " + (i === currentPage ? "active" : "");
+            const a = document.createElement("a");
+            a.className = "page-link";
+            a.href = "#";
+            a.innerText = i;
+            a.onclick = e => {
+                e.preventDefault();
+                currentPage = i;
+                render();
+            };
+            li.appendChild(a);
+            pagination.appendChild(li);
         }
-    });
+    }
+
+    render();
 }
 
-function renderMovementChart() {
-    if (movementChart) movementChart.destroy();
+/* =========================
+   INIT PAGINATION
+========================= */
+// Payments table -> 10 rows
+setupPagination("paymentsTable", "paymentsPagination", 10);
 
-    movementChart = new Chart(document.getElementById('movementChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Passing', 'Staying'],
-            datasets: [{
-                data: [@Model.PassingCount, @Model.StayingCount],
-                backgroundColor: ['#0d6efd', '#ffc107']
-            }]
-        }
-    });
-}
-
-renderDailyChart();
-renderMovementChart();
-
-setInterval(() => {
-    renderDailyChart();
-    renderMovementChart();
-}, 10000);
+// Movement table -> 4 rows
+setupPagination("movementTable", "movementPagination", 4);
 </script>

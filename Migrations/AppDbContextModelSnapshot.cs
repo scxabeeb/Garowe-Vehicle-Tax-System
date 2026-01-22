@@ -19,30 +19,6 @@ namespace VehicleTax.Web.Migrations
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("ReceiptReference", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ReferenceNumber")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UsedBy")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ReceiptReferences");
-                });
-
             modelBuilder.Entity("VehicleTax.Web.Models.CarType", b =>
                 {
                     b.Property<int>("Id")
@@ -67,11 +43,17 @@ namespace VehicleTax.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("CarTypeId")
+                        .IsRequired()
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CarTypeId");
 
                     b.ToTable("Movements");
                 });
@@ -85,7 +67,7 @@ namespace VehicleTax.Web.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<int>("CollectorId")
+                    b.Property<int?>("CollectorId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsReverted")
@@ -118,13 +100,58 @@ namespace VehicleTax.Web.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CollectorId");
+
                     b.HasIndex("MovementId");
 
                     b.HasIndex("ReceiptReferenceId");
 
+                    b.HasIndex("RevertedByUserId");
+
                     b.HasIndex("VehicleId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.ReceiptReference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CancelledBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CancelledReason")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ReferenceNumber")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UsedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("ReceiptReferences");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.TaxAmount", b =>
@@ -156,6 +183,9 @@ namespace VehicleTax.Web.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -206,27 +236,61 @@ namespace VehicleTax.Web.Migrations
                     b.ToTable("Vehicles");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.Payment", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.Movement", b =>
                 {
-                    b.HasOne("VehicleTax.Web.Models.Movement", "Movement")
+                    b.HasOne("VehicleTax.Web.Models.CarType", "CarType")
                         .WithMany()
-                        .HasForeignKey("MovementId")
+                        .HasForeignKey("CarTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ReceiptReference", "ReceiptReference")
+                    b.Navigation("CarType");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.Payment", b =>
+                {
+                    b.HasOne("VehicleTax.Web.Models.User", "Collector")
                         .WithMany()
-                        .HasForeignKey("ReceiptReferenceId");
+                        .HasForeignKey("CollectorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VehicleTax.Web.Models.Movement", "Movement")
+                        .WithMany()
+                        .HasForeignKey("MovementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VehicleTax.Web.Models.ReceiptReference", "ReceiptReference")
+                        .WithMany()
+                        .HasForeignKey("ReceiptReferenceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VehicleTax.Web.Models.User", "RevertedByUser")
+                        .WithMany()
+                        .HasForeignKey("RevertedByUserId");
 
                     b.HasOne("VehicleTax.Web.Models.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Collector");
 
                     b.Navigation("Movement");
 
                     b.Navigation("ReceiptReference");
+
+                    b.Navigation("RevertedByUser");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.ReceiptReference", b =>
+                {
+                    b.HasOne("VehicleTax.Web.Models.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId");
 
                     b.Navigation("Vehicle");
                 });

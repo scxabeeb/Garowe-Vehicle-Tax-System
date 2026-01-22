@@ -86,11 +86,15 @@
                 {
                     foreach (var r in Model.Receipts)
                     {
-                        <tr>
+                        <tr class="@(r.IsCancelled ? "table-secondary text-muted" : "")">
                             <td class="fw-semibold">@r.ReferenceNumber</td>
 
                             <td class="text-center">
-                                @if (r.IsUsed)
+                                @if (r.IsCancelled)
+                                {
+                                    <span class="badge bg-dark">Cancelled</span>
+                                }
+                                else if (r.IsUsed)
                                 {
                                     <span class="badge bg-success">Used</span>
                                 }
@@ -101,7 +105,7 @@
                             </td>
 
                             <td class="text-center">
-                                <a asp-page="view"
+                                <a asp-page="View"
                                    asp-route-id="@r.Id"
                                    class="btn btn-sm btn-outline-info">
                                     View

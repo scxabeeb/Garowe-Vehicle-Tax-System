@@ -53,6 +53,7 @@
                     <tr>
                         <th style="width:70px">#</th>
                         <th>Movement Name</th>
+                        <th>Car Type</th>
                         <th class="text-center" style="width:180px">
                             Actions
                         </th>
@@ -61,13 +62,25 @@
                 <tbody>
                 @if (Model.Movements.Any())
                 {
-                    int i = (Model.PageNumber - 1) * 10 + 1;
+                    int i = (Model.PageNumber - 1) * Model.PageSize + 1;
 
                     foreach (var item in Model.Movements)
                     {
                         <tr>
                             <td>@i</td>
                             <td class="fw-semibold">@item.Name</td>
+                            <td>
+                                @if (item.CarType != null)
+                                {
+                                    <span class="badge bg-info text-dark">
+                                        @item.CarType.Name
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No Car Type</span>
+                                }
+                            </td>
                             <td class="text-center">
                                 <a asp-page="Edit"
                                    asp-route-id="@item.Id"
@@ -87,7 +100,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="3" class="text-center text-muted">
+                        <td colspan="4" class="text-center text-muted">
                             No movements found
                         </td>
                     </tr>

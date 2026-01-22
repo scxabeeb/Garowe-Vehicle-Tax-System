@@ -30,37 +30,40 @@ public class IndexModel : PageModel
     public List<ReceiptReference> Receipts { get; set; } = new();
 
     // SINGLE OnGet
-    public void OnGet()
+    public async Task OnGetAsync()
     {
-        var query = _context.ReceiptReferences.AsQueryable();
+        var query = _context.ReceiptReferences.AsNoTracking().AsQueryable();
 
         // SEARCH
         if (!string.IsNullOrWhiteSpace(Search))
         {
-            query = query.Where(r =>
-                r.ReferenceNumber.Contains(Search));
+            query = query.Where(r => r.ReferenceNumber.Contains(Search));
         }
 
-        int totalCount = query.Count();
+        int totalCount = await query.CountAsync();
 
         if (PageSize > 0)
         {
             TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
 
-            Receipts = query
-                .OrderBy(r => r.ReferenceNumber)
+            Receipts = await query
+                .OrderBy(r => r.IsCancelled)     // Available & Used first, Cancelled last
+                .ThenBy(r => r.IsUsed)           // Available before Used
+                .ThenBy(r => r.ReferenceNumber)
                 .Skip((PageNumber - 1) * PageSize)
                 .Take(PageSize)
-                .ToList();
+                .ToListAsync();
         }
         else
         {
             // show all
             TotalPages = 1;
 
-            Receipts = query
-                .OrderBy(r => r.ReferenceNumber)
-                .ToList();
+            Receipts = await query
+                .OrderBy(r => r.IsCancelled)
+                .ThenBy(r => r.IsUsed)
+                .ThenBy(r => r.ReferenceNumber)
+                .ToListAsync();
         }
     }
 }

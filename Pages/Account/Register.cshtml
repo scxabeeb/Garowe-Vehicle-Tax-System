@@ -4,38 +4,54 @@
     ViewData["Title"] = "Register User";
 }
 
-<div class="card p-4 shadow w-75 mx-auto mt-5">
+<div class="container overflow-hidden">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-6 col-lg-5">
 
-    <h4 class="text-center mb-4">Register User</h4>
+            <div class="card shadow-lg border-0 mt-5">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-plus"></i> Register New User
+                    </h4>
+                </div>
 
-    <form method="post">
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
 
-        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input asp-for="Username" class="form-control" />
+                        </div>
 
-        <input asp-for="Username"
-               class="form-control mb-2"
-               placeholder="Username" />
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input asp-for="Password" type="password" class="form-control" />
+                        </div>
 
-        <input asp-for="Password"
-               type="password"
-               class="form-control mb-3"
-               placeholder="Password" />
+                        <div class="mb-4">
+                            <label class="form-label">Role</label>
+                            <select asp-for="Role" class="form-select">
+                                <option value="">Select Role</option>
+                                <option>Admin</option>
+                                <option>Collector</option>
+                                <option>Viewer</option>
+                                <option>Auditor</option>
+                            </select>
+                        </div>
 
-        <select asp-for="Role" class="form-select mb-4">
-            <option value="">Select Role</option>
-            <option>Admin</option>
-            <option>Collector</option>
-            <option>Viewer</option>
-        </select>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Create User
+                            </button>
+                            <a asp-page="/Account/Users" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Users
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-        <button class="btn btn-success w-100">
-            Create User
-        </button>
-
-    </form>
-
+        </div>
+    </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
