@@ -62,6 +62,7 @@ namespace VehicleTax.Web.Controllers
                 .OrderByDescending(p => p.PaidAt)
                 .FirstOrDefault();
 
+            // If a similar payment exists and user has not confirmed yet → return warning
             if (lastPayment != null && !dto.Force)
             {
                 return Ok(new
@@ -74,7 +75,7 @@ namespace VehicleTax.Web.Controllers
             }
 
             // ==================================================
-            // SAVE PAYMENT
+            // SAVE PAYMENT (Normal or Forced)
             // ==================================================
             var payment = new Payment
             {
@@ -90,6 +91,7 @@ namespace VehicleTax.Web.Controllers
 
             _context.Payments.Add(payment);
 
+            // Update receipt reference
             reference.IsUsed = true;
             reference.UsedAt = now;
             reference.VehicleId = dto.VehicleId;
@@ -140,5 +142,20 @@ namespace VehicleTax.Web.Controllers
                 items = payments
             });
         }
+    }
+
+    // =======================
+    // DTO
+    // =======================
+    public class PaymentDto
+    {
+        public int VehicleId { get; set; }
+        public string Movement { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string ReferenceNumber { get; set; } = "";
+        public int CollectorId { get; set; }
+
+        // When true → user accepted duplicate warning
+        public bool Force { get; set; } = false;
     }
 }
