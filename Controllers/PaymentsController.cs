@@ -44,18 +44,60 @@ namespace VehicleTax.Web.Controllers
             if (movement == null)
                 return BadRequest(new { status = "error", message = "Invalid movement" });
 
-            // 🔍 Get collector user so we can store the NAME, not just the ID
             var collector = _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId);
             if (collector == null)
                 return BadRequest(new { status = "error", message = "Collector not found" });
 
+            // ==================================================
+            // 🔐 DUPLICATE PAYMENT CHECK
+            // Same Vehicle + Same Movement + Same Amount
+            // ==================================================
+            var now = DateTime.UtcNow;
+
+            var lastPayment = _context.Payments
+                .Where(p =>
+                    p.VehicleId == dto.VehicleId &&
+                    p.MovementId == movement.Id &&
+                    p.Amount == dto.Amount &&
+                    !p.IsReverted)
+                .OrderByDescending(p => p.PaidAt)
+                .FirstOrDefault();
+
+            if (lastPayment != null)
+            {
+                var diffMinutes = (now - lastPayment.PaidAt).TotalMinutes;
+
+                // 🚫 Block if less than 10 minutes
+                if (diffMinutes < 10)
+                {
+                    return BadRequest(new
+                    {
+                        status = "duplicate",
+                        type = "block",
+                        message = "Duplicate payment detected within 10 minutes. Please wait before trying again."
+                    });
+                }
+
+                // ⚠️ Warning if more than 10 minutes
+                return Ok(new
+                {
+                    status = "duplicate",
+                    type = "warning",
+                    message = "A similar payment was made before. Do you want to continue?",
+                    lastPaymentAt = lastPayment.PaidAt
+                });
+            }
+
+            // ==================================================
+            // SAVE PAYMENT
+            // ==================================================
             var payment = new Payment
             {
                 VehicleId = dto.VehicleId,
                 MovementId = movement.Id,
                 MovementType = dto.Movement,
                 Amount = dto.Amount,
-                PaidAt = DateTime.UtcNow,
+                PaidAt = now,
                 ReceiptReferenceId = reference.Id,
                 CollectorId = dto.CollectorId,
                 IsReverted = false
@@ -63,11 +105,11 @@ namespace VehicleTax.Web.Controllers
 
             _context.Payments.Add(payment);
 
-            // 🔴 Save complete receipt info for reporting & Flutter
+            // Update receipt reference
             reference.IsUsed = true;
-            reference.UsedAt = DateTime.UtcNow;
+            reference.UsedAt = now;
             reference.VehicleId = dto.VehicleId;
-            reference.UsedBy = collector.Username;   // 👈 human name, not ID
+            reference.UsedBy = collector.Username;
 
             _context.SaveChanges();
 
@@ -75,7 +117,7 @@ namespace VehicleTax.Web.Controllers
             {
                 status = "success",
                 message = "Payment saved successfully",
-                collector = collector.Username   // Flutter can display directly
+                collector = collector.Username
             });
         }
 
@@ -103,7 +145,7 @@ namespace VehicleTax.Web.Controllers
                         ? p.ReceiptReference.ReferenceNumber
                         : null,
                     collector = p.ReceiptReference != null
-                        ? p.ReceiptReference.UsedBy   // already the name
+                        ? p.ReceiptReference.UsedBy
                         : null
                 })
                 .ToList();
@@ -125,8 +167,6 @@ namespace VehicleTax.Web.Controllers
         public string Movement { get; set; } = "";
         public decimal Amount { get; set; }
         public string ReferenceNumber { get; set; } = "";
-
-        // CollectorId stays INT (machine identity)
         public int CollectorId { get; set; }
     }
 }
