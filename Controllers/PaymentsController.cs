@@ -48,12 +48,11 @@ namespace VehicleTax.Web.Controllers
             if (collector == null)
                 return BadRequest(new { status = "error", message = "Collector not found" });
 
-            // ==================================================
-            // 🔐 DUPLICATE PAYMENT CHECK
-            // Same Vehicle + Same Movement + Same Amount
-            // ==================================================
             var now = DateTime.UtcNow;
 
+            // ==================================================
+            // 🔍 DUPLICATE CHECK (WARNING ONLY, NO BLOCK)
+            // ==================================================
             var lastPayment = _context.Payments
                 .Where(p =>
                     p.VehicleId == dto.VehicleId &&
@@ -63,27 +62,13 @@ namespace VehicleTax.Web.Controllers
                 .OrderByDescending(p => p.PaidAt)
                 .FirstOrDefault();
 
-            if (lastPayment != null)
+            if (lastPayment != null && !dto.Force)
             {
-                var diffMinutes = (now - lastPayment.PaidAt).TotalMinutes;
-
-                // 🚫 Block if less than 10 minutes
-                if (diffMinutes < 10)
-                {
-                    return BadRequest(new
-                    {
-                        status = "duplicate",
-                        type = "block",
-                        message = "Duplicate payment detected within 10 minutes. Please wait before trying again."
-                    });
-                }
-
-                // ⚠️ Warning if more than 10 minutes
                 return Ok(new
                 {
                     status = "duplicate",
                     type = "warning",
-                    message = "A similar payment was made before. Do you want to continue?",
+                    message = "A similar payment already exists. Do you want to continue?",
                     lastPaymentAt = lastPayment.PaidAt
                 });
             }
@@ -105,7 +90,6 @@ namespace VehicleTax.Web.Controllers
 
             _context.Payments.Add(payment);
 
-            // Update receipt reference
             reference.IsUsed = true;
             reference.UsedAt = now;
             reference.VehicleId = dto.VehicleId;
@@ -156,17 +140,5 @@ namespace VehicleTax.Web.Controllers
                 items = payments
             });
         }
-    }
-
-    // =======================
-    // DTO
-    // =======================
-    public class PaymentDto
-    {
-        public int VehicleId { get; set; }
-        public string Movement { get; set; } = "";
-        public decimal Amount { get; set; }
-        public string ReferenceNumber { get; set; } = "";
-        public int CollectorId { get; set; }
     }
 }
