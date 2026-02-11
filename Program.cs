@@ -1,65 +1,28 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using VehicleTax.Web.Data;
+using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ==================================
-// Load Environment Variables
+// Read Railway Environment Variables
 // ==================================
 builder.Configuration.AddEnvironmentVariables();
 
-// ==================================
-// DATABASE CONFIGURATION
-// ==================================
-
-string? connectionString;
-
-// Try Railway environment variables first
-var host = Environment.GetEnvironmentVariable("mysql.railway.internal");
-var port = Environment.GetEnvironmentVariable("3306");
-var database = Environment.GetEnvironmentVariable("railway");
-var user = Environment.GetEnvironmentVariable("root");
-var password = Environment.GetEnvironmentVariable("nxqImsdGufzdXNBuqjlbTwKRBKqCyoQc");
-
-if (!string.IsNullOrEmpty(host) &&
-    !string.IsNullOrEmpty(database) &&
-    !string.IsNullOrEmpty(user))
-{
-    connectionString =
-        $"server={host};" +
-        $"port={port};" +
-        $"database={database};" +
-        $"user={user};" +
-        $"password={password};" +
-        $"SslMode=Preferred;";
-}
-else
-{
-    // Fallback for local development
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new Exception("Database connection string is not configured properly.");
-}
+// =========================
+// Database
+// =========================
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        connectionString,
-        ServerVersion.AutoDetect(connectionString),
-        mysqlOptions =>
-        {
-            mysqlOptions.EnableRetryOnFailure();
-        }
-    )
+    options.UseMySql(connectionString, serverVersion)
 );
 
-// ==================================
-// AUTHENTICATION (Cookie Based)
-// ==================================
-
+// =========================
+// 🔐 Authentication (COOKIE BASED)
+// =========================
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -70,10 +33,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
     });
 
-// ==================================
-// AUTHORIZATION
-// ==================================
-
+// =========================
+// 🔑 Authorization (Roles + Permissions)
+// =========================
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CanViewDashboard", policy =>
@@ -85,10 +47,9 @@ builder.Services.AddAuthorization(options =>
     );
 });
 
-// ==================================
-// Razor Pages
-// ==================================
-
+// =========================
+// Razor Pages secured by default
+// =========================
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/");
@@ -97,16 +58,14 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
 });
 
-// ==================================
+// =========================
 // API Controllers
-// ==================================
-
+// =========================
 builder.Services.AddControllers();
 
-// ==================================
+// =========================
 // Session
-// ==================================
-
+// =========================
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(20);
@@ -116,20 +75,18 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// ==================================
-// AUTO MIGRATE DATABASE
-// ==================================
-
+// =========================
+// Auto migrate DB
+// =========================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
 
-// ==================================
-// PIPELINE
-// ==================================
-
+// =========================
+// Pipeline
+// =========================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -144,7 +101,7 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 
-// Disable caching globally
+// 🔥 GLOBAL CACHE + HISTORY KILLER
 app.Use(async (context, next) =>
 {
     context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
@@ -155,7 +112,14 @@ app.Use(async (context, next) =>
 
 app.UseAuthorization();
 
+// =========================
+// Map API Controllers
+// =========================
 app.MapControllers();
+
+// =========================
+// Razor Pages
+// =========================
 app.MapRazorPages();
 
 app.Run();
