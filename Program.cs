@@ -1,39 +1,27 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using VehicleTax.Web.Data;
+using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ==================================
-// Read Environment Variables (Railway)
+// Read Railway Environment Variables
 // ==================================
 builder.Configuration.AddEnvironmentVariables();
 
 // =========================
-// Database (Railway + Local Support)
+// Database
 // =========================
-var connectionString =
-    Environment.GetEnvironmentVariable("MYSQL_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new Exception("Database connection string is not configured.");
-}
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        connectionString,
-        ServerVersion.AutoDetect(connectionString),
-        mysqlOptions =>
-        {
-            mysqlOptions.EnableRetryOnFailure();
-        }
-    )
+    options.UseMySql(connectionString, serverVersion)
 );
 
 // =========================
-// 🔐 Authentication (Cookie)
+// 🔐 Authentication (COOKIE BASED)
 // =========================
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -46,7 +34,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // =========================
-// 🔑 Authorization
+// 🔑 Authorization (Roles + Permissions)
 // =========================
 builder.Services.AddAuthorization(options =>
 {
@@ -113,7 +101,7 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 
-// 🔥 Disable caching globally
+// 🔥 GLOBAL CACHE + HISTORY KILLER
 app.Use(async (context, next) =>
 {
     context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
@@ -125,9 +113,13 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 
 // =========================
-// Map Endpoints
+// Map API Controllers
 // =========================
 app.MapControllers();
+
+// =========================
+// Razor Pages
+// =========================
 app.MapRazorPages();
 
 app.Run();
