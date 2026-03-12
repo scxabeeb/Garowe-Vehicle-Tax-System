@@ -1,0 +1,93 @@
+@page
+@model VehicleTax.Web.Pages.Reports.TaxCollectionModel
+
+<h3 class="mb-3">Tax Collection Report</h3>
+
+<!-- FILTERS -->
+<form method="get" class="card p-3 mb-4">
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <label>From Date</label>
+            <input type="date" asp-for="FromDate" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>To Date</label>
+            <input type="date" asp-for="ToDate" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Plate Number</label>
+            <input asp-for="PlateNumber" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Car Type</label>
+            <select asp-for="CarTypeId"
+                    asp-items="Model.CarTypes"
+                    class="form-select">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label>Movement Type</label>
+            <select asp-for="MovementType" class="form-select">
+                <option value="">All</option>
+                <option value="Passing">Passing</option>
+                <option value="Staying">Staying</option>
+            </select>
+        </div>
+
+        <div class="col-md-9 d-flex align-items-end">
+            <button class="btn btn-primary w-100">
+                Filter
+            </button>
+        </div>
+
+    </div>
+</form>
+
+<!-- SUMMARY -->
+<div class="alert alert-info">
+    <strong>Total Collected:</strong> @Model.TotalAmount
+</div>
+
+<!-- TABLE -->
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Plate</th>
+            <th>Owner</th>
+            <th>Car Type</th>
+            <th>Movement</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+    @if (Model.Collections.Count == 0)
+    {
+        <tr>
+            <td colspan="6" class="text-center text-muted">
+                No records found
+            </td>
+        </tr>
+    }
+    else
+    {
+        @foreach (var p in Model.Collections)
+        {
+            <tr>
+                <td>@p.PaymentDate.ToString("yyyy-MM-dd")</td>
+                <td>@p.Vehicle?.PlateNumber</td>
+                <td>@p.Vehicle?.OwnerName</td>
+                <td>@p.Vehicle?.CarType?.Name</td>
+                <td>@p.MovementType</td>
+                <td>@p.AmountPaid</td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>

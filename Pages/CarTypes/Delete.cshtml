@@ -1,0 +1,33 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.CarTypes.DeleteModel
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">🗑 Delete Car Type</h4>
+                </div>
+
+                <div class="card-body text-center">
+
+                    <p class="fs-5">Are you sure you want to delete:</p>
+
+                    <h5 class="text-danger">@Model.CarType.Name</h5>
+
+                    <form method="post" class="mt-4">
+
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <button class="btn btn-danger me-2">Yes, Delete</button>
+                        <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

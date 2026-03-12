@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/VehicleTax.Web.props" />
+</Project>

@@ -1,0 +1,53 @@
+@page
+@model VehicleTax.Web.Pages.Vehicles.CreateModel
+
+<h3 class="mb-3">Register Vehicle</h3>
+
+<form method="post" class="card p-4 shadow-sm">
+
+    <div class="mb-3">
+        <label class="form-label">Plate Number</label>
+        <input asp-for="Vehicle.PlateNumber"
+               class="form-control"
+               required />
+        <span asp-validation-for="Vehicle.PlateNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Owner Name</label>
+        <input asp-for="Vehicle.OwnerName"
+               class="form-control"
+               required />
+        <span asp-validation-for="Vehicle.OwnerName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Mobile Number</label>
+        <input asp-for="Vehicle.Mobile"
+               class="form-control"
+               placeholder="61xxxxxxx" />
+        <span asp-validation-for="Vehicle.Mobile" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Car Type</label>
+        <select asp-for="Vehicle.CarTypeId"
+                asp-items="Model.CarTypes"
+                class="form-select"
+                required>
+            <option value="">-- Select Car Type --</option>
+        </select>
+        <span asp-validation-for="Vehicle.CarTypeId" class="text-danger"></span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">
+            Save
+        </button>
+        <a asp-page="/Vehicles/Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+    </div>
+
+</form>

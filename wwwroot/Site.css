@@ -1,0 +1,67 @@
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 14px;
+}
+
+.login-logo {
+    width: 90px;
+    height: auto;
+}
+
+@media (max-width: 576px) {
+    .login-card {
+        margin: 10px;
+    }
+
+    .login-logo {
+        width: 70px;
+    }
+}
+
+/* SECTION COLORS */
+.section {
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #212529, #343a40);
+    color: #fff;
+}
+
+.section-kpi {
+    background: linear-gradient(135deg, #f1f3f5, #e9ecef);
+}
+
+.section-charts {
+    background: linear-gradient(135deg, #fff4e6, #ffe8cc);
+}
+
+.section-table {
+    background: linear-gradient(135deg, #e7f5ff, #d0ebff);
+}
+
+/* KPI CARDS */
+.kpi {
+    color: #fff;
+    border-radius: 18px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.kpi-vehicles {
+    background: linear-gradient(135deg, #6f42c1, #845ef7);
+}
+
+.kpi-payments {
+    background: linear-gradient(135deg, #0d6efd, #4dabf7);
+}
+
+.kpi-today {
+    background: linear-gradient(135deg, #20c997, #51cf66);
+}
+
+.kpi:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}

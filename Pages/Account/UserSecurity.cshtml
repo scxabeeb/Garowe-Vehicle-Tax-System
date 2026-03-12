@@ -1,0 +1,199 @@
+@page
+@model UserSecurityModel
+<<<<<<< HEAD
+@using VehicleTax.Web.Security
+
+<h3 class="mb-4">User Security Management</h3>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<!-- STEP 1: OPERATION -->
+<div class="card shadow p-4 mb-4 col-md-6">
+    <h5>Security Operation</h5>
+
+    <form method="get">
+        <div class="mb-3">
+            <label class="form-label">Operation</label>
+            <select class="form-select" name="operation" required>
+                <option value="">-- Select Operation --</option>
+
+                @if (Model.CanAccess(SecurityOperation.AccountStatus))
+                {
+                    <option value="AccountStatus">Account Lock / Unlock</option>
+                }
+
+                @if (Model.CanAccess(SecurityOperation.PasswordReset))
+                {
+                    <option value="PasswordReset">Password Reset</option>
+                }
+            </select>
+        </div>
+
+        <button class="btn btn-primary">Continue</button>
+    </form>
+</div>
+
+<!-- STEP 2: USER -->
+@if (Model.Operation != SecurityOperation.None)
+{
+    <div class="card shadow p-4 mb-4 col-md-6">
+        <h5>Select User</h5>
+
+        <form method="get">
+            <input type="hidden" name="operation" value="@Model.Operation" />
+
+            <div class="mb-3">
+                <label class="form-label">User</label>
+                <select class="form-select" name="id" required>
+                    <option value="">-- Select User --</option>
+                    @foreach (var u in Model.AllUsers)
+                    {
+                        <option value="@u.Id">@u.Username (@u.Role)</option>
+                    }
+                </select>
+            </div>
+
+            <button class="btn btn-success">Load User</button>
+        </form>
+    </div>
+}
+
+<!-- STEP 3: ACTION -->
+@if (Model.SelectedUser != null)
+{
+    <div class="card shadow p-4">
+        <h5>User Details</h5>
+
+        <table class="table table-bordered">
+            <tr><th>ID</th><td>@Model.SelectedUser.Id</td></tr>
+            <tr><th>Username</th><td>@Model.SelectedUser.Username</td></tr>
+            <tr><th>Role</th><td>@Model.SelectedUser.Role</td></tr>
+=======
+
+<h3 class="mb-4">User Security</h3>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Message"]
+    </div>
+}
+
+<!-- Select User -->
+<div class="card shadow p-4 mb-4 col-md-6">
+    <h5>Select User</h5>
+    <form method="get">
+        <div class="mb-3">
+            <label class="form-label">User</label>
+            <select class="form-select" name="id" required>
+                <option value="">-- Select User --</option>
+                @foreach (var u in Model.AllUsers)
+                {
+                    <option value="@u.Id">
+                        @u.Username (@u.Role)
+                    </option>
+                }
+            </select>
+        </div>
+        <button class="btn btn-primary">
+            <i class="bi bi-search"></i> Load User
+        </button>
+    </form>
+</div>
+
+@if (Model.SelectedUser != null)
+{
+    <div class="card shadow p-4 w-100">
+
+        <table class="table table-bordered">
+            <tr>
+                <th style="width:200px;">User ID</th>
+                <td>@Model.SelectedUser.Id</td>
+            </tr>
+            <tr>
+                <th>Username</th>
+                <td>@Model.SelectedUser.Username</td>
+            </tr>
+            <tr>
+                <th>Role</th>
+                <td>@Model.SelectedUser.Role</td>
+            </tr>
+>>>>>>> 7b24e7a6af078c71b19b1652f4befd2904f706dd
+            <tr>
+                <th>Status</th>
+                <td>
+                    @if (Model.SelectedUser.IsLocked)
+                    {
+                        <span class="badge bg-danger">Locked</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                </td>
+            </tr>
+        </table>
+
+<<<<<<< HEAD
+        @if (Model.Operation == SecurityOperation.AccountStatus)
+        {
+            <form method="post" asp-page-handler="ToggleLock">
+                <input type="hidden" asp-for="Id" />
+                <button class="btn @(Model.SelectedUser.IsLocked ? "btn-success" : "btn-warning")">
+                    @(Model.SelectedUser.IsLocked ? "Unlock User" : "Lock User")
+                </button>
+            </form>
+        }
+
+        @if (Model.Operation == SecurityOperation.PasswordReset)
+        {
+            <form method="post" asp-page-handler="ChangePassword" class="col-md-6">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">New Password</label>
+                    <input asp-for="NewPassword" type="password" class="form-control" />
+                </div>
+
+                <button class="btn btn-primary">Change Password</button>
+            </form>
+        }
+=======
+        <hr />
+
+        <!-- Lock / Unlock -->
+        <form method="post" asp-page-handler="ToggleLock" class="mb-4">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <button class="btn @(Model.SelectedUser.IsLocked ? "btn-success" : "btn-warning")">
+                <i class="bi @(Model.SelectedUser.IsLocked ? "bi-unlock" : "bi-lock")"></i>
+                @(Model.SelectedUser.IsLocked ? "Unlock User" : "Lock User")
+            </button>
+        </form>
+
+        <hr />
+
+        <!-- Change Password -->
+        <form method="post" asp-page-handler="ChangePassword" class="col-md-6">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <input asp-for="NewPassword"
+                       type="password"
+                       class="form-control"
+                       placeholder="Enter new password" />
+            </div>
+
+            <button class="btn btn-primary">
+                <i class="bi bi-key"></i> Change Password
+            </button>
+        </form>
+
+>>>>>>> 7b24e7a6af078c71b19b1652f4befd2904f706dd
+    </div>
+}

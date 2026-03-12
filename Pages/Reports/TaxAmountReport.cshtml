@@ -1,0 +1,129 @@
+@page
+@model VehicleTax.Web.Pages.Reports.TaxAmountReportModel
+
+<h3 class="mb-3">
+    <i class="bi bi-cash-stack text-success"></i> Tax Amount Report
+</h3>
+
+<form method="get" class="row g-2 mb-3">
+
+    <!-- Search -->
+    <div class="col-md-4">
+        <input type="text"
+               name="Search"
+               value="@Model.Search"
+               class="form-control"
+               placeholder="Search car type or movement..." />
+    </div>
+
+    <!-- Car Type Filter -->
+    <div class="col-md-3">
+        <select name="CarTypeId" class="form-select">
+            <option value="">All Car Types</option>
+            @foreach (var ct in Model.CarTypes)
+            {
+                <option value="@ct.Id" selected="@(Model.CarTypeId == ct.Id ? "selected" : null)">
+                    @ct.Name
+                </option>
+            }
+        </select>
+    </div>
+
+    <!-- Movement Filter (by NAME, unique, no duplicates) -->
+    <div class="col-md-3">
+        <select name="MovementName" class="form-select">
+            <option value="">All Movements</option>
+            @foreach (var mv in Model.Movements)
+            {
+                var isSelected = string.Equals(Model.MovementName, mv.Name, StringComparison.OrdinalIgnoreCase);
+                <option value="@mv.Name" selected="@(isSelected ? "selected" : null)">
+                    @mv.Name
+                </option>
+            }
+        </select>
+    </div>
+
+    <!-- Filter Button -->
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel-fill"></i> Filter
+        </button>
+    </div>
+</form>
+
+<!-- Export Button -->
+<a asp-page-handler="ExportCsv"
+   asp-route-carTypeId="@Model.CarTypeId"
+   asp-route-movementName="@Model.MovementName"
+   asp-route-search="@Model.Search"
+   class="btn btn-success mb-3">
+    <i class="bi bi-file-earmark-excel"></i> Export to CSV
+</a>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Car Type</th>
+                <th>Movement</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.TaxAmounts.Any())
+        {
+            int i = (Model.PageNumber - 1) * Model.PageSize + 1;
+            foreach (var t in Model.TaxAmounts)
+            {
+                string badgeClass = t.Movement?.Name switch
+                {
+                    "Registration" => "bg-primary",
+                    "Renewal" => "bg-success",
+                    "Transfer" => "bg-warning text-dark",
+                    "Inspection" => "bg-info text-dark",
+                    "Penalty" => "bg-danger",
+                    _ => "bg-secondary"
+                };
+
+                <tr>
+                    <td>@i</td>
+                    <td>@t.CarType?.Name</td>
+                    <td>
+                        <span class="badge @badgeClass">
+                            @t.Movement?.Name
+                        </span>
+                    </td>
+                    <td class="fw-bold text-success">
+                        @t.Amount.ToString("N2")
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    No records found.
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<nav>
+    <ul class="pagination justify-content-center">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                <a class="page-link"
+                   href="?PageNumber=@i&CarTypeId=@Model.CarTypeId&MovementName=@Model.MovementName&Search=@Model.Search">
+                    @i
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

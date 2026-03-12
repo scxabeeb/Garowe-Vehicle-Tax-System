@@ -1,0 +1,188 @@
+@page
+@model VehicleTax.Web.Pages.Reports.ReceiptPaymentsModel
+
+<style>
+.table-wrap{
+    max-height:600px;
+    overflow:auto;
+}
+.table-wrap table{
+    min-width:1300px;
+    white-space:nowrap;
+}
+.table-wrap thead th{
+    position:sticky;
+    top:0;
+    z-index:5;
+}
+</style>
+
+<h3 class="fw-bold mb-4">Receipt Payment Report</h3>
+
+<form method="get" class="card p-3 shadow-sm mb-4">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label>From Date</label>
+            <input type="date" asp-for="FromDate" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>To Date</label>
+            <input type="date" asp-for="ToDate" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Receipt From</label>
+            <input asp-for="ReceiptFrom" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Receipt To</label>
+            <input asp-for="ReceiptTo" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Movement</label>
+            <select asp-for="MovementId" asp-items="Model.Movements" class="form-select">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label>Collector</label>
+            <select asp-for="CollectorId" asp-items="Model.Collectors" class="form-select">
+                <option value="">All</option>
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label>Search</label>
+            <input asp-for="Search" class="form-control" placeholder="Search anything..." />
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Apply Filters</button>
+        </div>
+    </div>
+</form>
+
+<!-- TOTAL CARDS -->
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0 bg-primary text-white">
+            <div class="card-body">
+                <h6>Total Payments</h6>
+                <h3>@Model.TotalPayments</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0 bg-success text-white">
+            <div class="card-body">
+                <h6>Total Amount</h6>
+                <h3>@Model.TotalAmount.ToString("0.##")</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0 bg-dark text-white">
+            <div class="card-body">
+                <h6>Unique Vehicles</h6>
+                <h3>@Model.TotalVehicles</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RECEIPT CARDS -->
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0 bg-info text-white">
+            <div class="card-body">
+                <h6>Used Receipts</h6>
+                <h3>@Model.UsedReceipts</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0 bg-warning text-dark">
+            <div class="card-body">
+                <h6>Available Receipts</h6>
+                <h3>@Model.AvailableReceipts</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0 bg-danger text-white">
+            <div class="card-body">
+                <h6>Cancelled Receipts</h6>
+                <h3>@Model.CancelledReceipts</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOOL BAR -->
+<form method="get" class="d-flex justify-content-between align-items-center mb-2">
+    <div class="d-flex align-items-center gap-2">
+        <label class="fw-bold">Show</label>
+        <select name="PageSize" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+            @foreach (var size in new[] {10,20,50,100,200,500,-1})
+            {
+                <option value="@size" selected="@(Model.PageSize == size)">
+                    @(size == -1 ? "All" : size)
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-success btn-sm" asp-page-handler="ExportCsv">CSV</a>
+        <a class="btn btn-danger btn-sm" asp-page-handler="ExportPdf">PDF</a>
+    </div>
+</form>
+
+<!-- TABLE -->
+<div class="card shadow-sm">
+    <div class="card-body p-0 table-wrap">
+        <table class="table table-bordered table-striped mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Receipt</th>
+                    <th>Plate</th>
+                    <th>Owner</th>
+                    <th>Mobile</th>
+                    <th>Movement</th>
+                    <th>Collector</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Payments)
+                {
+                    <tr>
+                        <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
+                        <td>@p.ReceiptReference!.ReferenceNumber</td>
+                        <td>@p.Vehicle?.PlateNumber</td>
+                        <td>@p.Vehicle?.OwnerName</td>
+                        <td>@p.Vehicle?.Mobile</td>
+                        <td>@(p.Movement?.Name ?? p.MovementType)</td>
+                        <td>@(p.Collector?.Username ?? "System")</td>
+                        <td class="text-end">@p.Amount.ToString("0.##")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot class="table-light fw-bold">
+                <tr>
+                    <td colspan="7" class="text-end">Page Total</td>
+                    <td class="text-end">@Model.PageTotalAmount.ToString("0.##")</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
