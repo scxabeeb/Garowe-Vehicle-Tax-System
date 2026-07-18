@@ -83,28 +83,6 @@
                                    onchange="document.getElementById('calcBtn').click()" />
                         </div>
 
-                        <!-- Receipt -->
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">Receipt Reference</label>
-                            <input asp-for="ReferenceNumber"
-                                   class="form-control @(Model.ReferenceChecked ? (Model.ReferenceValid ? "is-valid" : "is-invalid") : "")"
-                                   placeholder="Enter receipt number"
-                                   onchange="document.getElementById('calcBtn').click()" />
-
-                            @if (Model.ReferenceChecked && !Model.ReferenceValid)
-                            {
-                                <div class="invalid-feedback">
-                                    @Model.ReferenceMessage
-                                </div>
-                            }
-
-                            @if (Model.ReferenceChecked && Model.ReferenceValid)
-                            {
-                                <div class="valid-feedback">
-                                    Receipt is available
-                                </div>
-                            }
-                        </div>
                     </div>
 
                     <button asp-page-handler="Calculate"
@@ -112,7 +90,7 @@
                             id="calcBtn"
                             hidden></button>
 
-                    @if (Model.UnitAmount > 0 && Model.ReferenceValid)
+                    @if (Model.UnitAmount > 0)
                     {
                         <div class="alert alert-info mt-4">
                             <div class="row">
@@ -129,10 +107,10 @@
                         </div>
 
                         <div class="text-end">
-                            <button asp-page-handler="Collect"
+                            <button asp-page-handler="GenerateInvoice"
                                     type="submit"
                                     class="btn btn-success btn-lg">
-                                <i class="bi bi-check-circle"></i> Collect Tax
+                                <i class="bi bi-receipt"></i> Generate Invoice
                             </button>
                         </div>
                     }
@@ -159,9 +137,10 @@
                                 <th>Date</th>
                                 <th>Movement</th>
                                 <th>Amount</th>
-                                <th>Receipt</th>
+                                <th>Invoice</th>
+                                <th>Code</th>
                                 <th>Status</th>
-                                <th>Revert</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -171,35 +150,80 @@
                                 <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@p.MovementType</td>
                                 <td>@p.Amount</td>
-                                <td>@p.ReceiptReference?.ReferenceNumber</td>
+                                <td>
+                                    <a asp-page="/Payments/Receipt" asp-route-paymentId="@p.Id">
+                                        @p.InvoiceNumber
+                                    </a>
+                                </td>
+                                <td>@p.ShortCode</td>
                                 <td>
                                     @if (p.IsReverted)
                                     {
                                         <span class="badge bg-danger">Reverted</span>
                                     }
+                                    else if (p.IsPaid)
+                                    {
+                                        <span class="badge bg-success">Paid</span>
+                                    }
                                     else
                                     {
-                                        <span class="badge bg-success">Valid</span>
+                                        <span class="badge bg-warning text-dark">Invoice Pending</span>
                                     }
                                 </td>
                                 <td>
-                                @if (User.IsInRole("Admin") && !p.IsReverted)
+                                @if (p.IsReverted)
                                 {
-                                    <form method="post" asp-page-handler="Revert">
+                                    <span class="text-muted small">No actions</span>
+                                }
+                                else if (!p.IsPaid)
+                                {
+                                    if (User.IsInRole("Admin"))
+                                    {
+                                        <form method="post" asp-page-handler="CollectInvoice" class="mb-2">
+                                            <input type="hidden" name="paymentId" value="@p.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                                <i class="bi bi-cash"></i> Collect Invoice
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary d-block mb-2">Admin only</span>
+                                    }
+
+                                    <a class="btn btn-sm btn-outline-primary w-100"
+                                       asp-page="/Payments/Receipt"
+                                       asp-route-paymentId="@p.Id">
+                                        <i class="bi bi-printer"></i> Print Invoice
+                                    </a>
+                                }
+                                else if (User.IsInRole("Admin"))
+                                {
+                                    <form method="post" asp-page-handler="Revert" class="mb-2">
                                         <input type="hidden" name="paymentId" value="@p.Id" />
                                         <input type="text"
                                                name="reason"
                                                class="form-control mb-2"
                                                placeholder="Reason for revert"
                                                required />
-                                        <button type="submit" class="btn btn-sm btn-warning">
+                                        <button type="submit" class="btn btn-sm btn-warning w-100">
                                             <i class="bi bi-arrow-counterclockwise"></i> Revert
                                         </button>
                                     </form>
+
+                                    <a class="btn btn-sm btn-outline-primary w-100"
+                                       asp-page="/Payments/Receipt"
+                                       asp-route-paymentId="@p.Id">
+                                        <i class="bi bi-printer"></i> Print Receipt
+                                    </a>
                                 }
-                                else if (!User.IsInRole("Admin") && !p.IsReverted)
+                                else
                                 {
-                                    <span class="badge bg-secondary">Admin only</span>
+                                    <a class="btn btn-sm btn-outline-primary w-100"
+                                       asp-page="/Payments/Receipt"
+                                       asp-route-paymentId="@p.Id">
+                                        <i class="bi bi-printer"></i> Print Receipt
+                                    </a>
                                 }
                                 </td>
                             </tr>

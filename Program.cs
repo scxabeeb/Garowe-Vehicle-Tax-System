@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using VehicleTax.Web.Data;
+using VehicleTax.Web.Models;
 using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,8 @@ var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, serverVersion)
 );
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // =========================
 // 🔐 Authentication (COOKIE BASED)
@@ -64,6 +68,17 @@ builder.Services.AddRazorPages(options =>
 builder.Services.AddControllers();
 
 // =========================
+// Golis Mobile Money API
+// =========================
+builder.Services.Configure<VehicleTax.Web.Services.Golis.GolisApiOptions>(
+    builder.Configuration.GetSection("GolisApi"));
+
+builder.Services.Configure<GolisWebhookSettings>(
+    builder.Configuration.GetSection("GolisWebhook"));
+
+builder.Services.AddHttpClient<VehicleTax.Web.Services.Golis.IGolisApiService, VehicleTax.Web.Services.Golis.GolisApiService>();
+
+// =========================
 // Session
 // =========================
 builder.Services.AddSession(options =>
@@ -75,13 +90,20 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+var allowRunWithoutDatabase = builder.Configuration.GetValue<bool>("Startup:AllowRunWithoutDatabase");
+
 // =========================
 // Auto migrate DB
 // =========================
-using (var scope = app.Services.CreateScope())
+try
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+}
+catch (Exception ex) when (allowRunWithoutDatabase)
+{
+    app.Logger.LogWarning(ex, "Database migration failed. Continuing startup because Startup:AllowRunWithoutDatabase is enabled.");
 }
 
 // =========================

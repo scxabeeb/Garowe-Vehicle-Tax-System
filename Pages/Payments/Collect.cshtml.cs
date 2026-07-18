@@ -24,7 +24,6 @@ public class CollectModel : PageModel
     [BindProperty] public string PlateNumber { get; set; } = "";
     [BindProperty] public int MovementId { get; set; }
     [BindProperty] public int Quantity { get; set; } = 1;
-    [BindProperty] public string ReferenceNumber { get; set; } = "";
 
     // =======================
     // VIEW DATA
@@ -33,10 +32,6 @@ public class CollectModel : PageModel
     public SelectList Movements { get; set; } = null!;
     public decimal UnitAmount { get; set; }
     public decimal Amount { get; set; }
-
-    public bool ReferenceChecked { get; set; }
-    public bool ReferenceValid { get; set; }
-    public string? ReferenceMessage { get; set; }
 
     public string? ErrorMessage { get; set; }
 
@@ -50,6 +45,20 @@ public class CollectModel : PageModel
         LoadMovements();
     }
 
+    public IActionResult OnPostReset()
+    {
+        PlateNumber = string.Empty;
+        MovementId = 0;
+        Quantity = 1;
+        UnitAmount = 0;
+        Amount = 0;
+        ErrorMessage = null;
+        Vehicle = null;
+        Payments = new List<Payment>();
+        LoadMovements();
+        return Page();
+    }
+
     // =======================
     // SEARCH
     // =======================
@@ -59,10 +68,6 @@ public class CollectModel : PageModel
         Quantity = 1;
         UnitAmount = 0;
         Amount = 0;
-        ReferenceNumber = "";
-        ReferenceChecked = false;
-        ReferenceValid = false;
-        ReferenceMessage = null;
         ErrorMessage = null;
 
         LoadVehicle();
@@ -79,28 +84,6 @@ public class CollectModel : PageModel
 
         if (Vehicle == null || MovementId == 0)
             return;
-
-        ReferenceChecked = true;
-
-        var receipt = _context.ReceiptReferences
-            .FirstOrDefault(r => r.ReferenceNumber == ReferenceNumber);
-
-        if (receipt == null)
-        {
-            ReferenceValid = false;
-            ReferenceMessage = "Receipt not found";
-            return;
-        }
-
-        if (receipt.IsUsed)
-        {
-            ReferenceValid = false;
-            ReferenceMessage = "Receipt already used";
-            return;
-        }
-
-        ReferenceValid = true;
-        ReferenceMessage = "Receipt is available";
 
         var tax = _context.TaxAmounts
             .Include(t => t.Movement)
@@ -119,9 +102,9 @@ public class CollectModel : PageModel
     }
 
     // =======================
-    // COLLECT PAYMENT  (FIXED)
+    // GENERATE INVOICE (PENDING)
     // =======================
-    public IActionResult OnPostCollect()
+    public IActionResult OnPostGenerateInvoice()
     {
         using var tx = _context.Database.BeginTransaction();
         try
@@ -129,53 +112,49 @@ public class CollectModel : PageModel
             LoadVehicle();
             LoadMovements();
 
-            var receipt = _context.ReceiptReferences
-                .FirstOrDefault(r => r.ReferenceNumber == ReferenceNumber);
-
-            if (receipt == null || receipt.IsUsed)
-                throw new Exception("Invalid or already used receipt reference.");
+            if (Vehicle == null)
+            {
+                ErrorMessage = "Vehicle not found.";
+                tx.Rollback();
+                return Page();
+            }
 
             var tax = _context.TaxAmounts
                 .Include(t => t.Movement)
                 .FirstOrDefault(t =>
-                    t.CarTypeId == Vehicle!.CarTypeId &&
+                    t.CarTypeId == Vehicle.CarTypeId &&
                     t.MovementId == MovementId);
 
             if (tax == null)
-                throw new Exception("Tax configuration not found.");
+            {
+                ErrorMessage = "Tax configuration not found.";
+                tx.Rollback();
+                return Page();
+            }
 
-            var username = User.Identity?.Name;
-            if (string.IsNullOrEmpty(username))
-                throw new Exception("Collector not logged in.");
-
-            var collector = _context.Users.FirstOrDefault(u => u.Username == username);
-            if (collector == null)
-                throw new Exception("Collector user not found.");
+            if (Quantity < 1)
+            {
+                ErrorMessage = "Quantity must be at least 1.";
+                tx.Rollback();
+                return Page();
+            }
 
             var payment = new Payment
             {
-                VehicleId = Vehicle!.Id,
+                VehicleId = Vehicle.Id,
                 MovementId = MovementId,
                 MovementType = tax.Movement!.Name,
                 Amount = tax.Amount * Quantity,
                 PaidAt = DateTime.UtcNow,
-                ReceiptReferenceId = receipt.Id,
-                CollectorId = collector.Id
+                CollectorId = null,
+                IsPaid = false
             };
 
             _context.Payments.Add(payment);
-
-            // 🔴 THIS IS THE KEY PART FOR YOUR REPORT
-            receipt.IsUsed = true;
-            receipt.UsedAt = DateTime.UtcNow;
-            receipt.UsedBy = collector.Username;   // Collector name
-            receipt.VehicleId = Vehicle.Id;        // Vehicle that used the receipt
-
             _context.SaveChanges();
             tx.Commit();
 
-            TempData["SuccessMessage"] = "Payment collected successfully.";
-            return RedirectToPage();
+            return RedirectToPage("/Payments/Receipt", new { paymentId = payment.Id });
         }
         catch (Exception ex)
         {
@@ -186,30 +165,110 @@ public class CollectModel : PageModel
     }
 
     // =======================
+    // COLLECT INVOICE (ADMIN ONLY)
+    // =======================
+    public IActionResult OnPostCollectInvoice(int paymentId)
+    {
+        try
+        {
+            if (!User.IsInRole("Admin"))
+            {
+                ErrorMessage = "Only admins can collect invoice payments.";
+                LoadVehicle();
+                LoadMovements();
+                return Page();
+            }
+
+            var username = User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return RedirectToPage("/Account/Login", new { ReturnUrl = "/Payments/Collect" });
+            }
+
+            var collector = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (collector == null)
+            {
+                ErrorMessage = "Admin user not found.";
+                LoadVehicle();
+                LoadMovements();
+                return Page();
+            }
+
+            var payment = _context.Payments.FirstOrDefault(p => p.Id == paymentId);
+            if (payment == null || payment.IsReverted)
+            {
+                ErrorMessage = "Invalid invoice.";
+                LoadVehicle();
+                LoadMovements();
+                return Page();
+            }
+
+            if (payment.IsPaid)
+            {
+                TempData["SuccessMessage"] = "Invoice was already collected.";
+                return RedirectToPage("/Payments/Receipt", new { paymentId = payment.Id });
+            }
+
+            payment.IsPaid = true;
+            payment.PaidAt = DateTime.UtcNow;
+            payment.CollectorId = collector.Id;
+
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Invoice collected successfully.";
+            return RedirectToPage("/Payments/Receipt", new { paymentId = payment.Id });
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            LoadVehicle();
+            LoadMovements();
+            return Page();
+        }
+    }
+
+    // =======================
     // REVERT (ADMIN ONLY)  (FIXED)
     // =======================
-    [Authorize(Roles = "Admin")]
     public IActionResult OnPostRevert(int paymentId, string reason)
     {
         try
         {
+            if (!User.IsInRole("Admin"))
+            {
+                ErrorMessage = "Only admins can revert payments.";
+                return Page();
+            }
+
             if (string.IsNullOrWhiteSpace(reason))
-                throw new Exception("Revert reason is required.");
+            {
+                ErrorMessage = "Revert reason is required.";
+                return Page();
+            }
 
             var payment = _context.Payments
                 .Include(p => p.ReceiptReference)
                 .FirstOrDefault(p => p.Id == paymentId);
 
             if (payment == null || payment.IsReverted)
-                throw new Exception("Invalid payment or already reverted.");
+            {
+                ErrorMessage = "Invalid payment or already reverted.";
+                return Page();
+            }
 
             var username = User.Identity?.Name;
             var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                ErrorMessage = "Admin user not found.";
+                return Page();
+            }
 
             payment.IsReverted = true;
+            payment.IsPaid = false;
             payment.RevertedAt = DateTime.UtcNow;
             payment.RevertReason = reason;
-            payment.RevertedByUserId = user!.Id;
+            payment.RevertedByUserId = user.Id;
 
             // Reset receipt so it becomes available again
             if (payment.ReceiptReference != null)

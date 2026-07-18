@@ -1,2 +1,375 @@
 @page
-<h3>Payments Receipt</h3>
+@model VehicleTax.Web.Pages.Payments.ReceiptModel
+
+@{
+    var isThermal = string.Equals(Model.PrintMode, "thermal", StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .print-sheet {
+        border: 1px solid #dee2e6;
+        border-radius: .75rem;
+        background: #fff;
+    }
+
+    .doc-banner {
+        border-radius: .6rem;
+        padding: .75rem 1rem;
+    }
+
+    .doc-banner.invoice {
+        background: #fff7df;
+        border: 1px solid #f1de97;
+        color: #7a5a00;
+    }
+
+    .doc-banner.receipt {
+        background: #eaf9f0;
+        border: 1px solid #9ed9b5;
+        color: #0f6b3a;
+    }
+
+    .meta-table td {
+        padding: .35rem .55rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .meta-label {
+        width: 34%;
+        background: #f8f9fa;
+        font-weight: 700;
+    }
+
+    .print-watermark {
+        display: none;
+    }
+
+    .thermal-mode .print-sheet {
+        max-width: 380px;
+        margin: 0 auto;
+    }
+
+    .thermal-mode .meta-table td {
+        font-size: .88rem;
+        padding: .28rem .4rem;
+    }
+
+    .thermal-mode .doc-banner {
+        font-size: .9rem;
+        padding: .55rem .7rem;
+    }
+
+    .thermal-mode .summary-amount {
+        font-size: 1.5rem !important;
+    }
+
+    @@media print {
+        @@page {
+            size: A4;
+            margin: 8mm;
+        }
+
+        body {
+            background: #fff !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .card,
+        .card-body,
+        .print-sheet {
+            border: 0 !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .print-sheet {
+            position: relative;
+            padding: 12mm !important;
+            min-height: 260mm;
+        }
+
+        .print-watermark {
+            display: block;
+            position: absolute;
+            top: 40%;
+            left: 12%;
+            transform: rotate(-24deg);
+            font-size: 52px;
+            letter-spacing: 3px;
+            font-weight: 800;
+            color: rgba(20, 20, 20, .08);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .print-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-banner.invoice {
+            background: #fff !important;
+            border: 1px solid #999 !important;
+            color: #000 !important;
+        }
+
+        .doc-banner.receipt {
+            background: #fff !important;
+            border: 1px solid #444 !important;
+            color: #000 !important;
+        }
+
+        .thermal-mode .container {
+            max-width: 80mm !important;
+            width: 80mm !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+        }
+
+        .thermal-mode .print-sheet {
+            width: 80mm !important;
+            min-height: auto !important;
+            padding: 4mm !important;
+        }
+
+        .thermal-mode .print-watermark {
+            display: none !important;
+        }
+
+        .thermal-mode h3 {
+            font-size: 1.02rem;
+            margin-bottom: .2rem !important;
+        }
+
+        .thermal-mode .text-muted,
+        .thermal-mode p,
+        .thermal-mode td,
+        .thermal-mode div,
+        .thermal-mode span {
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+        }
+
+        .thermal-mode .fs-5 {
+            font-size: 1rem !important;
+        }
+
+        .thermal-mode .summary-amount {
+            font-size: 1.35rem !important;
+        }
+
+        .thermal-mode .row {
+            display: block !important;
+        }
+
+        .thermal-mode .col-md-6,
+        .thermal-mode .col-md-4 {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+
+        .thermal-mode .meta-label {
+            width: 42%;
+        }
+    }
+</style>
+
+<div class="container mt-4 @(isThermal ? "thermal-mode" : string.Empty)">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body print-sheet">
+            <div class="print-watermark">
+                @(Model.Payment?.IsPaid == true ? "PAID RECEIPT" : "UNPAID INVOICE")
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                <div>
+                    <h4 class="mb-1">@(Model.Payment?.IsPaid == true ? "Receipt" : "Invoice")</h4>
+                    <small class="text-muted">@(Model.Payment?.IsPaid == true ? "Payment receipt detail" : "Pending invoice detail")</small>
+                </div>
+                <div class="d-flex gap-2">
+                    @if (Model.Payment != null)
+                    {
+                        @if (isThermal)
+                        {
+                            <a class="btn btn-outline-secondary"
+                               asp-page="/Payments/Receipt"
+                               asp-route-paymentId="@Model.Payment.Id"
+                               asp-route-printMode="full">
+                                Full Page
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-secondary"
+                               asp-page="/Payments/Receipt"
+                               asp-route-paymentId="@Model.Payment.Id"
+                               asp-route-printMode="thermal">
+                                Thermal 80mm
+                            </a>
+                        }
+                    }
+
+                    <button class="btn btn-primary" onclick="window.print()">
+                        <i class="bi bi-printer-fill"></i> @(Model.Payment?.IsPaid == true ? "Print Receipt" : "Print Invoice")
+                    </button>
+                </div>
+            </div>
+
+            @if (Model.Payment == null)
+            {
+                <div class="alert alert-warning">Payment not found.</div>
+            }
+            else
+            {
+                <div class="print-content">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="mb-1">Garowe Vehicle Tax System</h3>
+                            <div class="text-muted">Official @(Model.Payment.IsPaid ? "Receipt" : "Invoice") Document</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold fs-5">@(Model.Payment.IsPaid ? "Receipt" : "Invoice")</div>
+                            <div class="text-muted">@Model.Payment.InvoiceNumber</div>
+                        </div>
+                    </div>
+
+                    <div class="doc-banner @(Model.Payment.IsPaid ? "receipt" : "invoice") mb-3">
+                        @if (Model.Payment.IsPaid)
+                        {
+                            <span><strong>Payment Completed:</strong> This document confirms payment collection.</span>
+                        }
+                        else
+                        {
+                            <span><strong>Payment Pending:</strong> This invoice can be printed now and must be collected by an admin.</span>
+                        }
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <table class="table meta-table mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="meta-label">Invoice No</td>
+                                        <td>@Model.Payment.InvoiceNumber</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="meta-label">Short Code</td>
+                                        <td>@Model.Payment.ShortCode</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="meta-label">Date</td>
+                                        <td>@Model.Payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table meta-table mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="meta-label">Plate</td>
+                                        <td>@Model.Payment.Vehicle?.PlateNumber</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="meta-label">Owner</td>
+                                        <td>@Model.Payment.Vehicle?.OwnerName</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="meta-label">Movement</td>
+                                        <td>@Model.Payment.MovementType</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card border-secondary mb-3">
+                        <div class="card-body">
+                            <h5 class="mb-3">@(Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary")</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
+                                    <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <p class="mb-1"><strong>Amount Due:</strong></p>
+                                    <div class="fs-3 fw-bold summary-amount">@Model.Payment.Amount.ToString("N0")</div>
+                                    <div>
+                                        @if (Model.Payment.IsReverted)
+                                        {
+                                            <span class="badge bg-danger">Reverted</span>
+                                        }
+                                        else if (Model.Payment.IsPaid)
+                                        {
+                                            <span class="badge bg-success">Paid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Invoice Pending</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                @if (!Model.Payment.IsReverted && !Model.Payment.IsPaid)
+                {
+                    <div class="alert alert-warning d-flex justify-content-between align-items-center no-print">
+                        <div>
+                            Invoice has been generated and can be printed now. Payment collection is restricted to admins.
+                        </div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <form method="post" asp-page-handler="Collect" class="ms-3">
+                                <input type="hidden" name="paymentId" value="@Model.Payment.Id" />
+                                <input type="hidden" name="PrintMode" value="@Model.PrintMode" />
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-cash-stack"></i> Collect Invoice
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary ms-3">Admin only</span>
+                        }
+                    </div>
+                }
+
+                    <div class="text-muted mt-4">
+                        Printed On: @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
