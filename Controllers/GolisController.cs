@@ -231,35 +231,35 @@ public class GolisController : ControllerBase
 
     private static object BuildSuccessResponse(string? requestId, string? schemaVersion, object[] billInfo)
     {
-        return new
+        return new Dictionary<string, object?>
         {
-            requestId = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
-            schemaVersion = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
-            responseHeader = new
+            ["requestId"] = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
+            ["schemaVersion"] = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
+            ["responseHeader"] = new Dictionary<string, object?>
             {
-                timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
-                resultCode = "0",
-                resultMessage = "SUCCESS"
+                ["timestamp"] = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
+                ["resultCode"] = "0",
+                ["resultMessage"] = "SUCCESS"
             },
-            billInfo,
-            PayInfo = (object?)null
+            ["billInfo"] = billInfo,
+            ["PayInfo"] = null
         };
     }
 
     private static object BuildErrorResponse(string? requestId, string? schemaVersion, string resultCode, string resultMessage)
     {
-        return new
+        return new Dictionary<string, object?>
         {
-            requestId = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
-            schemaVersion = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
-            responseHeader = new
+            ["requestId"] = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
+            ["schemaVersion"] = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
+            ["responseHeader"] = new Dictionary<string, object?>
             {
-                timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
-                resultCode,
-                resultMessage
+                ["timestamp"] = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
+                ["resultCode"] = resultCode,
+                ["resultMessage"] = resultMessage
             },
-            billInfo = Array.Empty<object>(),
-            PayInfo = (object?)null
+            ["billInfo"] = Array.Empty<object>(),
+            ["PayInfo"] = null
         };
     }
 
