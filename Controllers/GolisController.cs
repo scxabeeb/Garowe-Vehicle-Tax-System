@@ -279,7 +279,7 @@ public class GolisController : ControllerBase
                 billId,
                 billTo = (billTo ?? string.Empty).ToUpperInvariant(),
                 billAmount = billAmount.ToString("0.00", CultureInfo.InvariantCulture),
-                billCurrency = "SOS",
+                billCurrency = "USD",
                 billNumber = billNumber ?? string.Empty,
                 dueDate = AppTime.ToLocal(dueDate).ToString("yyyy-MM-ddTHH:mm:ss.fff", CultureInfo.InvariantCulture),
                 status,
