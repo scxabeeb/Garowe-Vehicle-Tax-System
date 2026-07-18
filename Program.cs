@@ -76,6 +76,23 @@ builder.Services.Configure<VehicleTax.Web.Services.Golis.GolisApiOptions>(
 builder.Services.Configure<GolisWebhookSettings>(
     builder.Configuration.GetSection("GolisWebhook"));
 
+builder.Services.PostConfigure<GolisWebhookSettings>(options =>
+{
+    var golisApiKey = builder.Configuration["GolisApi:ApiKey"];
+    var golisApiPassword = builder.Configuration["GolisApi:Password"];
+
+    // Fallback to GolisApi creds when webhook-specific creds are not set.
+    if (string.IsNullOrWhiteSpace(options.ApiUsername) && IsMeaningfulCredential(golisApiKey))
+    {
+        options.ApiUsername = golisApiKey!.Trim();
+    }
+
+    if (string.IsNullOrWhiteSpace(options.ApiPassword) && IsMeaningfulCredential(golisApiPassword))
+    {
+        options.ApiPassword = golisApiPassword!.Trim();
+    }
+});
+
 builder.Services.AddHttpClient<VehicleTax.Web.Services.Golis.IGolisApiService, VehicleTax.Web.Services.Golis.GolisApiService>();
 
 // =========================
@@ -145,3 +162,14 @@ app.MapControllers();
 app.MapRazorPages();
 
 app.Run();
+
+static bool IsMeaningfulCredential(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return false;
+    }
+
+    var trimmed = value.Trim();
+    return !trimmed.StartsWith("YOUR_", StringComparison.OrdinalIgnoreCase);
+}
