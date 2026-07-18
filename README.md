@@ -90,24 +90,27 @@ curl -X POST "https://www.tax.garowecity.pl.so/api/golis/queryBillInfo" \
 
 ```json
 {
-	"status": "success",
-	"message": "Bill found.",
-	"bill": {
-		"paymentId": 123,
-		"invoiceNumber": "26071801",
-		"shortCode": "26071801",
-		"plateNumber": "GAR-1234",
-		"ownerName": "Owner Name",
-		"movement": "Entry",
-		"amount": 20.0,
-		"currency": "SOS",
-		"isPaid": false,
-		"isReverted": false,
-		"canPay": true,
-		"paidAt": null,
-		"collector": null,
-		"referenceNumber": null
-	}
+	"requestId": "EzQMJVjN",
+	"schemaVersion": "1.0",
+	"responseHeader": {
+		"timestamp": "20260718114500001",
+		"resultCode": "0",
+		"resultMessage": "SUCCESS"
+	},
+	"billInfo": [
+		{
+			"billId": "1",
+			"billTo": "OWNER NAME",
+			"billAmount": "20.00",
+			"billCurrency": "SOS",
+			"billNumber": "26071801",
+			"dueDate": "2026-07-18T11:45:00.001",
+			"status": "PENDING",
+			"partialPayAllowed": "0",
+			"description": "Vehicle tax for plate GAR-1234 - Entry"
+		}
+	],
+	"PayInfo": null
 }
 ```
 
@@ -115,20 +118,28 @@ curl -X POST "https://www.tax.garowecity.pl.so/api/golis/queryBillInfo" \
 
 ```json
 {
-	"status": "error",
-	"message": "Provide invoiceNumber, or provide both plateNumber and movement."
+	"requestId": "EzQMJVjN",
+	"schemaVersion": "1.0",
+	"responseHeader": {
+		"timestamp": "20260718114500001",
+		"resultCode": "1",
+		"resultMessage": "Provide invoiceNumber, or provide both plateNumber and movement."
+	},
+	"billInfo": [],
+	"PayInfo": null
 }
 ```
 
 ```json
 {
-	"status": "error",
-	"message": "Invoice not found."
-}
-```
-
-```json
-{
-	"message": "Invalid username or password."
+	"requestId": "EzQMJVjN",
+	"schemaVersion": "1.0",
+	"responseHeader": {
+		"timestamp": "20260718114500001",
+		"resultCode": "1",
+		"resultMessage": "Invoice not found."
+	},
+	"billInfo": [],
+	"PayInfo": null
 }
 ```

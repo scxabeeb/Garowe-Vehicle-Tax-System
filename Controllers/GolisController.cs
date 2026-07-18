@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -43,7 +44,7 @@ public class GolisController : ControllerBase
 
         if (request == null)
         {
-            return BadRequest(new { status = "error", message = "Invalid request payload." });
+            return Ok(BuildErrorResponse(null, null, "1", "Invalid request payload."));
         }
 
         var invoiceNumber = FirstNonEmpty(
@@ -65,11 +66,11 @@ public class GolisController : ControllerBase
         if (string.IsNullOrWhiteSpace(invoiceNumber) &&
             (string.IsNullOrWhiteSpace(plateNumber) || string.IsNullOrWhiteSpace(movementName)))
         {
-            return BadRequest(new
-            {
-                status = "error",
-                message = "Provide invoiceNumber, or provide both plateNumber and movement."
-            });
+            return Ok(BuildErrorResponse(
+                request.RequestId,
+                request.SchemaVersion,
+                "1",
+                "Provide invoiceNumber, or provide both plateNumber and movement."));
         }
 
         if (!string.IsNullOrWhiteSpace(invoiceNumber))
@@ -77,7 +78,7 @@ public class GolisController : ControllerBase
             var invoiceId = ParseInvoiceId(invoiceNumber);
             if (!invoiceId.HasValue)
             {
-                return NotFound(new { status = "error", message = "Invoice not found." });
+                return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
             }
 
             var payment = await _context.Payments
@@ -89,31 +90,20 @@ public class GolisController : ControllerBase
 
             if (payment == null)
             {
-                return NotFound(new { status = "error", message = "Invoice not found." });
+                return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
             }
 
-            return Ok(new
-            {
-                status = "success",
-                message = "Bill found.",
-                bill = new
-                {
-                    paymentId = payment.Id,
-                    invoiceNumber = payment.InvoiceNumber,
-                    shortCode = payment.ShortCode,
-                    plateNumber = payment.Vehicle?.PlateNumber,
-                    ownerName = payment.Vehicle?.OwnerName,
-                    movement = payment.Movement?.Name ?? payment.MovementType,
-                    amount = payment.Amount,
-                    currency = "SOS",
-                    isPaid = payment.IsPaid,
-                    isReverted = payment.IsReverted,
-                    canPay = !payment.IsPaid && !payment.IsReverted,
-                    paidAt = payment.IsPaid ? (DateTime?)payment.PaidAt : null,
-                    collector = payment.Collector?.Username,
-                    referenceNumber = payment.ReceiptReference?.ReferenceNumber
-                }
-            });
+            return Ok(BuildSuccessResponse(
+                request.RequestId,
+                request.SchemaVersion,
+                BuildBillInfo(
+                    billId: payment.Id.ToString(),
+                    billTo: payment.Vehicle?.OwnerName,
+                    billAmount: payment.Amount,
+                    billNumber: payment.InvoiceNumber,
+                    dueDate: payment.PaidAt,
+                    status: payment.IsPaid ? "PAID" : "PENDING",
+                    description: $"Vehicle tax for plate {payment.Vehicle?.PlateNumber} - {(payment.Movement?.Name ?? payment.MovementType)}")));
         }
 
         var normalizedPlate = plateNumber!.ToUpperInvariant();
@@ -123,7 +113,7 @@ public class GolisController : ControllerBase
 
         if (vehicle == null)
         {
-            return NotFound(new { status = "error", message = "Vehicle not found." });
+            return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Vehicle not found."));
         }
 
         var movement = await _context.Movements
@@ -131,7 +121,7 @@ public class GolisController : ControllerBase
 
         if (movement == null)
         {
-            return NotFound(new { status = "error", message = "Movement not found." });
+            return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Movement not found."));
         }
 
         var existingInvoice = await _context.Payments
@@ -142,27 +132,17 @@ public class GolisController : ControllerBase
 
         if (existingInvoice != null)
         {
-            return Ok(new
-            {
-                status = "success",
-                message = "Bill found.",
-                bill = new
-                {
-                    paymentId = existingInvoice.Id,
-                    invoiceNumber = existingInvoice.InvoiceNumber,
-                    shortCode = existingInvoice.ShortCode,
-                    plateNumber = vehicle.PlateNumber,
-                    ownerName = vehicle.OwnerName,
-                    movement = movement.Name,
-                    amount = existingInvoice.Amount,
-                    currency = "SOS",
-                    isPaid = existingInvoice.IsPaid,
-                    isReverted = existingInvoice.IsReverted,
-                    canPay = !existingInvoice.IsPaid && !existingInvoice.IsReverted,
-                    paidAt = existingInvoice.IsPaid ? (DateTime?)existingInvoice.PaidAt : null,
-                    referenceNumber = existingInvoice.ReceiptReference?.ReferenceNumber
-                }
-            });
+            return Ok(BuildSuccessResponse(
+                request.RequestId,
+                request.SchemaVersion,
+                BuildBillInfo(
+                    billId: existingInvoice.Id.ToString(),
+                    billTo: vehicle.OwnerName,
+                    billAmount: existingInvoice.Amount,
+                    billNumber: existingInvoice.InvoiceNumber,
+                    dueDate: existingInvoice.PaidAt,
+                    status: existingInvoice.IsPaid ? "PAID" : "PENDING",
+                    description: $"Vehicle tax for plate {vehicle.PlateNumber} - {movement.Name}")));
         }
 
         var tax = await _context.TaxAmounts
@@ -170,28 +150,20 @@ public class GolisController : ControllerBase
 
         if (tax == null)
         {
-            return NotFound(new { status = "error", message = "Tax configuration not found." });
+            return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Tax configuration not found."));
         }
 
-        return Ok(new
-        {
-            status = "success",
-            message = "Bill preview found. Invoice has not been generated yet.",
-            bill = new
-            {
-                paymentId = (int?)null,
-                invoiceNumber = (string?)null,
-                shortCode = (string?)null,
-                plateNumber = vehicle.PlateNumber,
-                ownerName = vehicle.OwnerName,
-                movement = movement.Name,
-                amount = tax.Amount,
-                currency = "SOS",
-                isPaid = false,
-                isReverted = false,
-                canPay = false
-            }
-        });
+        return Ok(BuildSuccessResponse(
+            request.RequestId,
+            request.SchemaVersion,
+            BuildBillInfo(
+                billId: $"PREVIEW-{vehicle.Id}-{movement.Id}",
+                billTo: vehicle.OwnerName,
+                billAmount: tax.Amount,
+                billNumber: string.Empty,
+                dueDate: DateTime.UtcNow,
+                status: "PENDING",
+                description: $"Vehicle tax preview for plate {vehicle.PlateNumber} - {movement.Name}")));
     }
 
     private IActionResult? ValidateGolisAuth()
@@ -257,6 +229,66 @@ public class GolisController : ControllerBase
         return null;
     }
 
+    private static object BuildSuccessResponse(string? requestId, string? schemaVersion, object[] billInfo)
+    {
+        return new
+        {
+            requestId = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
+            schemaVersion = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
+            responseHeader = new
+            {
+                timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
+                resultCode = "0",
+                resultMessage = "SUCCESS"
+            },
+            billInfo,
+            PayInfo = (object?)null
+        };
+    }
+
+    private static object BuildErrorResponse(string? requestId, string? schemaVersion, string resultCode, string resultMessage)
+    {
+        return new
+        {
+            requestId = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
+            schemaVersion = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
+            responseHeader = new
+            {
+                timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
+                resultCode,
+                resultMessage
+            },
+            billInfo = Array.Empty<object>(),
+            PayInfo = (object?)null
+        };
+    }
+
+    private static object[] BuildBillInfo(
+        string billId,
+        string? billTo,
+        decimal billAmount,
+        string? billNumber,
+        DateTime dueDate,
+        string status,
+        string description)
+    {
+        return new[]
+        {
+            new
+            {
+                billId,
+                billTo = (billTo ?? string.Empty).ToUpperInvariant(),
+                billAmount = billAmount.ToString("0.00", CultureInfo.InvariantCulture),
+                billCurrency = "SOS",
+                billNumber = billNumber ?? string.Empty,
+                dueDate = AppTime.ToLocal(dueDate).ToString("yyyy-MM-ddTHH:mm:ss.fff", CultureInfo.InvariantCulture),
+                status,
+                partialPayAllowed = "0",
+                description
+            }
+        };
+    }
+
     private static int? ParseInvoiceId(string invoiceNumber)
     {
         if (string.IsNullOrWhiteSpace(invoiceNumber))
@@ -293,6 +325,8 @@ public class GolisController : ControllerBase
 
 public class GolisBillQueryRequest
 {
+    public string? RequestId { get; set; }
+    public string? SchemaVersion { get; set; }
     public string? InvoiceNumber { get; set; }
     public string? InvoiceId { get; set; }
     public string? BillNumber { get; set; }
