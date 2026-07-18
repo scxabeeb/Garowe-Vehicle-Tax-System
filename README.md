@@ -66,6 +66,24 @@ curl -X POST "https://www.tax.garowecity.pl.so/api/golis/queryBillInfo" \
 	}'
 ```
 
+### 4) POST using Golis wrapped payload
+
+The endpoint also accepts the payload structure used by Golis integrations where values are nested inside `requestBody`.
+
+```bash
+curl -X POST "https://www.tax.garowecity.pl.so/api/golis/queryBillInfo" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"requestBody": {
+			"billNumber": "26071801",
+			"invoiceId": "26071801"
+		},
+		"requestHeader": {
+			"apikey": "garowetax"
+		}
+	}'
+```
+
 ---
 
 ## Success Response (Example)

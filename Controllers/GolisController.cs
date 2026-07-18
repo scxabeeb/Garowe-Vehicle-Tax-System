@@ -46,9 +46,21 @@ public class GolisController : ControllerBase
             return BadRequest(new { status = "error", message = "Invalid request payload." });
         }
 
-        var invoiceNumber = request.InvoiceNumber?.Trim();
-        var plateNumber = request.PlateNumber?.Trim();
-        var movementName = request.Movement?.Trim();
+        var invoiceNumber = FirstNonEmpty(
+            request.InvoiceNumber,
+            request.InvoiceId,
+            request.BillNumber,
+            request.RequestBody?.InvoiceNumber,
+            request.RequestBody?.InvoiceId,
+            request.RequestBody?.BillNumber)?.Trim();
+
+        var plateNumber = FirstNonEmpty(
+            request.PlateNumber,
+            request.RequestBody?.PlateNumber)?.Trim();
+
+        var movementName = FirstNonEmpty(
+            request.Movement,
+            request.RequestBody?.Movement)?.Trim();
 
         if (string.IsNullOrWhiteSpace(invoiceNumber) &&
             (string.IsNullOrWhiteSpace(plateNumber) || string.IsNullOrWhiteSpace(movementName)))
@@ -232,6 +244,19 @@ public class GolisController : ControllerBase
         return null;
     }
 
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
     private static int? ParseInvoiceId(string invoiceNumber)
     {
         if (string.IsNullOrWhiteSpace(invoiceNumber))
@@ -269,6 +294,18 @@ public class GolisController : ControllerBase
 public class GolisBillQueryRequest
 {
     public string? InvoiceNumber { get; set; }
+    public string? InvoiceId { get; set; }
+    public string? BillNumber { get; set; }
+    public string? PlateNumber { get; set; }
+    public string? Movement { get; set; }
+    public GolisBillRequestBody? RequestBody { get; set; }
+}
+
+public class GolisBillRequestBody
+{
+    public string? InvoiceNumber { get; set; }
+    public string? InvoiceId { get; set; }
+    public string? BillNumber { get; set; }
     public string? PlateNumber { get; set; }
     public string? Movement { get; set; }
 }
