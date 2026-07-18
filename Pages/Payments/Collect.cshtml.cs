@@ -102,11 +102,10 @@ public class CollectModel : PageModel
     }
 
     // =======================
-    // GENERATE INVOICE (PENDING)
+    // GENERATE INVOICE PREVIEW (NO DB RECORD)
     // =======================
     public IActionResult OnPostGenerateInvoice()
     {
-        using var tx = _context.Database.BeginTransaction();
         try
         {
             LoadVehicle();
@@ -115,7 +114,6 @@ public class CollectModel : PageModel
             if (Vehicle == null)
             {
                 ErrorMessage = "Vehicle not found.";
-                tx.Rollback();
                 return Page();
             }
 
@@ -128,37 +126,24 @@ public class CollectModel : PageModel
             if (tax == null)
             {
                 ErrorMessage = "Tax configuration not found.";
-                tx.Rollback();
                 return Page();
             }
 
             if (Quantity < 1)
             {
                 ErrorMessage = "Quantity must be at least 1.";
-                tx.Rollback();
                 return Page();
             }
 
-            var payment = new Payment
+            return RedirectToPage("/Payments/Receipt", new
             {
-                VehicleId = Vehicle.Id,
-                MovementId = MovementId,
-                MovementType = tax.Movement!.Name,
-                Amount = tax.Amount * Quantity,
-                PaidAt = DateTime.UtcNow,
-                CollectorId = null,
-                IsPaid = false
-            };
-
-            _context.Payments.Add(payment);
-            _context.SaveChanges();
-            tx.Commit();
-
-            return RedirectToPage("/Payments/Receipt", new { paymentId = payment.Id });
+                vehicleId = Vehicle.Id,
+                movementId = MovementId,
+                quantity = Quantity
+            });
         }
         catch (Exception ex)
         {
-            tx.Rollback();
             ErrorMessage = ex.Message;
             return Page();
         }

@@ -3,6 +3,7 @@
 
 @{
     var isThermal = string.Equals(Model.PrintMode, "thermal", StringComparison.OrdinalIgnoreCase);
+    var isPreview = Model.IsPreview;
 }
 
 <style>
@@ -207,13 +208,13 @@
     <div class="card shadow-sm border-0">
         <div class="card-body print-sheet">
             <div class="print-watermark">
-                @(Model.Payment?.IsPaid == true ? "PAID RECEIPT" : "UNPAID INVOICE")
+                @(Model.Payment?.IsPaid == true ? "PAID RECEIPT" : (isPreview ? "INVOICE PREVIEW" : "UNPAID INVOICE"))
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4 no-print">
                 <div>
                     <h4 class="mb-1">@(Model.Payment?.IsPaid == true ? "Receipt" : "Invoice")</h4>
-                    <small class="text-muted">@(Model.Payment?.IsPaid == true ? "Payment receipt detail" : "Pending invoice detail")</small>
+                    <small class="text-muted">@(Model.Payment?.IsPaid == true ? "Payment receipt detail" : (isPreview ? "Invoice preview (not recorded yet)" : "Pending invoice detail"))</small>
                 </div>
                 <div class="d-flex gap-2">
                     @if (Model.Payment != null)
@@ -258,7 +259,7 @@
                         </div>
                         <div class="text-end">
                             <div class="fw-bold fs-5">@(Model.Payment.IsPaid ? "Receipt" : "Invoice")</div>
-                            <div class="text-muted">@Model.Payment.InvoiceNumber</div>
+                            <div class="text-muted">@(isPreview ? "PREVIEW" : Model.Payment.InvoiceNumber)</div>
                         </div>
                     </div>
 
@@ -266,6 +267,10 @@
                         @if (Model.Payment.IsPaid)
                         {
                             <span><strong>Payment Completed:</strong> This document confirms payment collection.</span>
+                        }
+                        else if (isPreview)
+                        {
+                            <span><strong>Preview Only:</strong> Payment will be recorded only after admin collects.</span>
                         }
                         else
                         {
@@ -279,11 +284,11 @@
                                 <tbody>
                                     <tr>
                                         <td class="meta-label">Invoice No</td>
-                                        <td>@Model.Payment.InvoiceNumber</td>
+                                        <td>@(isPreview ? "PREVIEW" : Model.Payment.InvoiceNumber)</td>
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Short Code</td>
-                                        <td>@Model.Payment.ShortCode</td>
+                                        <td>@(isPreview ? "N/A" : Model.Payment.ShortCode)</td>
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Date</td>
@@ -317,7 +322,7 @@
                             <h5 class="mb-3">@(Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary")</h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
+                                    <p><strong>Payment ID:</strong> @(isPreview ? "Not recorded" : Model.Payment.Id)</p>
                                     <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">
@@ -331,6 +336,10 @@
                                         else if (Model.Payment.IsPaid)
                                         {
                                             <span class="badge bg-success">Paid</span>
+                                        }
+                                        else if (isPreview)
+                                        {
+                                            <span class="badge bg-secondary">Preview</span>
                                         }
                                         else
                                         {
@@ -346,17 +355,34 @@
                 {
                     <div class="alert alert-warning d-flex justify-content-between align-items-center no-print">
                         <div>
-                            Invoice has been generated and can be printed now. Payment collection is restricted to admins.
+                            @(isPreview
+                                ? "Invoice preview is ready. Payment will be recorded only when an admin collects now."
+                                : "Invoice has been generated and can be printed now. Payment collection is restricted to admins.")
                         </div>
                         @if (User.IsInRole("Admin"))
                         {
-                            <form method="post" asp-page-handler="Collect" class="ms-3">
-                                <input type="hidden" name="paymentId" value="@Model.Payment.Id" />
-                                <input type="hidden" name="PrintMode" value="@Model.PrintMode" />
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-cash-stack"></i> Collect Invoice
-                                </button>
-                            </form>
+                            @if (isPreview)
+                            {
+                                <form method="post" asp-page-handler="CollectPreview" class="ms-3">
+                                    <input type="hidden" name="vehicleId" value="@Model.VehicleId" />
+                                    <input type="hidden" name="movementId" value="@Model.MovementId" />
+                                    <input type="hidden" name="quantity" value="@Model.Quantity" />
+                                    <input type="hidden" name="PrintMode" value="@Model.PrintMode" />
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-cash-stack"></i> Collect & Record Payment
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Collect" class="ms-3">
+                                    <input type="hidden" name="paymentId" value="@Model.Payment.Id" />
+                                    <input type="hidden" name="PrintMode" value="@Model.PrintMode" />
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-cash-stack"></i> Collect Invoice
+                                    </button>
+                                </form>
+                            }
                         }
                         else
                         {
