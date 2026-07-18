@@ -36,15 +36,15 @@ public class GolisController : ControllerBase
 
     private async Task<IActionResult> QueryCoreAsync(GolisBillQueryRequest request)
     {
-        var authResult = ValidateGolisAuth();
-        if (authResult != null)
-        {
-            return authResult;
-        }
-
         if (request == null)
         {
             return Ok(BuildErrorResponse(null, null, "1", "Invalid request payload."));
+        }
+
+        var authResult = ValidateGolisAuth(request);
+        if (authResult != null)
+        {
+            return authResult;
         }
 
         var invoiceNumber = FirstNonEmpty(
@@ -89,6 +89,13 @@ public class GolisController : ControllerBase
                 .FirstOrDefaultAsync(p => p.Id == invoiceId.Value && !p.IsReverted);
 
             if (payment == null)
+            {
+                return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
+            }
+
+            // When caller provides a full invoice number, enforce exact match to prevent accidental ID collisions.
+            if (LooksLikeFullInvoiceNumber(invoiceNumber) &&
+                !string.Equals(payment.InvoiceNumber, invoiceNumber, StringComparison.OrdinalIgnoreCase))
             {
                 return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
             }
@@ -166,8 +173,36 @@ public class GolisController : ControllerBase
                 description: $"Vehicle tax preview for plate {vehicle.PlateNumber} - {movement.Name}")));
     }
 
-    private IActionResult? ValidateGolisAuth()
+    private IActionResult? ValidateGolisAuth(GolisBillQueryRequest request)
     {
+        var expectedApiKey = _settings.ApiUsername?.Trim();
+        var expectedApiPassword = _settings.ApiPassword?.Trim();
+
+        var hasExpectedRequestHeaderCredentials =
+            !string.IsNullOrWhiteSpace(expectedApiKey) ||
+            !string.IsNullOrWhiteSpace(expectedApiPassword);
+
+        var providedApiKey = request.RequestHeader?.ApiKey?.Trim();
+        var providedApiPassword = request.RequestHeader?.ApiPassword?.Trim();
+        var providedInRequestHeader =
+            !string.IsNullOrWhiteSpace(providedApiKey) ||
+            !string.IsNullOrWhiteSpace(providedApiPassword);
+
+        if (hasExpectedRequestHeaderCredentials && providedInRequestHeader)
+        {
+            if (!string.Equals(providedApiKey, expectedApiKey, StringComparison.Ordinal) ||
+                !string.Equals(providedApiPassword, expectedApiPassword, StringComparison.Ordinal))
+            {
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid username or password."));
+            }
+
+            // Request-header credentials passed and validated.
+            if (string.IsNullOrWhiteSpace(_settings.Secret))
+            {
+                return null;
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(_settings.ApiUsername))
         {
             if (!Request.Headers.TryGetValue("Authorization", out var authHeader) ||
@@ -176,7 +211,7 @@ public class GolisController : ControllerBase
                 parsed.Parameter == null)
             {
                 Response.Headers["WWW-Authenticate"] = "Basic realm=\"GolisAPI\"";
-                return Unauthorized(new { message = "Basic authentication required." });
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Basic authentication required."));
             }
 
             string credentials;
@@ -186,13 +221,13 @@ public class GolisController : ControllerBase
             }
             catch
             {
-                return Unauthorized(new { message = "Invalid credentials encoding." });
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid credentials encoding."));
             }
 
             var colonIndex = credentials.IndexOf(':');
             if (colonIndex < 0)
             {
-                return Unauthorized(new { message = "Invalid credentials format." });
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid credentials format."));
             }
 
             var username = credentials[..colonIndex];
@@ -201,7 +236,7 @@ public class GolisController : ControllerBase
             if (username != _settings.ApiUsername || password != _settings.ApiPassword)
             {
                 Response.Headers["WWW-Authenticate"] = "Basic realm=\"GolisAPI\"";
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid username or password."));
             }
         }
 
@@ -209,7 +244,7 @@ public class GolisController : ControllerBase
         {
             if (!Request.Headers.TryGetValue("X-Golis-Secret", out var secret) || secret != _settings.Secret)
             {
-                return Unauthorized(new { message = "Invalid webhook secret." });
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid webhook secret."));
             }
         }
 
@@ -321,6 +356,17 @@ public class GolisController : ControllerBase
 
         return null;
     }
+
+    private static bool LooksLikeFullInvoiceNumber(string invoiceNumber)
+    {
+        if (string.IsNullOrWhiteSpace(invoiceNumber))
+        {
+            return false;
+        }
+
+        invoiceNumber = invoiceNumber.Trim();
+        return invoiceNumber.Length > 6 && invoiceNumber.All(char.IsDigit);
+    }
 }
 
 public class GolisBillQueryRequest
@@ -333,6 +379,7 @@ public class GolisBillQueryRequest
     public string? PlateNumber { get; set; }
     public string? Movement { get; set; }
     public GolisBillRequestBody? RequestBody { get; set; }
+    public GolisBillRequestHeader? RequestHeader { get; set; }
 }
 
 public class GolisBillRequestBody
@@ -342,4 +389,11 @@ public class GolisBillRequestBody
     public string? BillNumber { get; set; }
     public string? PlateNumber { get; set; }
     public string? Movement { get; set; }
+}
+
+public class GolisBillRequestHeader
+{
+    public string? ApiPassword { get; set; }
+    public string? ApiKey { get; set; }
+    public string? Timestamp { get; set; }
 }
