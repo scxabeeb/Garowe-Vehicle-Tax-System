@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Globalization;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -177,6 +178,7 @@ public class GolisController : ControllerBase
     {
         var expectedApiKey = _settings.ApiUsername?.Trim();
         var expectedApiPassword = _settings.ApiPassword?.Trim();
+        var billerCode = string.IsNullOrWhiteSpace(_settings.BillerCode) ? "173311" : _settings.BillerCode.Trim();
 
         var hasExpectedRequestHeaderCredentials =
             !string.IsNullOrWhiteSpace(expectedApiKey) ||
@@ -190,8 +192,19 @@ public class GolisController : ControllerBase
 
         if (hasExpectedRequestHeaderCredentials && providedInRequestHeader)
         {
-            if (!string.Equals(providedApiKey, expectedApiKey, StringComparison.Ordinal) ||
-                !string.Equals(providedApiPassword, expectedApiPassword, StringComparison.Ordinal))
+            var timestamp = request.RequestHeader?.Timestamp?.Trim();
+            if (string.IsNullOrWhiteSpace(timestamp))
+            {
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Timestamp is required."));
+            }
+
+            if (!string.Equals(providedApiKey, expectedApiKey, StringComparison.Ordinal))
+            {
+                return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid username or password."));
+            }
+
+            var expectedHash = ComputeMd5Hex($"{timestamp}{expectedApiPassword}{billerCode}");
+            if (!string.Equals(providedApiPassword, expectedHash, StringComparison.OrdinalIgnoreCase))
             {
                 return Unauthorized(BuildErrorResponse(request.RequestId, request.SchemaVersion, "401", "Invalid username or password."));
             }
@@ -366,6 +379,13 @@ public class GolisController : ControllerBase
 
         invoiceNumber = invoiceNumber.Trim();
         return invoiceNumber.Length > 6 && invoiceNumber.All(char.IsDigit);
+    }
+
+    private static string ComputeMd5Hex(string input)
+    {
+        var bytes = Encoding.UTF8.GetBytes(input);
+        var hashBytes = MD5.HashData(bytes);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 }
 
