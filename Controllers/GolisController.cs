@@ -35,6 +35,108 @@ public class GolisController : ControllerBase
         return await QueryCoreAsync(request);
     }
 
+    // =======================
+    // PAY BILL NOTIFICATION
+    // POST: api/golis/payBillNotification
+    // =======================
+    [HttpPost("payBillNotification")]
+    public async Task<IActionResult> PayBillNotification([FromBody] GolisPayBillNotificationRequest request)
+    {
+        if (request == null)
+        {
+            return Ok(BuildErrorResponse(null, null, "1", "Invalid request payload."));
+        }
+
+        var authResult = ValidateGolisAuth(new GolisBillQueryRequest
+        {
+            RequestId = request.RequestId,
+            SchemaVersion = request.SchemaVersion,
+            RequestHeader = request.RequestHeader
+        });
+        if (authResult != null)
+        {
+            return authResult;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.InvoiceNumber) &&
+            (string.IsNullOrWhiteSpace(request.PlateNumber) || string.IsNullOrWhiteSpace(request.Movement)))
+        {
+            return Ok(BuildErrorResponse(
+                request.RequestId,
+                request.SchemaVersion,
+                "1",
+                "Provide invoiceNumber, or provide both plateNumber and movement."));
+        }
+
+        Payment? payment = null;
+
+        if (!string.IsNullOrWhiteSpace(request.InvoiceNumber))
+        {
+            var invoiceId = ParseInvoiceId(request.InvoiceNumber);
+            if (invoiceId.HasValue)
+            {
+                payment = await _context.Payments
+                    .Include(p => p.Vehicle)
+                    .Include(p => p.Movement)
+                    .Include(p => p.Collector)
+                    .Include(p => p.ReceiptReference)
+                    .FirstOrDefaultAsync(p => p.Id == invoiceId.Value && !p.IsReverted);
+            }
+        }
+
+        if (payment == null && !string.IsNullOrWhiteSpace(request.PlateNumber) && !string.IsNullOrWhiteSpace(request.Movement))
+        {
+            var normalizedPlate = request.PlateNumber.Trim().ToUpper();
+            var vehicle = await _context.Vehicles
+                .FirstOrDefaultAsync(v => v.PlateNumber.ToUpper() == normalizedPlate);
+
+            if (vehicle != null)
+            {
+                var movement = await _context.Movements
+                    .FirstOrDefaultAsync(m => m.Name.ToUpper() == request.Movement.Trim().ToUpper());
+
+                if (movement != null)
+                {
+                    payment = await _context.Payments
+                        .Include(p => p.Vehicle)
+                        .Include(p => p.Movement)
+                        .Include(p => p.Collector)
+                        .Include(p => p.ReceiptReference)
+                        .Where(p => p.VehicleId == vehicle.Id && p.MovementId == movement.Id && !p.IsReverted)
+                        .OrderByDescending(p => p.PaidAt)
+                        .FirstOrDefaultAsync();
+                }
+            }
+        }
+
+        if (payment == null)
+        {
+            return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
+        }
+
+        // Mark payment as paid
+        payment.IsPaid = true;
+        payment.PaidAt = DateTime.UtcNow;
+        payment.Amount = request.Amount > 0 ? request.Amount : payment.Amount;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(BuildSuccessResponse(
+            request.RequestId,
+            request.SchemaVersion,
+            new[]
+            {
+                new
+                {
+                    invoiceNumber = payment.InvoiceNumber,
+                    paymentId = payment.Id,
+                    status = "PAID",
+                    amount = payment.Amount,
+                    transactionId = request.TransactionId ?? string.Empty
+                }
+            }));
+    }
+
     private async Task<IActionResult> QueryCoreAsync(GolisBillQueryRequest request)
     {
         if (request == null)
@@ -416,4 +518,16 @@ public class GolisBillRequestHeader
     public string? ApiPassword { get; set; }
     public string? ApiKey { get; set; }
     public string? Timestamp { get; set; }
+}
+
+public class GolisPayBillNotificationRequest
+{
+    public string? RequestId { get; set; }
+    public string? SchemaVersion { get; set; }
+    public string? InvoiceNumber { get; set; }
+    public string? PlateNumber { get; set; }
+    public string? Movement { get; set; }
+    public decimal Amount { get; set; }
+    public string? TransactionId { get; set; }
+    public GolisBillRequestHeader? RequestHeader { get; set; }
 }
