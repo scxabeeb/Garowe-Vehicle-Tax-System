@@ -44,7 +44,7 @@ public class GolisController : ControllerBase
     {
         if (request == null)
         {
-            return Ok(BuildErrorResponse(null, null, "1", "Invalid request payload."));
+            return Ok(BuildNotificationErrorResponse(null, null, "1", "Invalid request payload."));
         }
 
         var authResult = ValidateGolisAuth(new GolisBillQueryRequest
@@ -58,83 +58,81 @@ public class GolisController : ControllerBase
             return authResult;
         }
 
-        if (string.IsNullOrWhiteSpace(request.InvoiceNumber) &&
-            (string.IsNullOrWhiteSpace(request.PlateNumber) || string.IsNullOrWhiteSpace(request.Movement)))
+        var billInfo = request.RequestBody?.BillInfo;
+        var transacionInfo = request.RequestBody?.TransacionInfo;
+
+        if (billInfo == null || transacionInfo == null)
         {
-            return Ok(BuildErrorResponse(
-                request.RequestId,
-                request.SchemaVersion,
-                "1",
-                "Provide invoiceNumber, or provide both plateNumber and movement."));
+            return Ok(BuildNotificationErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invalid request body."));
         }
 
+        var invoiceId = billInfo.InvoiceId?.Trim();
+        var paidBy = billInfo.PaidBy?.Trim();
+        var paidDate = billInfo.PaidDate;
+        var amountStr = transacionInfo.Amount;
+        var transactionId = transacionInfo.TansactionId?.Trim();
+
+        if (string.IsNullOrWhiteSpace(invoiceId))
+        {
+            return Ok(BuildNotificationErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice ID is required."));
+        }
+
+        // Try to find payment by InvoiceNumber (exact match) or by parsed numeric ID
         Payment? payment = null;
 
-        if (!string.IsNullOrWhiteSpace(request.InvoiceNumber))
+        payment = await _context.Payments
+            .Include(p => p.Vehicle)
+            .Include(p => p.Movement)
+            .Include(p => p.Collector)
+            .Include(p => p.ReceiptReference)
+            .FirstOrDefaultAsync(p => p.InvoiceNumber == invoiceId && !p.IsReverted);
+
+        if (payment == null)
         {
-            var invoiceId = ParseInvoiceId(request.InvoiceNumber);
-            if (invoiceId.HasValue)
+            var parsedId = ParseInvoiceId(invoiceId);
+            if (parsedId.HasValue)
             {
                 payment = await _context.Payments
                     .Include(p => p.Vehicle)
                     .Include(p => p.Movement)
                     .Include(p => p.Collector)
                     .Include(p => p.ReceiptReference)
-                    .FirstOrDefaultAsync(p => p.Id == invoiceId.Value && !p.IsReverted);
-            }
-        }
-
-        if (payment == null && !string.IsNullOrWhiteSpace(request.PlateNumber) && !string.IsNullOrWhiteSpace(request.Movement))
-        {
-            var normalizedPlate = request.PlateNumber.Trim().ToUpper();
-            var vehicle = await _context.Vehicles
-                .FirstOrDefaultAsync(v => v.PlateNumber.ToUpper() == normalizedPlate);
-
-            if (vehicle != null)
-            {
-                var movement = await _context.Movements
-                    .FirstOrDefaultAsync(m => m.Name.ToUpper() == request.Movement.Trim().ToUpper());
-
-                if (movement != null)
-                {
-                    payment = await _context.Payments
-                        .Include(p => p.Vehicle)
-                        .Include(p => p.Movement)
-                        .Include(p => p.Collector)
-                        .Include(p => p.ReceiptReference)
-                        .Where(p => p.VehicleId == vehicle.Id && p.MovementId == movement.Id && !p.IsReverted)
-                        .OrderByDescending(p => p.PaidAt)
-                        .FirstOrDefaultAsync();
-                }
+                    .FirstOrDefaultAsync(p => p.Id == parsedId.Value && !p.IsReverted);
             }
         }
 
         if (payment == null)
         {
-            return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
+            return Ok(BuildNotificationErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
         }
 
         // Mark payment as paid
         payment.IsPaid = true;
-        payment.PaidAt = DateTime.UtcNow;
-        payment.Amount = request.Amount > 0 ? request.Amount : payment.Amount;
+        payment.PaidAt = DateTime.TryParse(paidDate, out var parsedDate) ? parsedDate : DateTime.UtcNow;
+
+        if (decimal.TryParse(amountStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedAmount) && parsedAmount > 0)
+        {
+            payment.Amount = parsedAmount;
+        }
 
         await _context.SaveChangesAsync();
 
-        return Ok(BuildSuccessResponse(
-            request.RequestId,
-            request.SchemaVersion,
-            new[]
+        // Generate confirmation ID
+
+        var confirmationId = $"001-{payment.Id:D10}";
+
+        return Ok(new Dictionary<string, object?>
+        {
+            ["requestId"] = string.IsNullOrWhiteSpace(request.RequestId) ? string.Empty : request.RequestId,
+            ["schemaVersion"] = string.IsNullOrWhiteSpace(request.SchemaVersion) ? "1.0" : request.SchemaVersion,
+            ["responseHeader"] = new Dictionary<string, object?>
             {
-                new
-                {
-                    invoiceNumber = payment.InvoiceNumber,
-                    paymentId = payment.Id,
-                    status = "PAID",
-                    amount = payment.Amount,
-                    transactionId = request.TransactionId ?? string.Empty
-                }
-            }));
+                ["timestamp"] = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
+                ["resultCode"] = "0",
+                ["resultMessage"] = "SUCCESS"
+            },
+            ["confirmationId"] = confirmationId
+        });
     }
 
     private async Task<IActionResult> QueryCoreAsync(GolisBillQueryRequest request)
@@ -396,6 +394,22 @@ public class GolisController : ControllerBase
         };
     }
 
+    private static object BuildNotificationErrorResponse(string? requestId, string? schemaVersion, string resultCode, string resultMessage)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["requestId"] = string.IsNullOrWhiteSpace(requestId) ? string.Empty : requestId,
+            ["schemaVersion"] = string.IsNullOrWhiteSpace(schemaVersion) ? "1.0" : schemaVersion,
+            ["responseHeader"] = new Dictionary<string, object?>
+            {
+                ["timestamp"] = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture),
+                ["resultCode"] = resultCode,
+                ["resultMessage"] = resultMessage
+            },
+            ["confirmationId"] = string.Empty
+        };
+    }
+
     private static object BuildErrorResponse(string? requestId, string? schemaVersion, string resultCode, string resultMessage)
     {
         return new Dictionary<string, object?>
@@ -524,10 +538,36 @@ public class GolisPayBillNotificationRequest
 {
     public string? RequestId { get; set; }
     public string? SchemaVersion { get; set; }
-    public string? InvoiceNumber { get; set; }
-    public string? PlateNumber { get; set; }
-    public string? Movement { get; set; }
-    public decimal Amount { get; set; }
-    public string? TransactionId { get; set; }
+    public GolisPayBillRequestBody? RequestBody { get; set; }
     public GolisBillRequestHeader? RequestHeader { get; set; }
+}
+
+public class GolisPayBillRequestBody
+{
+    public GolisBillInfo? BillInfo { get; set; }
+    public GolisTransacionInfo? TransacionInfo { get; set; }
+}
+
+public class GolisBillInfo
+{
+    public string? BillNumber { get; set; }
+    public string? BillTo { get; set; }
+    public string? BillerCode { get; set; }
+    public string? BillerName { get; set; }
+    public string? Description { get; set; }
+    public string? DueDate { get; set; }
+    public string? InvoiceId { get; set; }
+    public bool IsPrepaid { get; set; }
+    public string? PaidAt { get; set; }
+    public string? PaidBy { get; set; }
+    public string? PaidDate { get; set; }
+    public string? Remarks { get; set; }
+}
+
+public class GolisTransacionInfo
+{
+    public string? Amount { get; set; }
+    public string? Currency { get; set; }
+    public string? Operation { get; set; }
+    public string? TansactionId { get; set; }
 }
