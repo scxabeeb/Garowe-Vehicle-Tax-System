@@ -1,0 +1,166 @@
+@page
+@model UserSecurityModel
+
+@{
+    ViewData["Title"] = "User Security";
+    var selectedUser = Model.SelectedUser;
+    var totalUsers = Model.AllUsers.Count;
+    var lockedUsers = Model.AllUsers.Count(u => u.IsLocked);
+}
+
+<div class="account-admin-page">
+<div class="sec-header mb-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h4 class="mb-1 admin-header-title"><i class="bi bi-shield-lock"></i> User Security</h4>
+            <div class="sub">Lock/unlock users and reset account passwords securely.</div>
+        </div>
+        <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="stat-chip">
+            <div class="small text-muted">Total Users</div>
+            <div class="fs-4 fw-bold">@totalUsers</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-chip">
+            <div class="small text-muted">Locked Users</div>
+            <div class="fs-4 fw-bold text-danger">@lockedUsers</div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Message"]
+    </div>
+}
+
+@if (!ModelState.IsValid)
+{
+    <div class="alert alert-danger" asp-validation-summary="All"></div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="security-card">
+            <div class="security-card-head">
+                <div class="fw-bold">Select User</div>
+            </div>
+            <div class="security-card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label">User</label>
+                        <select class="form-select" name="id" required>
+                            <option value="">-- Select User --</option>
+                            @foreach (var u in Model.AllUsers)
+                            {
+                                if (selectedUser != null && selectedUser.Id == u.Id)
+                                {
+                                    <option value="@u.Id" selected>@u.Username (@u.Role)</option>
+                                }
+                                else
+                                {
+                                    <option value="@u.Id">@u.Username (@u.Role)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <button class="btn btn-primary w-100 admin-btn">
+                        <i class="bi bi-search"></i> Load User
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="security-card">
+            <div class="security-card-head d-flex justify-content-between align-items-center">
+                <div class="fw-bold">Selected User Details</div>
+                @if (selectedUser != null)
+                {
+                    if (selectedUser.IsLocked)
+                    {
+                        <span class="badge bg-danger">Locked</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                }
+            </div>
+            <div class="security-card-body">
+                @if (selectedUser == null)
+                {
+                    <div class="text-muted">Select a user to manage lock status and password.</div>
+                }
+                else
+                {
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered align-middle mb-0">
+                            <tr>
+                                <th style="width:180px;">User ID</th>
+                                <td>@selectedUser.Id</td>
+                            </tr>
+                            <tr>
+                                <th>Username</th>
+                                <td class="fw-semibold">@selectedUser.Username</td>
+                            </tr>
+                            <tr>
+                                <th>Role</th>
+                                <td><span class="badge bg-info text-dark">@selectedUser.Role</span></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fw-semibold mb-2">Account Lock</div>
+                                <form method="post" asp-page-handler="ToggleLock">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" asp-for="Id" />
+                                    <button class="btn @(selectedUser.IsLocked ? "btn-success" : "btn-warning") w-100 admin-btn">
+                                        <i class="bi @(selectedUser.IsLocked ? "bi-unlock" : "bi-lock")"></i>
+                                        @(selectedUser.IsLocked ? "Set Active" : "Set Inactive")
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fw-semibold mb-2">Reset Password</div>
+                                <form method="post" asp-page-handler="ChangePassword">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" asp-for="Id" />
+
+                                    <div class="mb-2">
+                                        <label class="form-label">New Password</label>
+                                        <input asp-for="NewPassword"
+                                               type="password"
+                                               class="form-control"
+                                               placeholder="Enter new password" />
+                                    </div>
+
+                                    <button class="btn btn-primary w-100 admin-btn">
+                                        <i class="bi bi-key"></i> Change Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+</div>

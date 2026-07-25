@@ -1,0 +1,291 @@
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 14px;
+}
+
+.login-logo {
+    width: 90px;
+    height: auto;
+}
+
+@media (max-width: 576px) {
+    .login-card {
+        margin: 10px;
+    }
+
+    .login-logo {
+        width: 70px;
+    }
+}
+
+/* SECTION COLORS */
+.section {
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #212529, #343a40);
+    color: #fff;
+}
+
+.section-kpi {
+    background: linear-gradient(135deg, #f1f3f5, #e9ecef);
+}
+
+.section-charts {
+    background: linear-gradient(135deg, #fff4e6, #ffe8cc);
+}
+
+.section-table {
+    background: linear-gradient(135deg, #e7f5ff, #d0ebff);
+}
+
+/* KPI CARDS */
+.kpi {
+    color: #fff;
+    border-radius: 18px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.kpi-vehicles {
+    background: linear-gradient(135deg, #6f42c1, #845ef7);
+}
+
+.kpi-payments {
+    background: linear-gradient(135deg, #0d6efd, #4dabf7);
+}
+
+.kpi-today {
+    background: linear-gradient(135deg, #20c997, #51cf66);
+}
+
+.kpi:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Shared admin page polish */
+.account-admin-page {
+    margin-bottom: 1.25rem;
+}
+
+.account-admin-page .admin-header-title {
+    margin-bottom: .35rem;
+}
+
+.account-admin-page .admin-section-gap {
+    margin-top: 1rem;
+}
+
+.account-admin-page .admin-btn {
+    min-height: 40px;
+    padding-top: .45rem;
+    padding-bottom: .45rem;
+    font-weight: 600;
+}
+
+.account-admin-page .admin-btn.btn-sm {
+    min-height: 34px;
+    padding-top: .3rem;
+    padding-bottom: .3rem;
+}
+
+/* Account admin visual system */
+.perm-header,
+.users-header,
+.sec-header,
+.reg-header,
+.edit-header {
+    background: linear-gradient(135deg, #0f2b73 0%, #1f4ed3 100%);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 14px 32px rgba(15, 43, 115, .18);
+}
+
+.perm-header .sub,
+.users-header .sub,
+.sec-header .sub,
+.reg-header .sub,
+.edit-header .sub {
+    color: rgba(255, 255, 255, .84);
+    font-size: .9rem;
+}
+
+.perm-tools,
+.stat-card,
+.users-table-card,
+.security-card,
+.reg-card,
+.edit-card,
+.perm-group-card,
+.side-panel {
+    border: 1px solid #dbe7ff;
+    border-radius: .9rem;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(17, 45, 118, .08);
+}
+
+.perm-group-head,
+.side-panel-head,
+.security-card-head,
+.reg-card-head,
+.edit-card-head {
+    border-bottom: 1px solid #e8efff;
+    background: linear-gradient(90deg, #f7f9ff 0%, #eff4ff 100%);
+    border-top-left-radius: .9rem;
+    border-top-right-radius: .9rem;
+    padding: .75rem .9rem;
+}
+
+.side-panel-head {
+    padding: .7rem .85rem;
+}
+
+.perm-list {
+    padding: .75rem .9rem .85rem;
+}
+
+.side-panel-body,
+.security-card-body,
+.reg-card-body,
+.edit-card-body {
+    padding: .9rem;
+}
+
+.reg-card-body,
+.edit-card-body {
+    padding: 1rem;
+}
+
+.perm-item {
+    border: 1px solid #e4ecff;
+    border-radius: .7rem;
+    padding: .55rem .65rem;
+    margin-bottom: .5rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.perm-item:hover {
+    border-color: #b8ceff;
+    box-shadow: 0 6px 16px rgba(31, 78, 211, .08);
+}
+
+.perm-key,
+.perm-badge {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.perm-key {
+    font-size: .78rem;
+    color: #5b6f9d;
+}
+
+.perm-badge {
+    font-size: .72rem;
+    border: 1px solid #dbe7ff;
+    color: #39528f;
+    background: #f7f9ff;
+}
+
+.perm-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+}
+
+.count-chip,
+.stat-chip {
+    border: 1px solid #d7e4ff;
+    border-radius: .65rem;
+    padding: .45rem .6rem;
+    background: #f8fbff;
+    text-align: center;
+}
+
+.pages-text {
+    color: #334155;
+    font-size: .9rem;
+}
+
+.users-table-card {
+    overflow: hidden;
+}
+
+.users-table th {
+    white-space: nowrap;
+}
+
+.side-panel {
+    position: sticky;
+    top: 1rem;
+}
+
+@media (max-width: 991.98px) {
+    .side-panel {
+        position: static;
+    }
+}
+
+/* Shared module page shell (reports, setup, operations) */
+.module-page {
+    margin-bottom: 1.25rem;
+}
+
+.module-header {
+    background: linear-gradient(135deg, #0f2b73 0%, #1f4ed3 100%);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 14px 30px rgba(15, 43, 115, .2);
+}
+
+.module-header .sub {
+    color: rgba(255, 255, 255, .84);
+    font-size: .9rem;
+}
+
+.module-filter-card,
+.module-panel-card,
+.module-table-card,
+.module-kpi-card {
+    border: 1px solid #dbe7ff;
+    border-radius: .9rem;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(17, 45, 118, .08);
+}
+
+.module-panel-card .card-body,
+.module-table-card .card-body,
+.module-filter-card .card-body {
+    padding: .95rem;
+}
+
+.module-table-card {
+    overflow: hidden;
+}
+
+.module-action-btn {
+    min-height: 40px;
+    font-weight: 600;
+}
+
+.module-action-btn.btn-sm {
+    min-height: 34px;
+}
+
+.module-kpi-title {
+    font-size: .82rem;
+    color: #64748b;
+    margin-bottom: .15rem;
+}
+
+.module-kpi-value {
+    font-size: 1.5rem;
+    line-height: 1.1;
+    font-weight: 800;
+    margin: 0;
+}

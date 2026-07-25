@@ -1,0 +1,224 @@
+@page
+@model VehicleTax.Web.Pages.Payments.IndexModel
+
+<div class="module-page">
+<div class="module-header mb-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h3 class="mb-1 fw-bold">Payment History</h3>
+            <div class="sub">Review payment records with status and date filters.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="card module-filter-card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <!-- Plate Number Search -->
+            <div class="col-md-3">
+                <label class="form-label">Plate Number</label>
+                <input type="text" 
+                       name="searchPlate" 
+                       class="form-control" 
+                       placeholder="Search plate..." 
+                       value="@Model.SearchPlate" />
+            </div>
+
+            <!-- Payment Status Filter -->
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="paymentStatus" class="form-select">
+                    <option value="all" selected="@(Model.PaymentStatus == "all")">All</option>
+                    <option value="paid" selected="@(Model.PaymentStatus == "paid")">Paid</option>
+                    <option value="pending" selected="@(Model.PaymentStatus == "pending")">Pending</option>
+                    <option value="reverted" selected="@(Model.PaymentStatus == "reverted")">Reverted</option>
+                </select>
+            </div>
+
+            <!-- Date From -->
+            <div class="col-md-2">
+                <label class="form-label">From Date</label>
+                <input type="date" 
+                       name="dateFrom" 
+                       class="form-control" 
+                       value="@Model.DateFrom?.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- Date To -->
+            <div class="col-md-2">
+                <label class="form-label">To Date</label>
+                <input type="date" 
+                       name="dateTo" 
+                       class="form-control" 
+                       value="@Model.DateTo?.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 module-action-btn">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card module-kpi-card text-center">
+            <div class="card-body">
+                <div class="module-kpi-title">Total Records</div>
+                <h4 class="module-kpi-value text-primary">@Model.TotalRecords</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card module-kpi-card text-center">
+            <div class="card-body">
+                <div class="module-kpi-title mb-2">Page Size</div>
+                <select class="form-select text-center" onchange="changePageSize(this.value)">
+                    <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                    <option value="20" selected="@(Model.PageSize == 20)">20</option>
+                    <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                    <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                    <option value="-1" selected="@(Model.PageSize == -1)">All</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card module-table-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Receipt #</th>
+                        <th>Plate Number</th>
+                        <th>Owner Name</th>
+                        <th>Movement Type</th>
+                        <th class="text-end">Amount</th>
+                        <th>Paid Date</th>
+                        <th>Collector</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Payments.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No payment records found</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var payment in Model.Payments)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">@payment.ReceiptNumber</span>
+                                </td>
+                                <td>@payment.PlateNumber</td>
+                                <td>@payment.OwnerName</td>
+                                <td>@payment.MovementType</td>
+                                <td class="text-end fw-bold">@payment.Amount.ToString("N0")</td>
+                                <td>@payment.PaidAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@payment.CollectorName</td>
+                                <td>
+                                    @if (payment.IsReverted)
+                                    {
+                                        <span class="badge bg-danger">Reverted</span>
+                                    }
+                                    else if (payment.IsPaid)
+                                    {
+                                        <span class="badge bg-success">Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-3">
+                <ul class="pagination justify-content-center">
+                    @if (Model.PageIndex > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="@Url.Page(null, new { pageIndex = 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                                First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="@Url.Page(null, new { pageIndex = Model.PageIndex - 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                                Previous
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        @if (i == Model.PageIndex)
+                        {
+                            <li class="page-item active">
+                                <span class="page-link">@i</span>
+                            </li>
+                        }
+                        else if (i >= Model.PageIndex - 2 && i <= Model.PageIndex + 2)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="@Url.Page(null, new { pageIndex = i, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @if (Model.PageIndex < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="@Url.Page(null, new { pageIndex = Model.PageIndex + 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                                Next
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" 
+                               href="@Url.Page(null, new { pageIndex = Model.TotalPages, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                                Last
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+</div>
+
+<script>
+function changePageSize(pageSize) {
+    const params = new URLSearchParams();
+    params.append('pageIndex', 1);
+    params.append('pageSize', pageSize);
+    params.append('searchPlate', document.querySelector('input[name="searchPlate"]').value);
+    params.append('paymentStatus', document.querySelector('select[name="paymentStatus"]').value);
+    params.append('dateFrom', document.querySelector('input[name="dateFrom"]').value);
+    params.append('dateTo', document.querySelector('input[name="dateTo"]').value);
+    window.location.href = `?${params.toString()}`;
+}
+</script>

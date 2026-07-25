@@ -1,0 +1,62 @@
+@page
+@model VehicleTax.Web.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register User";
+}
+
+<div class="account-admin-page">
+<div class="reg-header mb-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h4 class="mb-1 admin-header-title"><i class="bi bi-person-plus"></i> Register New User</h4>
+            <div class="sub">Create a new account and assign the initial role.</div>
+        </div>
+        <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="reg-card">
+            <div class="reg-card-head fw-bold">User Details</div>
+            <div class="reg-card-body">
+                <form method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input asp-for="Username" class="form-control" placeholder="Enter username" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Role</label>
+                        <select asp-for="Role" class="form-select">
+                            <option value="">Select Role</option>
+                            <option>Admin</option>
+                            <option>Collector</option>
+                            <option>Viewer</option>
+                            <option>Auditor</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button class="btn btn-success w-100 admin-btn">
+                            <i class="bi bi-check-circle"></i> Create User
+                        </button>
+                        <a asp-page="/Account/Users" class="btn btn-outline-secondary w-100 admin-btn">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

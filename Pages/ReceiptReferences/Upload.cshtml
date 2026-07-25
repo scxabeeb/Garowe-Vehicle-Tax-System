@@ -1,0 +1,114 @@
+@page
+@model VehicleTax.Web.Pages.ReceiptReferences.UploadModel
+@{
+    ViewData["Title"] = "Upload Receipt Numbers";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <h3 class="fw-bold mb-3 text-center">Upload Receipt Numbers</h3>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger text-center">@TempData["Error"]</div>
+        }
+
+        @if (!Model.HasPreview)
+        {
+            <!-- UPLOAD FORM -->
+            <div class="card p-4 shadow-sm border-0">
+                <form method="post" enctype="multipart/form-data">
+
+                    <input type="file"
+                           name="file"
+                           class="form-control mb-3"
+                           accept=".xlsx,.csv"
+                           required />
+
+                    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+
+                        <small class="text-muted">
+                            Allowed: .xlsx , .csv
+                        </small>
+
+                        <div class="d-flex gap-2">
+
+                            <form method="post" asp-page-handler="DownloadTemplate">
+                                <button class="btn btn-outline-info btn-sm">
+                                    Download Template
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="DownloadSample">
+                                <button class="btn btn-outline-primary btn-sm">
+                                    Download Sample Data
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                    <button class="btn btn-primary w-100">
+                        Preview Upload
+                    </button>
+
+                </form>
+            </div>
+        }
+        else
+        {
+            <!-- PREVIEW TABLE -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header fw-bold">
+                    Preview Result
+                </div>
+
+                <div class="card-body p-0">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Reference Number</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.PreviewRows.Count; i++)
+                            {
+                                var row = Model.PreviewRows[i];
+                                <tr class="@(row.IsDuplicate ? "table-warning" : "table-success")">
+                                    <td>@(i + 1)</td>
+                                    <td>@row.ReferenceNumber</td>
+                                    <td>
+                                        @(row.IsDuplicate ? "Duplicate" : "Valid")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer d-flex gap-2">
+                    <form method="post" asp-page-handler="Confirm">
+                        <button class="btn btn-success">
+                            Confirm & Save
+                        </button>
+                    </form>
+
+                    <form method="post" asp-page-handler="DownloadErrors">
+                        <button class="btn btn-outline-danger">
+                            Download Error Rows
+                        </button>
+                    </form>
+
+                    <a asp-page="Upload" class="btn btn-secondary ms-auto">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

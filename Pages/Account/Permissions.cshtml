@@ -1,0 +1,252 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.Account.PermissionsModel
+@using System.Text.Json
+
+@{
+    var groupedPermissions = VehicleTax.Web.Pages.Account.PermissionsModel.PermissionCatalog
+        .GroupBy(p => p.Group)
+        .OrderBy(g => g.Key)
+        .ToList();
+}
+
+<div class="account-admin-page">
+<div class="perm-header mb-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h4 class="mb-1 admin-header-title">Permission Manager</h4>
+            <div class="sub">Configure access for <strong>@Model.UserInfo.Username</strong></div>
+        </div>
+        <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<form method="post">
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="perm-tools mb-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-8">
+                        <label class="form-label mb-1">Search Permissions</label>
+                        <input id="permissionSearch" class="form-control" placeholder="Search by key, label, or description..." />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label mb-1">Quick Actions</label>
+                        <div class="d-grid gap-2 d-md-flex">
+                            <button class="btn btn-outline-primary w-100 admin-btn" type="button" id="selectAllVisibleBtn">
+                                <i class="bi bi-check2-square"></i> Select Visible
+                            </button>
+                            <button class="btn btn-outline-secondary w-100 admin-btn" type="button" id="clearAllBtn">
+                                <i class="bi bi-x-square"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @foreach (var group in groupedPermissions)
+            {
+                var groupSlug = group.Key.Replace(" ", "-").ToLowerInvariant();
+                <div class="perm-group-card mb-3 permission-group" data-group="@groupSlug">
+                    <div class="perm-group-head">
+                        <div class="fw-bold">@group.Key</div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary group-select-btn admin-btn" data-group="@groupSlug">Select Group</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary group-clear-btn admin-btn" data-group="@groupSlug">Clear Group</button>
+                        </div>
+                    </div>
+                    <div class="perm-list">
+                        @foreach (var perm in group)
+                        {
+                            var inputId = $"perm_{perm.Key.Replace('.', '_')}";
+                            var isChecked = Model.SelectedPermissions.Contains(perm.Key, StringComparer.OrdinalIgnoreCase);
+                            var searchText = (perm.Key + " " + perm.Label + " " + perm.Description).ToLowerInvariant();
+                            <div class="perm-item permission-item" data-search="@searchText" data-group="@groupSlug">
+                                <div class="form-check">
+                                    <input class="form-check-input permission-checkbox"
+                                           type="checkbox"
+                                           name="SelectedPermissions"
+                                           value="@perm.Key"
+                                           id="@inputId"
+                                           @(isChecked ? "checked" : "") />
+                                    <label class="form-check-label w-100" for="@inputId">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            <div>
+                                                <div class="fw-semibold">@perm.Label</div>
+                                                <div class="text-muted small">@perm.Description</div>
+                                            </div>
+                                            <span class="perm-key">@perm.Key</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="side-panel">
+                <div class="side-panel-head">
+                    <div class="fw-bold">Access Summary</div>
+                </div>
+                <div class="side-panel-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="count-chip">
+                                <div id="selectedPermissionCount" class="fw-bold fs-5">0</div>
+                                <div class="small text-muted">Permissions</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="count-chip">
+                                <div id="selectedPageCount" class="fw-bold fs-5">0</div>
+                                <div class="small text-muted">Pages</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2 fw-semibold">Pages This User Can See</div>
+                    <div id="visiblePagesPreview" class="d-flex flex-wrap gap-2 mb-3">
+                        @if (Model.SelectedVisiblePages.Any())
+                        {
+                            foreach (var pageName in Model.SelectedVisiblePages)
+                            {
+                                <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">@pageName</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No page access assigned</span>
+                        }
+                    </div>
+
+                    <button class="btn btn-success w-100 admin-btn">
+                        <i class="bi bi-save"></i> Save Permissions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+</div>
+
+<script>
+    (() => {
+        const permissionMap = @Html.Raw(JsonSerializer.Serialize(VehicleTax.Web.Pages.Account.PermissionsModel.PermissionPageMap));
+        const checkboxes = Array.from(document.querySelectorAll('input[name="SelectedPermissions"]'));
+        const preview = document.getElementById('visiblePagesPreview');
+        const selectedPermissionCount = document.getElementById('selectedPermissionCount');
+        const selectedPageCount = document.getElementById('selectedPageCount');
+        const searchInput = document.getElementById('permissionSearch');
+        const selectAllVisibleBtn = document.getElementById('selectAllVisibleBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const groupSelectButtons = Array.from(document.querySelectorAll('.group-select-btn'));
+        const groupClearButtons = Array.from(document.querySelectorAll('.group-clear-btn'));
+        const permissionItems = Array.from(document.querySelectorAll('.permission-item'));
+        const permissionGroups = Array.from(document.querySelectorAll('.permission-group'));
+
+        const getVisibleCheckboxes = () => checkboxes.filter(cb => {
+            const item = cb.closest('.permission-item');
+            return item && item.style.display !== 'none';
+        });
+
+        const applySearch = () => {
+            const query = (searchInput.value || '').trim().toLowerCase();
+
+            permissionItems.forEach(item => {
+                const haystack = item.dataset.search || '';
+                const show = query.length === 0 || haystack.includes(query);
+                item.style.display = show ? '' : 'none';
+            });
+
+            permissionGroups.forEach(group => {
+                const hasVisibleItems = Array.from(group.querySelectorAll('.permission-item'))
+                    .some(item => item.style.display !== 'none');
+                group.style.display = hasVisibleItems ? '' : 'none';
+            });
+        };
+
+        const render = () => {
+            const pages = new Set();
+            const selected = checkboxes.filter(cb => cb.checked);
+
+            selected
+                .map(cb => cb.value)
+                .forEach(permission => {
+                    const mapped = permissionMap[permission] || [];
+                    mapped.forEach(page => pages.add(page));
+                });
+
+            preview.innerHTML = '';
+
+            if (pages.size === 0) {
+                const empty = document.createElement('span');
+                empty.className = 'text-muted';
+                empty.textContent = 'No page access assigned';
+                preview.appendChild(empty);
+            } else {
+                Array.from(pages)
+                    .sort((a, b) => a.localeCompare(b))
+                    .forEach(page => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-primary-subtle text-primary-emphasis border border-primary-subtle';
+                        badge.textContent = page;
+                        preview.appendChild(badge);
+                    });
+            }
+
+            selectedPermissionCount.textContent = String(selected.length);
+            selectedPageCount.textContent = String(pages.size);
+        };
+
+        searchInput.addEventListener('input', () => {
+            applySearch();
+        });
+
+        selectAllVisibleBtn.addEventListener('click', () => {
+            getVisibleCheckboxes().forEach(cb => {
+                cb.checked = true;
+            });
+            render();
+        });
+
+        clearAllBtn.addEventListener('click', () => {
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            render();
+        });
+
+        groupSelectButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const group = btn.dataset.group;
+                checkboxes.forEach(cb => {
+                    const item = cb.closest('.permission-item');
+                    const sameGroup = item && item.dataset.group === group;
+                    const visible = item && item.style.display !== 'none';
+                    if (sameGroup && visible) cb.checked = true;
+                });
+                render();
+            });
+        });
+
+        groupClearButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const group = btn.dataset.group;
+                checkboxes.forEach(cb => {
+                    const item = cb.closest('.permission-item');
+                    const sameGroup = item && item.dataset.group === group;
+                    if (sameGroup) cb.checked = false;
+                });
+                render();
+            });
+        });
+
+        checkboxes.forEach(cb => cb.addEventListener('change', render));
+        applySearch();
+        render();
+    })();
+</script>

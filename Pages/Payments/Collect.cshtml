@@ -1,0 +1,239 @@
+@page
+@model VehicleTax.Web.Pages.Payments.CollectModel
+
+<div class="container mt-4">
+
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-cash-coin text-success"></i>
+        Collect Vehicle Tax
+    </h3>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <form method="post">
+
+                <!-- Plate Number -->
+                <div class="mb-3 col-md-6">
+                    <label class="form-label fw-semibold">Plate Number</label>
+                    <input asp-for="PlateNumber" class="form-control" placeholder="e.g. GAR-1234" />
+                </div>
+
+                <!-- Search + Reset Buttons -->
+                <div class="mb-4">
+                    <button asp-page-handler="Search"
+                            type="submit"
+                            formnovalidate
+                            class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> Search Vehicle
+                    </button>
+
+                    <button asp-page-handler="Reset"
+                            type="submit"
+                            formnovalidate
+                            class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-arrow-repeat"></i> Reset
+                    </button>
+                </div>
+
+                @if (Model.Vehicle != null)
+                {
+                    <div class="alert alert-secondary">
+                        <strong>Owner:</strong> @Model.Vehicle.OwnerName |
+                        <strong>Car Type:</strong> @Model.Vehicle.CarType?.Name
+                    </div>
+
+                    <div class="row g-3">
+
+                        <!-- Movement -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Movement</label>
+                            <select asp-for="MovementId"
+                                    asp-items="Model.Movements"
+                                    class="form-select"
+                                    onchange="document.getElementById('calcBtn').click()"
+                                    required>
+                                <option value="">-- Select Movement --</option>
+                            </select>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Quantity</label>
+                            <input asp-for="Quantity"
+                                   type="number"
+                                   min="1"
+                                   class="form-control"
+                                   onchange="document.getElementById('calcBtn').click()" />
+                        </div>
+
+                    </div>
+
+                    <button asp-page-handler="Calculate"
+                            type="submit"
+                            id="calcBtn"
+                            hidden></button>
+
+                    @if (Model.UnitAmount > 0)
+                    {
+                        <div class="alert alert-info mt-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Unit:</strong> @Model.UnitAmount
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Qty:</strong> @Model.Quantity
+                                </div>
+                                <div class="col-md-4 text-end fw-bold">
+                                    Total: @Model.Amount
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button asp-page-handler="GenerateInvoice"
+                                    type="submit"
+                                    class="btn btn-success btn-lg">
+                                <i class="bi bi-receipt"></i> Generate Invoice
+                            </button>
+                        </div>
+                    }
+                }
+
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Payments.Any())
+    {
+        <div class="card shadow-sm border-0 mt-5">
+            <div class="card-body">
+
+                <h4 class="mb-3">
+                    <i class="bi bi-clock-history"></i>
+                    Payment History
+                </h4>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Movement</th>
+                                <th>Amount</th>
+                                <th>Invoice</th>
+                                <th>Code</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var p in Model.Payments)
+                        {
+                            <tr class="@(p.IsReverted ? "table-danger" : "")">
+                                <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@p.MovementType</td>
+                                <td>@p.Amount</td>
+                                <td>
+                                    <a asp-page="/Payments/Receipt" asp-route-paymentId="@p.Id">
+                                        @p.InvoiceNumber
+                                    </a>
+                                </td>
+                                <td>@p.ShortCode</td>
+                                <td>
+                                    @if (p.IsReverted)
+                                    {
+                                        <span class="badge bg-danger">Reverted</span>
+                                    }
+                                    else if (p.IsPaid)
+                                    {
+                                        <span class="badge bg-success">Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Invoice Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                @if (p.IsReverted)
+                                {
+                                    <span class="text-muted small">No actions</span>
+                                }
+                                else if (!p.IsPaid)
+                                {
+                                    if (User.IsInRole("Admin"))
+                                    {
+                                        <form method="post" asp-page-handler="CollectInvoice" class="mb-2">
+                                            <input type="hidden" name="paymentId" value="@p.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                                <i class="bi bi-cash"></i> Collect Invoice
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary d-block mb-2">Admin only</span>
+                                    }
+
+                                    <a class="btn btn-sm btn-outline-primary w-100"
+                                       asp-page="/Payments/Receipt"
+                                       asp-route-paymentId="@p.Id">
+                                        <i class="bi bi-printer"></i> Print Invoice
+                                    </a>
+                                }
+                                else if (User.IsInRole("Admin"))
+                                {
+                                    <form method="post" asp-page-handler="Revert" class="mb-2">
+                                        <input type="hidden" name="paymentId" value="@p.Id" />
+                                        <input type="text"
+                                               name="reason"
+                                               class="form-control mb-2"
+                                               placeholder="Reason for revert"
+                                               required />
+                                        <button type="submit" class="btn btn-sm btn-warning w-100">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Revert
+                                        </button>
+                                    </form>
+
+                                    <a class="btn btn-sm btn-outline-primary w-100"
+                                       asp-page="/Payments/Receipt"
+                                       asp-route-paymentId="@p.Id">
+                                        <i class="bi bi-printer"></i> Print Receipt
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-sm btn-outline-primary w-100"
+                                       asp-page="/Payments/Receipt"
+                                       asp-route-paymentId="@p.Id">
+                                        <i class="bi bi-printer"></i> Print Receipt
+                                    </a>
+                                }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    }
+
+</div>

@@ -1,0 +1,36 @@
+@page
+@model VehicleTax.Web.Pages.ReceiptReferences.CreateModel
+@{
+    ViewData["Title"] = "Add Receipt Reference";
+}
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+
+        <h3 class="fw-bold mb-3">Add Receipt Reference</h3>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form method="post" class="card p-4 shadow-sm border-0">
+
+            <div class="mb-3">
+                <label class="form-label">Reference Number</label>
+                <input asp-for="ReferenceNumber"
+                       class="form-control" />
+            </div>
+
+            <button class="btn btn-success w-100">
+                Save
+            </button>
+
+            <a asp-page="Index" class="btn btn-link mt-2">
+                Back to List
+            </a>
+
+        </form>
+
+    </div>
+</div>

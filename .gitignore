@@ -1,0 +1,152 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+*.VC.db
+*.VC.VC.opendb
+*..cache
+*.vs/
+*.vscode/
+*.vscode/*
+!*.vscode/settings.json
+!*.vscode/tasks.json
+!*.vscode/launch.json
+!*.vscode/extensions.json
+!*.vscode/*.code-snippets
+
+*.Onlinelint
+
+*.build/
+*.publish/
+
+# Azure
+*.azure/
+*.azure/*
+!*.azure/pipelines/
+!*.azure/pipelines/*.yml
+!*.azure/pipelines/*.yaml
+!*.azure/templates/
+!*.azure/templates/*.yml
+!*.azure/templates/*.yaml
+
+# ReSharper
+*.DotSettings.user
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*.vspscc
+*.vssscc
+*autosave.vsssccc
+*.tss
+*.vsp
+*.vspcc
+*.vspscc
+*.vspx
+*.vss
+*.vst
+*.vstx
+*.vssx
+
+# Build results
+*.[Ll]egacy
+*.[Ll]egacy.xml
+*.cache
+*.noshadow
+*.vs/*
+*.vsconfig
+
+# Doc
+*.md.txt
+*.md.html
+
+# Install scripts
+*.ps1xml
+*.psc1
+*.psd1
+*.psm1
+*.wbk
+*.ccat
+*.decompile
+*.pdb
+*.opop
+*.vspscc
+*.vssscc
+*.vsp
+*.vst
+*.vdx
+*.vjc
+*.vjx
+*.vshost
+*.vsi
+*.tlb
+*.tlh
+*.tli
+*.cab
+*.msi
+*.dll
+*.exe
+*.exe.config
+*.com
+*.scr
+*.sln.docstates
+
+# Test
+*.test*
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Docker
+*.dockerfile
+*.dockerignore
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.template
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log
+*.log.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.dump
+*.sql
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws

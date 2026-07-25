@@ -1,0 +1,71 @@
+@page
+@model VehicleTax.Web.Pages.Account.LoginModel
+@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Login";
+}
+
+<div class="card border-0 shadow-lg"
+     style="max-width:360px;
+            width:100%;
+            border-radius:16px;
+            background:white;">
+
+    <div class="card-body p-4">
+
+        <div class="text-center mb-3">
+            <img src="/images/Logo.jpeg"
+                 width="70"
+                 height="70"
+                 class="mb-2 rounded-circle shadow-sm" />
+
+            <h6 class="fw-bold mb-0">Garowe Municipality</h6>
+            <small class="text-muted">Vehicle Tax System</small>
+        </div>
+
+        <form method="post">
+
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-person text-primary"></i>
+                    </span>
+                    <input asp-for="Username"
+                           class="form-control"
+                           placeholder="Username"
+                           required />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-lock text-primary"></i>
+                    </span>
+                    <input asp-for="Password"
+                           type="password"
+                           class="form-control"
+                           placeholder="Password"
+                           required />
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary w-100 fw-semibold">
+                Login
+            </button>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger text-center mt-3 mb-0 py-2 small">
+                    @Model.ErrorMessage
+                </div>
+            }
+        </form>
+
+    </div>
+</div>
+
+<div class="text-white-50 small mt-3">
+    © @VehicleTax.Web.AppTime.Now.Year Garowe Municipality
+</div>

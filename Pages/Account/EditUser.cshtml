@@ -1,0 +1,61 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.Account.EditUserModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="account-admin-page">
+<div class="edit-header mb-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h4 class="mb-1 admin-header-title"><i class="bi bi-pencil-square"></i> Edit User</h4>
+            <div class="sub">Update account role and optional password reset.</div>
+        </div>
+        <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <form method="post" class="edit-card">
+            <div class="edit-card-head fw-bold">Account Information</div>
+            <div class="edit-card-body">
+                <input type="hidden" asp-for="EditUser.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input asp-for="EditUser.Username" class="form-control" placeholder="Enter username" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">New Password</label>
+                    <input asp-for="EditUser.Password" type="password" class="form-control" placeholder="Leave blank to keep current password" />
+                    <small class="text-muted">Leave blank to keep old password</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Role</label>
+                    <select asp-for="EditUser.Role" class="form-select">
+                        <option>Admin</option>
+                        <option>Collector</option>
+                        <option>Viewer</option>
+                        <option>Auditor</option>
+                    </select>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex">
+                    <button type="submit" class="btn btn-success w-100 admin-btn">
+                        <i class="bi bi-save"></i> Save Changes
+                    </button>
+
+                    <a asp-page="/Account/Users" class="btn btn-outline-secondary w-100 admin-btn">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</div>

@@ -1,0 +1,121 @@
+@page
+@model VehicleTax.Web.Pages.Reports.UsersReportModel
+
+<h3 class="mb-3">
+    <i class="bi bi-people-fill text-primary"></i> Users Report
+</h3>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text" name="Search" value="@Model.Search"
+               class="form-control"
+               placeholder="Search username, role or permission..." />
+    </div>
+
+    <div class="col-md-3">
+        <select name="Role" class="form-select">
+            <option value="">All Roles</option>
+            <option value="Admin" selected="@(Model.Role=="Admin")">Admin</option>
+            <option value="Collector" selected="@(Model.Role=="Collector")">Collector</option>
+            <option value="Viewer" selected="@(Model.Role=="Viewer")">Viewer</option>
+            <option value="Auditor" selected="@(Model.Role=="Auditor")">Auditor</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <select name="Status" class="form-select">
+            <option value="">All Status</option>
+            <option value="Active" selected="@(Model.Status=="Active")">Active</option>
+            <option value="Locked" selected="@(Model.Status=="Locked")">Locked</option>
+        </select>
+    </div>
+
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel-fill"></i> Filter
+        </button>
+    </div>
+</form>
+
+<a asp-page-handler="ExportCsv"
+   asp-route-search="@Model.Search"
+   asp-route-role="@Model.Role"
+   asp-route-status="@Model.Status"
+   class="btn btn-success mb-3">
+    <i class="bi bi-file-earmark-excel"></i> Export to CSV
+</a>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Permissions</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Users.Any())
+        {
+            int i = (Model.PageNumber - 1) * 10 + 1;
+            foreach (var user in Model.Users)
+            {
+                string badgeClass = user.Role switch
+                {
+                    "Admin" => "bg-danger",
+                    "Collector" => "bg-success",
+                    "Viewer" => "bg-secondary",
+                    "Auditor" => "bg-warning text-dark",
+                    _ => "bg-info"
+                };
+
+                <tr>
+                    <td>@i</td>
+                    <td>@user.Username</td>
+                    <td>
+                        <span class="badge @badgeClass">@user.Role</span>
+                    </td>
+                    <td>
+                        <small class="text-muted">@user.Permissions</small>
+                    </td>
+                    <td>
+                        @if (user.IsLocked)
+                        {
+                            <span class="badge bg-danger">Locked</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No users found.
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<nav>
+    <ul class="pagination justify-content-center">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                <a class="page-link"
+                   href="?PageNumber=@i&Search=@Model.Search&Role=@Model.Role&Status=@Model.Status">
+                    @i
+                </a>
+            </li>
+        }
+    </ul>
+</nav>
