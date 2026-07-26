@@ -77,28 +77,21 @@ public class GolisController : ControllerBase
             return Ok(BuildNotificationErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice ID is required."));
         }
 
-        // Try to find payment by InvoiceNumber (exact match) or by parsed numeric ID
+        // Find payment by parsing the invoice ID.
+        // InvoiceNumber is a [NotMapped] computed property, so it cannot be
+        // used in a SQL WHERE clause.  ParseInvoiceId extracts the numeric
+        // serial portion (YYYYMM + serial -> serial) and looks up by PK.
         Payment? payment = null;
 
-        payment = await _context.Payments
-            .Include(p => p.Vehicle)
-            .Include(p => p.Movement)
-            .Include(p => p.Collector)
-            .Include(p => p.ReceiptReference)
-            .FirstOrDefaultAsync(p => p.InvoiceNumber == invoiceId && !p.IsReverted);
-
-        if (payment == null)
+        var parsedId = ParseInvoiceId(invoiceId);
+        if (parsedId.HasValue)
         {
-            var parsedId = ParseInvoiceId(invoiceId);
-            if (parsedId.HasValue)
-            {
-                payment = await _context.Payments
-                    .Include(p => p.Vehicle)
-                    .Include(p => p.Movement)
-                    .Include(p => p.Collector)
-                    .Include(p => p.ReceiptReference)
-                    .FirstOrDefaultAsync(p => p.Id == parsedId.Value && !p.IsReverted);
-            }
+            payment = await _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                .Include(p => p.ReceiptReference)
+                .FirstOrDefaultAsync(p => p.Id == parsedId.Value && !p.IsReverted);
         }
 
         if (payment == null)
@@ -108,17 +101,22 @@ public class GolisController : ControllerBase
 
         // Mark payment as paid
         payment.IsPaid = true;
-        payment.PaidAt = DateTime.TryParse(paidDate, out var parsedDate) ? parsedDate : DateTime.UtcNow;
+        payment.PaidAt = DateTime.TryParse(paidDate, out var parsedDate) ? AppTime.ToUtc(parsedDate) : DateTime.UtcNow;
 
         if (decimal.TryParse(amountStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedAmount) && parsedAmount > 0)
         {
             payment.Amount = parsedAmount;
         }
 
+        // Persist Golis notification metadata
+        payment.PaidBy = paidBy;
+        payment.TransactionId = transactionId;
+        payment.Remarks = billInfo.Remarks;
+        payment.PaymentMethod = billInfo.PaidAt;
+
         await _context.SaveChangesAsync();
 
         // Generate confirmation ID
-
         var confirmationId = $"001-{payment.Id:D10}";
 
         return Ok(new Dictionary<string, object?>

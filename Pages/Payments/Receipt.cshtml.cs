@@ -31,7 +31,8 @@ public class ReceiptModel : PageModel
     [BindProperty(SupportsGet = true)]
     public int Quantity { get; set; } = 1;
 
-    public bool IsPreview => Payment != null && Payment.Id == 0;
+    public bool IsPreview => Payment != null && !Payment.IsPaid;
+
 
     public IActionResult OnGet(int? paymentId)
     {
@@ -85,7 +86,6 @@ public class ReceiptModel : PageModel
 
         Payment = new Payment
         {
-            Id = 0,
             VehicleId = vehicle.Id,
             Vehicle = vehicle,
             MovementId = movement.Id,
@@ -97,8 +97,12 @@ public class ReceiptModel : PageModel
             IsReverted = false
         };
 
+        _context.Payments.Add(Payment);
+        _context.SaveChanges();
+
         return Page();
     }
+
 
     public IActionResult OnPostCollect(int paymentId)
     {

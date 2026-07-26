@@ -28,8 +28,37 @@ namespace VehicleTax.Web.Models
         public int? ReceiptReferenceId { get; set; }
         public ReceiptReference? ReceiptReference { get; set; }
 
+        // ──────────────────────────────────────────────────────────
+        // Golis / Mobile-Money integration fields
+        // ──────────────────────────────────────────────────────────
+        /// <summary>
+        /// The payer's phone number as reported by Golis (billInfo.paidBy).
+        /// </summary>
+        public string? PaidBy { get; set; }
+
+        /// <summary>
+        /// The Golis transaction ID (transacionInfo.tansactionId).
+        /// </summary>
+        public string? TransactionId { get; set; }
+
+        /// <summary>
+        /// Free-form remarks from the Golis notification (billInfo.remarks).
+        /// </summary>
+        public string? Remarks { get; set; }
+
+        /// <summary>
+        /// Payment method / channel code as reported by Golis (billInfo.paidAt).
+        /// e.g. "MMT" = Mobile Money Transfer.
+        /// </summary>
+        public string? PaymentMethod { get; set; }
+
+        // ──────────────────────────────────────────────────────────
+        // Computed invoice number — NOT mapped to a DB column.
+        // Format: YYYYMM + 6-digit serial  (e.g. 202607000155)
+        // This matches the invoice-id format used by the Golis API.
+        // ──────────────────────────────────────────────────────────
         [NotMapped]
-        public string InvoiceNumber => $"{AppTime.ToLocal(PaidAt):yyMMdd}{Id:D2}";
+        public string InvoiceNumber => $"{AppTime.ToLocal(PaidAt):yyyyMM}{Id:D6}";
 
         [NotMapped]
         public string ShortCode => InvoiceNumber.Length > 9 ? InvoiceNumber.Substring(0, 9) : InvoiceNumber;

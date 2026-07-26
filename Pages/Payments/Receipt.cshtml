@@ -259,7 +259,7 @@
                         </div>
                         <div class="text-end">
                             <div class="fw-bold fs-5">@(Model.Payment.IsPaid ? "Receipt" : "Invoice")</div>
-                            <div class="text-muted">@(isPreview ? "PREVIEW" : Model.Payment.InvoiceNumber)</div>
+                            <div class="text-muted">@Model.Payment.InvoiceNumber</div>
                         </div>
                     </div>
 
@@ -284,15 +284,15 @@
                                 <tbody>
                                     <tr>
                                         <td class="meta-label">Invoice Number</td>
-                                        <td>@(isPreview ? "PREVIEW" : Model.Payment.InvoiceNumber)</td>
+                                        <td>@Model.Payment.InvoiceNumber</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Bill No</td>
-                                        <td>@(isPreview ? "N/A" : (Model.Payment.ReceiptReference?.ReferenceNumber ?? Model.Payment.InvoiceNumber))</td>
+                                        <td class="meta-label">Receipt Number</td>
+                                        <td>@(Model.Payment.IsPaid ? Model.Payment.InvoiceNumber : "Pending")</td>
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Short Code</td>
-                                        <td>@(isPreview ? "N/A" : Model.Payment.ShortCode)</td>
+                                        <td>@Model.Payment.ShortCode</td>
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Date</td>
@@ -316,6 +316,27 @@
                                         <td class="meta-label">Movement</td>
                                         <td>@Model.Payment.MovementType</td>
                                     </tr>
+                                    @if (!string.IsNullOrWhiteSpace(Model.Payment.PaymentMethod))
+                                    {
+                                        <tr>
+                                            <td class="meta-label">Payment Method</td>
+                                            <td>@Model.Payment.PaymentMethod</td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(Model.Payment.PaidBy))
+                                    {
+                                        <tr>
+                                            <td class="meta-label">Paid By</td>
+                                            <td>@Model.Payment.PaidBy</td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(Model.Payment.TransactionId))
+                                    {
+                                        <tr>
+                                            <td class="meta-label">Transaction ID</td>
+                                            <td>@Model.Payment.TransactionId</td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -326,7 +347,7 @@
                             <h5 class="mb-3">@(Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary")</h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Payment ID:</strong> @(isPreview ? "Not recorded" : Model.Payment.Id)</p>
+                                    <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
                                     <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">
