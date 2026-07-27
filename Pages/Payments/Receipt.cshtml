@@ -316,6 +316,10 @@
                                         <td class="meta-label">Movement</td>
                                         <td>@Model.Payment.MovementType</td>
                                     </tr>
+                                    <tr>
+                                        <td class="meta-label">Collector</td>
+                                        <td>@(Model.Payment.Collector?.Username ?? "Not assigned")</td>
+                                    </tr>
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.PaymentMethod))
                                     {
                                         <tr>
