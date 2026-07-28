@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Linq;
-using System.Text;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using VehicleTax.Web.Data;
 
 namespace VehicleTax.Web.Controllers
@@ -16,13 +15,15 @@ namespace VehicleTax.Web.Controllers
         private readonly AppDbContext _context;
         private readonly JwtSettings _jwtSettings;
 
-        public AuthController(AppDbContext context, IOptions<JwtSettings> jwtOptions)
+        public AuthController(
+            AppDbContext context,
+            IOptions<JwtSettings> jwtOptions)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
         }
 
-        // ---------------- LOGIN ----------------
+        // ================= LOGIN =================
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginDto dto)
         {
@@ -30,21 +31,33 @@ namespace VehicleTax.Web.Controllers
                 string.IsNullOrWhiteSpace(dto.Username) ||
                 string.IsNullOrWhiteSpace(dto.Password))
             {
-                return BadRequest(new { message = "Username and password are required" });
+                return BadRequest(new
+                {
+                    message = "Username and password are required"
+                });
             }
 
             var username = dto.Username.Trim().ToLower();
             var password = dto.Password.Trim();
 
             var user = _context.Users.FirstOrDefault(u =>
-                u.Username.Trim().ToLower() == username
-            );
+                u.Username.Trim().ToLower() == username);
 
             if (user == null)
-                return Unauthorized(new { message = "Invalid username" });
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid username"
+                });
+            }
 
-            if (user.Password.Trim() != password)
-                return Unauthorized(new { message = "Invalid password" });
+            if (!string.Equals(user.Password.Trim(), password, StringComparison.Ordinal))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid password"
+                });
+            }
 
             var claims = new[]
             {
@@ -55,8 +68,13 @@ namespace VehicleTax.Web.Controllers
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_jwtSettings.Key));
+
+            var creds = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
+
             var token = new JwtSecurityToken(
                 issuer: _jwtSettings.Issuer,
                 audience: _jwtSettings.Audience,
@@ -77,7 +95,7 @@ namespace VehicleTax.Web.Controllers
             });
         }
 
-        // ---------------- CHANGE PASSWORD ----------------
+        // ================= CHANGE PASSWORD =================
         [HttpPost("change-password")]
         public IActionResult ChangePassword([FromBody] ChangePasswordDto dto)
         {
@@ -86,27 +104,40 @@ namespace VehicleTax.Web.Controllers
                 string.IsNullOrWhiteSpace(dto.OldPassword) ||
                 string.IsNullOrWhiteSpace(dto.NewPassword))
             {
-                return BadRequest(new { message = "Invalid data" });
+                return BadRequest(new
+                {
+                    message = "Invalid data"
+                });
             }
 
             var user = _context.Users.FirstOrDefault(x => x.Id == dto.UserId);
 
             if (user == null)
-                return BadRequest(new { message = "User not found" });
+            {
+                return BadRequest(new
+                {
+                    message = "User not found"
+                });
+            }
 
-            // Check old password
-            if (user.Password.Trim() != dto.OldPassword.Trim())
-                return BadRequest(new { message = "Old password is incorrect" });
+            if (!string.Equals(user.Password.Trim(), dto.OldPassword.Trim(), StringComparison.Ordinal))
+            {
+                return BadRequest(new
+                {
+                    message = "Old password is incorrect"
+                });
+            }
 
-            // Save new password
             user.Password = dto.NewPassword.Trim();
             _context.SaveChanges();
 
-            return Ok(new { message = "Password changed successfully" });
+            return Ok(new
+            {
+                message = "Password changed successfully"
+            });
         }
     }
 
-    // ---------------- DTOs ----------------
     public class LoginDto
     {
         public string Username { get; set; } = "";
