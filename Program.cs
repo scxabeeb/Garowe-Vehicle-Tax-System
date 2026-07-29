@@ -76,6 +76,9 @@ builder.Services.Configure<VehicleTax.Web.Services.Golis.GolisApiOptions>(
 builder.Services.Configure<GolisWebhookSettings>(
     builder.Configuration.GetSection("GolisWebhook"));
 
+builder.Services.Configure<VehicleTax.Web.JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
+
 builder.Services.PostConfigure<GolisWebhookSettings>(options =>
 {
     var golisApiKey = builder.Configuration["GolisApi:ApiKey"];
