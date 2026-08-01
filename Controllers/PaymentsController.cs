@@ -22,6 +22,86 @@ namespace VehicleTax.Web.Controllers
         }
 
         // =======================
+        // COLLECT PAYMENT (Flutter-friendly)
+        // =======================
+        [HttpPost("collect")]
+        public IActionResult Collect([FromBody] PaymentCollectDto dto)
+        {
+            if (dto == null)
+                return BadRequest(new { status = "error", message = "Invalid request data" });
+
+            var vehicle = ResolveVehicle(dto.VehicleId, dto.PlateNumber);
+            if (vehicle == null)
+                return BadRequest(new { status = "error", message = "Vehicle not found" });
+
+            var movement = ResolveMovement(dto.MovementId, dto.Movement, dto.MovementName);
+            if (movement == null)
+                return BadRequest(new { status = "error", message = "Invalid movement" });
+
+            var collector = dto.CollectorId.HasValue
+                ? _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId.Value)
+                : null;
+
+            if (dto.CollectorId.HasValue && collector == null)
+                return BadRequest(new { status = "error", message = "Collector not found" });
+
+            ReceiptReference? reference = null;
+            if (!string.IsNullOrWhiteSpace(dto.ReferenceNumber))
+            {
+                reference = _context.ReceiptReferences
+                    .FirstOrDefault(r => r.ReferenceNumber == dto.ReferenceNumber);
+
+                if (reference == null)
+                    return BadRequest(new { status = "error", message = "Invalid receipt reference" });
+
+                if (reference.IsUsed)
+                    return BadRequest(new { status = "error", message = "Receipt reference already used" });
+            }
+
+            var quantity = dto.Quantity < 1 ? 1 : dto.Quantity;
+            var paidAt = dto.PaidAt ?? DateTime.UtcNow;
+            var amount = ResolveAmount(dto, vehicle, movement, quantity);
+
+            var payment = new Payment
+            {
+                VehicleId = vehicle.Id,
+                MovementId = movement.Id,
+                MovementType = movement.Name,
+                Amount = amount,
+                PaidAt = paidAt,
+                ReceiptReferenceId = reference?.Id,
+                CollectorId = collector?.Id,
+                IsPaid = true,
+                IsReverted = false,
+                PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod) ? null : dto.PaymentMethod,
+                PaidBy = string.IsNullOrWhiteSpace(dto.PaidBy) ? null : dto.PaidBy,
+                Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? null : dto.Remarks
+            };
+
+            _context.Payments.Add(payment);
+
+            if (reference != null)
+            {
+                reference.IsUsed = true;
+                reference.UsedAt = paidAt;
+                reference.UsedBy = collector?.Username;
+                reference.VehicleId = vehicle.Id;
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                status = "success",
+                message = "Payment recorded successfully",
+                collector = collector?.Username,
+                paymentId = payment.Id,
+                invoiceId = payment.InvoiceNumber,
+                golisBillNo = payment.TransactionId
+            });
+        }
+
+        // =======================
         // CREATE PAYMENT
         // =======================
         [HttpPost]
@@ -122,6 +202,157 @@ namespace VehicleTax.Web.Controllers
         }
 
         // =======================
+        // CREATE INVOICE PREVIEW
+        // =======================
+        [HttpPost("preview")]
+        public IActionResult CreatePreview([FromBody] PaymentPreviewDto dto)
+        {
+            if (dto == null)
+                return BadRequest(new { status = "error", message = "Invalid request data" });
+
+            var vehicle = _context.Vehicles
+                .Include(v => v.CarType)
+                .FirstOrDefault(v => v.Id == dto.VehicleId);
+
+            if (vehicle == null)
+                return BadRequest(new { status = "error", message = "Vehicle not found" });
+
+            var movement = _context.Movements
+                .FirstOrDefault(m => m.Id == dto.MovementId);
+
+            if (movement == null)
+                return BadRequest(new { status = "error", message = "Invalid movement" });
+
+            var tax = _context.TaxAmounts
+                .FirstOrDefault(t => t.CarTypeId == vehicle.CarTypeId && t.MovementId == movement.Id);
+
+            if (tax == null)
+                return BadRequest(new { status = "error", message = "Tax configuration not found" });
+
+            var quantity = dto.Quantity < 1 ? 1 : dto.Quantity;
+
+            var payment = new Payment
+            {
+                VehicleId = vehicle.Id,
+                MovementId = movement.Id,
+                MovementType = movement.Name,
+                Amount = tax.Amount * quantity,
+                PaidAt = DateTime.UtcNow,
+                IsPaid = false,
+                IsReverted = false,
+                CollectorId = null,
+                ReceiptReferenceId = null
+            };
+
+            _context.Payments.Add(payment);
+            _context.SaveChanges();
+
+            payment = _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                .Include(p => p.ReceiptReference)
+                .First(p => p.Id == payment.Id);
+
+            return Ok(new
+            {
+                status = "success",
+                message = "Invoice preview created.",
+                receipt = BuildReceiptPayload(payment)
+            });
+        }
+
+        // =======================
+        // COLLECT PREVIEW INVOICE
+        // =======================
+        [HttpPost("{paymentId}/collect")]
+        public IActionResult CollectPreviewInvoice(int paymentId, [FromBody] CollectInvoiceDto dto)
+        {
+            if (dto == null)
+                return BadRequest(new { status = "error", message = "Invalid request data" });
+
+            var payment = _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                .Include(p => p.ReceiptReference)
+                .FirstOrDefault(p => p.Id == paymentId);
+
+            if (payment == null)
+                return NotFound(new { status = "error", message = "Payment not found" });
+
+            if (payment.IsReverted)
+                return BadRequest(new { status = "error", message = "Reverted invoice cannot be collected" });
+
+            if (payment.IsPaid)
+            {
+                return Ok(new
+                {
+                    status = "success",
+                    message = "Invoice already collected.",
+                    paymentId = payment.Id,
+                    invoiceId = payment.InvoiceNumber,
+                    golisBillNo = payment.TransactionId,
+                    receipt = BuildReceiptPayload(payment)
+                });
+            }
+
+            var collector = _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId);
+            if (collector == null)
+                return BadRequest(new { status = "error", message = "Collector not found" });
+
+            ReceiptReference? reference = null;
+            if (!string.IsNullOrWhiteSpace(dto.ReferenceNumber))
+            {
+                reference = _context.ReceiptReferences
+                    .FirstOrDefault(r => r.ReferenceNumber == dto.ReferenceNumber);
+
+                if (reference == null)
+                    return BadRequest(new { status = "error", message = "Invalid receipt reference" });
+
+                if (reference.IsUsed && reference.Id != payment.ReceiptReferenceId)
+                    return BadRequest(new { status = "error", message = "Receipt reference already used" });
+            }
+
+            var paidAt = dto.PaidAt ?? DateTime.UtcNow;
+
+            payment.IsPaid = true;
+            payment.PaidAt = paidAt;
+            payment.CollectorId = collector.Id;
+            payment.PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod) ? payment.PaymentMethod : dto.PaymentMethod;
+            payment.PaidBy = string.IsNullOrWhiteSpace(dto.PaidBy) ? payment.PaidBy : dto.PaidBy;
+            payment.Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? payment.Remarks : dto.Remarks;
+
+            if (reference != null)
+            {
+                payment.ReceiptReferenceId = reference.Id;
+                reference.IsUsed = true;
+                reference.UsedAt = paidAt;
+                reference.UsedBy = collector.Username;
+                reference.VehicleId = payment.VehicleId;
+            }
+
+            _context.SaveChanges();
+
+            payment = _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                .Include(p => p.ReceiptReference)
+                .First(p => p.Id == payment.Id);
+
+            return Ok(new
+            {
+                status = "success",
+                message = "Invoice collected successfully.",
+                paymentId = payment.Id,
+                invoiceId = payment.InvoiceNumber,
+                golisBillNo = payment.TransactionId,
+                receipt = BuildReceiptPayload(payment)
+            });
+        }
+
+        // =======================
         // GET PAYMENTS BY COLLECTOR
         // =======================
         [HttpGet("collector/{collectorId}")]
@@ -198,6 +429,78 @@ namespace VehicleTax.Web.Controllers
                     appName = "Garowe Vehicle Tax System"
                 }
             });
+        }
+
+        private object BuildReceiptPayload(Payment payment)
+        {
+            return new
+            {
+                paymentId = payment.Id,
+                invoiceId = payment.InvoiceNumber,
+                invoiceNumber = payment.InvoiceNumber,
+                shortCode = payment.ShortCode,
+                golisBillNo = payment.TransactionId,
+                paidAt = payment.PaidAt,
+                plateNumber = payment.Vehicle?.PlateNumber,
+                ownerName = payment.Vehicle?.OwnerName,
+                movement = payment.Movement?.Name ?? payment.MovementType,
+                collector = payment.Collector?.Username,
+                amount = payment.Amount,
+                isPaid = payment.IsPaid,
+                isReverted = payment.IsReverted,
+                referenceNumber = payment.ReceiptReference?.ReferenceNumber,
+                appName = "Garowe Vehicle Tax System"
+            };
+        }
+
+        private Vehicle? ResolveVehicle(int? vehicleId, string? plateNumber)
+        {
+            if (vehicleId.HasValue)
+            {
+                return _context.Vehicles.FirstOrDefault(v => v.Id == vehicleId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(plateNumber))
+            {
+                var normalizedPlate = plateNumber.Trim();
+                return _context.Vehicles.FirstOrDefault(v => v.PlateNumber == normalizedPlate);
+            }
+
+            return null;
+        }
+
+        private Movement? ResolveMovement(int? movementId, string? movement, string? movementName)
+        {
+            if (movementId.HasValue)
+            {
+                return _context.Movements.FirstOrDefault(m => m.Id == movementId.Value);
+            }
+
+            var candidate = movementName ?? movement;
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                return null;
+            }
+
+            return _context.Movements.FirstOrDefault(m => m.Name == candidate);
+        }
+
+        private decimal ResolveAmount(PaymentCollectDto dto, Vehicle vehicle, Movement movement, int quantity)
+        {
+            if (dto.Amount.HasValue)
+            {
+                return dto.Amount.Value;
+            }
+
+            if (dto.UnitAmount.HasValue && dto.UnitAmount.Value > 0)
+            {
+                return dto.UnitAmount.Value * quantity;
+            }
+
+            var tax = _context.TaxAmounts
+                .FirstOrDefault(t => t.CarTypeId == vehicle.CarTypeId && t.MovementId == movement.Id);
+
+            return tax?.Amount ?? 0m;
         }
 
         // =======================
@@ -395,5 +698,40 @@ namespace VehicleTax.Web.Controllers
 
         // When true → user accepted duplicate warning
         public bool Force { get; set; } = false;
+    }
+
+    public class PaymentPreviewDto
+    {
+        public int VehicleId { get; set; }
+        public int MovementId { get; set; }
+        public int Quantity { get; set; } = 1;
+    }
+
+    public class CollectInvoiceDto
+    {
+        public int CollectorId { get; set; }
+        public string? ReferenceNumber { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? PaidBy { get; set; }
+        public string? Remarks { get; set; }
+    }
+
+    public class PaymentCollectDto
+    {
+        public int? VehicleId { get; set; }
+        public int? MovementId { get; set; }
+        public string? Movement { get; set; }
+        public string? MovementName { get; set; }
+        public string? PlateNumber { get; set; }
+        public decimal? Amount { get; set; }
+        public decimal? UnitAmount { get; set; }
+        public int Quantity { get; set; } = 1;
+        public string? ReferenceNumber { get; set; }
+        public int? CollectorId { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? PaidBy { get; set; }
+        public string? Remarks { get; set; }
+        public DateTime? PaidAt { get; set; }
     }
 }

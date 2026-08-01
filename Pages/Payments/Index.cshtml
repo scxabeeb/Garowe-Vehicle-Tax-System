@@ -29,10 +29,10 @@
             <div class="col-md-2">
                 <label class="form-label">Status</label>
                 <select name="paymentStatus" class="form-select">
-                    <option value="all" selected="@(Model.PaymentStatus == "all")">All</option>
-                    <option value="paid" selected="@(Model.PaymentStatus == "paid")">Paid</option>
-                    <option value="pending" selected="@(Model.PaymentStatus == "pending")">Pending</option>
-                    <option value="reverted" selected="@(Model.PaymentStatus == "reverted")">Reverted</option>
+                    <option value="all" selected="@(Model.PaymentStatus == "all" ? "selected" : null)">All</option>
+                    <option value="paid" selected="@(Model.PaymentStatus == "paid" ? "selected" : null)">Paid</option>
+                    <option value="pending" selected="@(Model.PaymentStatus == "pending" ? "selected" : null)">Pending</option>
+                    <option value="reverted" selected="@(Model.PaymentStatus == "reverted" ? "selected" : null)">Reverted</option>
                 </select>
             </div>
 
@@ -77,11 +77,11 @@
             <div class="card-body">
                 <div class="module-kpi-title mb-2">Page Size</div>
                 <select class="form-select text-center" onchange="changePageSize(this.value)">
-                    <option value="10" selected="@(Model.PageSize == 10)">10</option>
-                    <option value="20" selected="@(Model.PageSize == 20)">20</option>
-                    <option value="50" selected="@(Model.PageSize == 50)">50</option>
-                    <option value="100" selected="@(Model.PageSize == 100)">100</option>
-                    <option value="-1" selected="@(Model.PageSize == -1)">All</option>
+                    <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
+                    <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
+                    <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
+                    <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
+                    <option value="-1" selected="@(Model.PageSize == -1 ? "selected" : null)">All</option>
                 </select>
             </div>
         </div>

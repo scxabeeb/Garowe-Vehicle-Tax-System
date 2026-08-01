@@ -23,7 +23,7 @@
                 <option value="">All Vehicles</option>
                 @foreach (var v in Model.Vehicles)
                 {
-                    <option value="@v.Id" selected="@(Model.VehicleId == v.Id)">
+                    <option value="@v.Id" selected="@(Model.VehicleId == v.Id ? "selected" : null)">
                         @v.PlateNumber
                     </option>
                 }
@@ -36,7 +36,7 @@
                 <option value="">All Collectors</option>
                 @foreach (var c in Model.Collectors)
                 {
-                    <option value="@c" selected="@(Model.Collector == c)">
+                    <option value="@c" selected="@(Model.Collector == c ? "selected" : null)">
                         @c
                     </option>
                 }
@@ -47,19 +47,19 @@
             <label class="form-label">Status</label>
             <select name="Status" class="form-select">
                 <option value="">All</option>
-                <option value="Available" selected="@(Model.Status=="Available")">Available</option>
-                <option value="Used" selected="@(Model.Status=="Used")">Used</option>
-                <option value="Cancelled" selected="@(Model.Status=="Cancelled")">Cancelled</option>
+                <option value="Available" selected="@(Model.Status == "Available" ? "selected" : null)">Available</option>
+                <option value="Used" selected="@(Model.Status == "Used" ? "selected" : null)">Used</option>
+                <option value="Cancelled" selected="@(Model.Status == "Cancelled" ? "selected" : null)">Cancelled</option>
             </select>
         </div>
 
         <div class="col-md-2">
             <label class="form-label">Show</label>
             <select name="PageSize" class="form-select" onchange="this.form.submit()">
-                <option value="10" selected="@(Model.PageSize==10)">10</option>
-                <option value="20" selected="@(Model.PageSize==20)">20</option>
-                <option value="50" selected="@(Model.PageSize==50)">50</option>
-                <option value="100" selected="@(Model.PageSize==100)">100</option>
+                <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
+                <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
+                <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
+                <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
             </select>
         </div>
 

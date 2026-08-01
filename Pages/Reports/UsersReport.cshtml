@@ -15,18 +15,18 @@
     <div class="col-md-3">
         <select name="Role" class="form-select">
             <option value="">All Roles</option>
-            <option value="Admin" selected="@(Model.Role=="Admin")">Admin</option>
-            <option value="Collector" selected="@(Model.Role=="Collector")">Collector</option>
-            <option value="Viewer" selected="@(Model.Role=="Viewer")">Viewer</option>
-            <option value="Auditor" selected="@(Model.Role=="Auditor")">Auditor</option>
+            <option value="Admin" selected="@(Model.Role == "Admin" ? "selected" : null)">Admin</option>
+            <option value="Collector" selected="@(Model.Role == "Collector" ? "selected" : null)">Collector</option>
+            <option value="Viewer" selected="@(Model.Role == "Viewer" ? "selected" : null)">Viewer</option>
+            <option value="Auditor" selected="@(Model.Role == "Auditor" ? "selected" : null)">Auditor</option>
         </select>
     </div>
 
     <div class="col-md-3">
         <select name="Status" class="form-select">
             <option value="">All Status</option>
-            <option value="Active" selected="@(Model.Status=="Active")">Active</option>
-            <option value="Locked" selected="@(Model.Status=="Locked")">Locked</option>
+            <option value="Active" selected="@(Model.Status == "Active" ? "selected" : null)">Active</option>
+            <option value="Locked" selected="@(Model.Status == "Locked" ? "selected" : null)">Locked</option>
         </select>
     </div>
 

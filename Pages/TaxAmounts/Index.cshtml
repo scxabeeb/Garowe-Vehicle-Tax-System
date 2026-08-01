@@ -58,10 +58,10 @@
             <select name="PageSize"
                     class="form-select"
                     onchange="this.form.submit()">
-                <option value="10" selected="@(Model.PageSize == 10)">10</option>
-                <option value="50" selected="@(Model.PageSize == 50)">50</option>
-                <option value="100" selected="@(Model.PageSize == 100)">100</option>
-                <option value="0" selected="@(Model.PageSize == 0)">All</option>
+                <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
+                <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
+                <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
+                <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">All</option>
             </select>
         </div>
     </form>
