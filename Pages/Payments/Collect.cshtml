@@ -134,10 +134,12 @@
                     <table class="table table-bordered table-striped">
                         <thead class="table-dark">
                             <tr>
+                                <th>Payment ID</th>
                                 <th>Date</th>
                                 <th>Movement</th>
                                 <th>Amount</th>
-                                <th>Invoice</th>
+                                <th>Invoice ID</th>
+                                <th>Golis Bill No</th>
                                 <th>Code</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -147,6 +149,7 @@
                         @foreach (var p in Model.Payments)
                         {
                             <tr class="@(p.IsReverted ? "table-danger" : "")">
+                                <td>@p.Id</td>
                                 <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@p.MovementType</td>
                                 <td>@p.Amount</td>
@@ -155,6 +158,7 @@
                                         @p.InvoiceNumber
                                     </a>
                                 </td>
+                                <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "-" : p.TransactionId)</td>
                                 <td>@p.ShortCode</td>
                                 <td>
                                     @if (p.IsReverted)

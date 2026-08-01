@@ -114,7 +114,10 @@ namespace VehicleTax.Web.Controllers
             {
                 status = "success",
                 message = "Payment saved successfully",
-                collector = collector.Username
+                collector = collector.Username,
+                paymentId = payment.Id,
+                invoiceId = payment.InvoiceNumber,
+                golisBillNo = payment.TransactionId
             });
         }
 
@@ -132,10 +135,12 @@ namespace VehicleTax.Web.Controllers
                 .Select(p => new
                 {
                     p.Id,
+                    invoiceId = p.InvoiceNumber,
                     p.Amount,
                     p.PaidAt,
                     p.MovementType,
                     p.IsReverted,
+                    golisBillNo = p.TransactionId,
                     plate = p.Vehicle!.PlateNumber,
                     owner = p.Vehicle.OwnerName,
                     receipt = p.ReceiptReference != null
@@ -178,8 +183,10 @@ namespace VehicleTax.Web.Controllers
                 receipt = new
                 {
                     paymentId = payment.Id,
+                    invoiceId = payment.InvoiceNumber,
                     invoiceNumber = payment.InvoiceNumber,
                     shortCode = payment.ShortCode,
+                    golisBillNo = payment.TransactionId,
                     paidAt = payment.PaidAt,
                     plateNumber = payment.Vehicle?.PlateNumber,
                     ownerName = payment.Vehicle?.OwnerName,
@@ -240,6 +247,7 @@ namespace VehicleTax.Web.Controllers
                 KeyValue("Amount", payment.Amount.ToString("0.##"), width),
                 KeyValue("Status", status, width),
                 KeyValue("Ref", payment.ReceiptReference?.ReferenceNumber ?? "-", width),
+                KeyValue("BillNo", payment.TransactionId ?? "-", width),
                 new string('-', width),
                 Center("Thank you", width)
             };
@@ -274,6 +282,8 @@ namespace VehicleTax.Web.Controllers
                 receipt = new
                 {
                     paymentId = payment.Id,
+                    invoiceId = payment.InvoiceNumber,
+                    golisBillNo = payment.TransactionId,
                     paperWidth = width,
                     encoding = "ascii",
                     lines,
@@ -351,6 +361,7 @@ namespace VehicleTax.Web.Controllers
                 ["source"] = "GVT",
                 ["invoice"] = payment.InvoiceNumber,
                 ["paymentId"] = payment.Id,
+                ["golisBillNo"] = payment.TransactionId,
                 ["plate"] = payment.Vehicle?.PlateNumber ?? "-",
                 ["owner"] = payment.Vehicle?.OwnerName ?? "-",
                 ["movement"] = movement,

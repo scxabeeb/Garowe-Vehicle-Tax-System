@@ -95,6 +95,9 @@
             <table class="table table-hover table-bordered align-middle">
                 <thead class="table-light">
                     <tr>
+                        <th>Payment ID</th>
+                        <th>Invoice ID</th>
+                        <th>Golis Bill No</th>
                         <th>Receipt #</th>
                         <th>Plate Number</th>
                         <th>Owner Name</th>
@@ -109,7 +112,7 @@
                     @if (Model.Payments.Count == 0)
                     {
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No payment records found</td>
+                            <td colspan="11" class="text-center text-muted py-4">No payment records found</td>
                         </tr>
                     }
                     else
@@ -117,6 +120,9 @@
                         @foreach (var payment in Model.Payments)
                         {
                             <tr>
+                                <td>@payment.Id</td>
+                                <td>@payment.InvoiceId</td>
+                                <td>@(string.IsNullOrWhiteSpace(payment.GolisBillNo) ? "-" : payment.GolisBillNo)</td>
                                 <td>
                                     <span class="badge bg-info">@payment.ReceiptNumber</span>
                                 </td>

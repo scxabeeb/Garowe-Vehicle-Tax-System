@@ -283,8 +283,12 @@
                             <table class="table meta-table mb-0">
                                 <tbody>
                                     <tr>
-                                        <td class="meta-label">Invoice Number</td>
+                                        <td class="meta-label">Invoice ID</td>
                                         <td>@Model.Payment.InvoiceNumber</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="meta-label">Payment ID</td>
+                                        <td>@Model.Payment.Id</td>
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Receipt Number</td>
@@ -337,7 +341,7 @@
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.TransactionId))
                                     {
                                         <tr>
-                                            <td class="meta-label">Transaction ID</td>
+                                            <td class="meta-label">Golis Bill No</td>
                                             <td>@Model.Payment.TransactionId</td>
                                         </tr>
                                     }
@@ -352,6 +356,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
+                                    <p><strong>Invoice ID:</strong> @Model.Payment.InvoiceNumber</p>
                                     <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">

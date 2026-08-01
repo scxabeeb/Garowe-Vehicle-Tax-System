@@ -96,7 +96,7 @@ public class MobileMoneyController : ControllerBase
             Amount = dto.Amount,
             Currency = dto.Currency ?? "SOS",
             Description = $"Vehicle tax payment for {vehicle.PlateNumber}",
-            ReceiptReference = receipt.ReferenceNumber,
+            ReceiptReference = receipt?.ReferenceNumber,
             ClientReference = $"vehicle-{vehicle.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}"
         };
 
@@ -118,7 +118,8 @@ public class MobileMoneyController : ControllerBase
             Amount = dto.Amount,
             PaidAt = DateTime.UtcNow,
             ReceiptReferenceId = receipt?.Id,
-            CollectorId = collector.Id
+            CollectorId = collector.Id,
+            TransactionId = apiResponse.TransactionId
         };
 
         _context.Payments.Add(payment);
@@ -137,8 +138,11 @@ public class MobileMoneyController : ControllerBase
         {
             status = "success",
             message = "Mobile money payment completed.",
+            paymentId = payment.Id,
+            invoiceId = payment.InvoiceNumber,
+            golisBillNo = payment.TransactionId,
             transactionId = apiResponse.TransactionId,
-            receipt = receipt.ReferenceNumber
+            receipt = receipt?.ReferenceNumber
         });
     }
 }

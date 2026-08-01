@@ -107,6 +107,8 @@ public class IndexModel : PageModel
             Payments.Add(new PaymentRecord
             {
                 Id = p.Id,
+                InvoiceId = p.InvoiceNumber,
+                GolisBillNo = p.TransactionId,
                 PlateNumber = p.Vehicle?.PlateNumber ?? "N/A",
                 OwnerName = p.Vehicle?.OwnerName ?? "N/A",
                 Amount = p.Amount,
@@ -148,6 +150,8 @@ public class IndexModel : PageModel
     public class PaymentRecord
     {
         public int Id { get; set; }
+        public string InvoiceId { get; set; } = string.Empty;
+        public string? GolisBillNo { get; set; }
         public string PlateNumber { get; set; } = string.Empty;
         public string OwnerName { get; set; } = string.Empty;
         public decimal Amount { get; set; }

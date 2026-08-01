@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using MySqlConnector;
+using VehicleTax.Web;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Read Railway Environment Variables
 // ==================================
 builder.Configuration.AddEnvironmentVariables();
-
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
 // =========================
 // Database
 // =========================
@@ -36,6 +41,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });
+// =========================
 
 // =========================
 // 🔑 Authorization (Roles + Permissions)
