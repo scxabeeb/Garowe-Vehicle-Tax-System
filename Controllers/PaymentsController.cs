@@ -210,6 +210,13 @@ namespace VehicleTax.Web.Controllers
             if (dto == null)
                 return BadRequest(new { status = "error", message = "Invalid request data" });
 
+            var invoiceCollector = dto.CollectorId.HasValue
+                ? _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId.Value)
+                : null;
+
+            if (dto.CollectorId.HasValue && invoiceCollector == null)
+                return BadRequest(new { status = "error", message = "Collector not found" });
+
             var vehicle = _context.Vehicles
                 .Include(v => v.CarType)
                 .FirstOrDefault(v => v.Id == dto.VehicleId);
@@ -240,7 +247,7 @@ namespace VehicleTax.Web.Controllers
                 PaidAt = DateTime.UtcNow,
                 IsPaid = false,
                 IsReverted = false,
-                CollectorId = null,
+                CollectorId = invoiceCollector?.Id,
                 ReceiptReferenceId = null
             };
 
@@ -705,6 +712,7 @@ namespace VehicleTax.Web.Controllers
         public int VehicleId { get; set; }
         public int MovementId { get; set; }
         public int Quantity { get; set; } = 1;
+        public int? CollectorId { get; set; }
     }
 
     public class CollectInvoiceDto

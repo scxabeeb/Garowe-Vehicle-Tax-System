@@ -84,6 +84,18 @@ public class ReceiptModel : PageModel
             Quantity = 1;
         }
 
+        // Capture the collector (invoice generator) so mobile-money payments
+        // can still display who created the invoice.
+        int? invoiceCollectorId = null;
+        var currentUsername = User.Identity?.Name;
+        if (!string.IsNullOrWhiteSpace(currentUsername))
+        {
+            invoiceCollectorId = _context.Users
+                .Where(u => u.Username == currentUsername)
+                .Select(u => (int?)u.Id)
+                .FirstOrDefault();
+        }
+
         Payment = new Payment
         {
             VehicleId = vehicle.Id,
@@ -94,7 +106,8 @@ public class ReceiptModel : PageModel
             Amount = tax.Amount * Quantity,
             PaidAt = DateTime.UtcNow,
             IsPaid = false,
-            IsReverted = false
+            IsReverted = false,
+            CollectorId = invoiceCollectorId
         };
 
         _context.Payments.Add(Payment);

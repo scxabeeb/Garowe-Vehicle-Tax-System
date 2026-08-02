@@ -144,11 +144,14 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Collector summary
             CollectorSummaries = await query
-                .Where(p => p.Collector != null)
-                .GroupBy(p => p.Collector!.Username)
+                .GroupBy(p => p.Collector != null
+                    ? p.Collector.Username
+                    : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
+                        ? p.ReceiptReference.UsedBy
+                        : "Unassigned"))
                 .Select(g => new CollectorSummary
                 {
-                    CollectorName = g.Key,
+                    CollectorName = g.Key!,
                     TotalPayments = g.Count(),
                     TotalAmount = g.Sum(x => x.Amount)
                 })
@@ -267,7 +270,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Collector,Receipt Ref,Amount");
+            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Collector,Receipt No,Amount");
 
             foreach (var p in payments)
             {
@@ -278,8 +281,8 @@ namespace VehicleTax.Web.Pages.Reports
                     p.Vehicle?.Mobile,
                     p.Vehicle?.CarType?.Name,
                     p.Movement?.Name ?? p.MovementType,
-                    p.Collector?.Username ?? "System",
-                    p.ReceiptReference?.ReferenceNumber ?? "-",
+                    p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
+                    p.InvoiceNumber,
                     p.Amount
                 ));
             }

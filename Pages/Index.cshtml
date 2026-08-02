@@ -246,7 +246,7 @@
                         <td>@p.Vehicle?.PlateNumber</td>
                         <td>@p.Vehicle?.Mobile</td>
                         <td>@p.MovementType</td>
-                        <td>@(p.Collector?.Username ?? "N/A")</td>
+                        <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
                         <td class="text-end fw-bold">$@p.Amount.ToString("N0")</td>
                     </tr>
                 }

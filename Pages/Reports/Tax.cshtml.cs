@@ -66,6 +66,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .Include(p => p.Vehicle)
                     .ThenInclude(v => v.CarType)
                 .Include(p => p.Collector)
+                .Include(p => p.ReceiptReference)
                 .Where(p => p.IsPaid && !p.IsReverted)
                 .AsQueryable();
 
@@ -92,10 +93,12 @@ namespace VehicleTax.Web.Pages.Reports
                     PlateNumber = p.Vehicle!.PlateNumber,
                     CarType = p.Vehicle!.CarType!.Name,
                     Amount = p.Amount,
-                    Collector = p.Collector != null ? p.Collector.Username : "System",
-                    Reference = p.ReceiptReference != null
-                        ? p.ReceiptReference.ReferenceNumber
-                        : "-"
+                    Collector = p.Collector != null
+                        ? p.Collector.Username
+                        : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
+                            ? p.ReceiptReference.UsedBy
+                            : "Unassigned"),
+                    ReceiptNumber = p.InvoiceNumber
                 })
                 .ToListAsync();
 
@@ -112,6 +115,6 @@ namespace VehicleTax.Web.Pages.Reports
         public string CarType { get; set; } = "";
         public decimal Amount { get; set; }
         public string Collector { get; set; } = "";
-        public string Reference { get; set; } = "";
+        public string ReceiptNumber { get; set; } = "";
     }
 }

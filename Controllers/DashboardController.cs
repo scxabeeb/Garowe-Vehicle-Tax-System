@@ -26,6 +26,8 @@ namespace VehicleTax.Web.Controllers
             // 🔴 Only valid (not reverted) payments
             var validPayments = _context.Payments
                 .Include(p => p.Vehicle)
+                .Include(p => p.Collector)
+                .Include(p => p.ReceiptReference)
                 .Where(p => p.IsPaid && !p.IsReverted);
 
             // 🔵 Filter by collector if provided
@@ -57,7 +59,12 @@ namespace VehicleTax.Web.Controllers
                     movementType = p.MovementType,
                     amount = p.Amount,
                     paidAt = AppTime.ToLocal(p.PaidAt),
-                    isReverted = p.IsReverted
+                    isReverted = p.IsReverted,
+                    collector = p.Collector != null
+                        ? p.Collector.Username
+                        : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
+                            ? p.ReceiptReference.UsedBy
+                            : "Unassigned")
                 })
                 .ToList();
 

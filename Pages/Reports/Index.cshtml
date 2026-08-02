@@ -298,7 +298,7 @@
                     <th>Car Type</th>
                     <th>Movement</th>
                     <th>Collector</th>
-                    <th>Receipt Ref</th>
+                    <th>Receipt No</th>
                     <th class="text-end">Amount</th>
                 </tr>
             </thead>
@@ -314,8 +314,8 @@
                         <td>@p.Vehicle?.Mobile</td>
                         <td>@p.Vehicle?.CarType?.Name</td>
                         <td>@(p.Movement?.Name ?? p.MovementType)</td>
-                        <td>@(p.Collector?.Username ?? "System")</td>
-                        <td>@(p.ReceiptReference?.ReferenceNumber ?? "-")</td>
+                        <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
+                        <td>@p.InvoiceNumber</td>
                         <td class="text-end">@p.Amount.ToString("N0")</td>
                     </tr>
                 }

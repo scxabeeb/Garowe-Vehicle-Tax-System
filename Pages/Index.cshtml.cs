@@ -89,8 +89,11 @@ public class IndexModel : PageModel
 
         // ACTIVE COLLECTORS
         ActiveCollectors = _context.Payments
-            .Where(p => p.IsPaid && !p.IsReverted && p.CollectorId != null)
-            .Select(p => p.CollectorId!.Value)
+            .Include(p => p.Collector)
+            .Include(p => p.ReceiptReference)
+            .Where(p => p.IsPaid && !p.IsReverted)
+            .AsEnumerable()
+            .Select(p => p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
             .Distinct()
             .Count();
 
@@ -98,6 +101,7 @@ public class IndexModel : PageModel
         RecentPayments = _context.Payments
             .Include(p => p.Vehicle)
             .Include(p => p.Collector)
+            .Include(p => p.ReceiptReference)
             .Where(p => p.IsPaid && !p.IsReverted)
             .OrderByDescending(p => p.PaidAt)
             .Take(10)
@@ -160,24 +164,19 @@ public class IndexModel : PageModel
         // COLLECTOR PERFORMANCE
         // =========================
         var collectorTotals = _context.Payments
-            .Where(p => p.IsPaid && !p.IsReverted && p.CollectorId != null)
-            .GroupBy(p => p.CollectorId)
+            .Include(p => p.Collector)
+            .Include(p => p.ReceiptReference)
+            .Where(p => p.IsPaid && !p.IsReverted)
+            .AsEnumerable()
+            .GroupBy(p => p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
             .Select(g => new
             {
-                CollectorId = g.Key!.Value,
+                Collector = g.Key,
                 Total = g.Sum(x => x.Amount)
             })
             .ToList();
 
         var collectorData = collectorTotals
-            .Join(_context.Users,
-                  p => p.CollectorId,
-                  u => u.Id,
-                  (p, u) => new
-                  {
-                      Collector = u.Username,
-                      Total = p.Total
-                  })
             .OrderByDescending(x => x.Total)
             .ToList();
 
