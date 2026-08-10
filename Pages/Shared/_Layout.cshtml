@@ -212,13 +212,16 @@
                     var canReportsView = isAdmin || User.HasClaim("permission", "reports.view");
                     var canUserView = isAdmin || User.HasClaim("permission", "user.view");
                     var canUserCreate = isAdmin || User.HasClaim("permission", "user.create");
+                    var canRevenueAccountView = isAdmin || User.HasClaim("permission", "revenueaccount.view");
                     var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLowerInvariant();
 
                     var isDashboard = currentPath == "/" || currentPath == "/index";
                     var isDataSetup = currentPath.StartsWith("/vehicles") ||
                                       currentPath.StartsWith("/cartypes") ||
                                       currentPath.StartsWith("/movements") ||
-                                      currentPath.StartsWith("/taxamounts");
+                                      currentPath.StartsWith("/taxamounts") ||
+                                      currentPath.StartsWith("/checkpoints") ||
+                                      currentPath.StartsWith("/revenueaccounts");
                     var isPayments = currentPath.StartsWith("/payments") ||
                                      currentPath.StartsWith("/receiptreferences");
                     var isReports = currentPath.StartsWith("/reports") ||
@@ -266,6 +269,22 @@
                                         <i class="bi bi-currency-dollar"></i> Tax Amounts
                                     </a>
                                 </li>
+                                @if (isAdmin)
+                                {
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Checkpoints/Index">
+                                            <i class="bi bi-geo-alt"></i> Checkpoints
+                                        </a>
+                                    </li>
+                                }
+                                @if (canRevenueAccountView)
+                                {
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/RevenueAccounts/Index">
+                                            <i class="bi bi-wallet2"></i> Revenue Accounts
+                                        </a>
+                                    </li>
+                                }
                             </ul>
                         </li>
                     }
@@ -318,6 +337,13 @@
                                        asp-page="/Reports/Index">
                                         <i class="bi bi-graph-up-arrow"></i>
                                         Payment Summary Report
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/RevenueAccountReport">
+                                        <i class="bi bi-wallet2"></i>
+                                        Revenue Account Report
                                     </a>
                                 </li>
 
@@ -376,12 +402,19 @@
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/ReceiptReferences">
                                         <i class="bi bi-journal-text"></i>
-                                        Receipt References Report
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    }
+                                         Receipt References Report
+                                     </a>
+                                 </li>
+                                 <li>
+                                     <a class="dropdown-item d-flex align-items-center gap-2"
+                                        asp-page="/Checkpoints/Index">
+                                         <i class="bi bi-geo-alt"></i>
+                                         Checkpoint Collections
+                                     </a>
+                                 </li>
+                             </ul>
+                         </li>
+                     }
 
                     @if (canUserView || canUserCreate)
                     {

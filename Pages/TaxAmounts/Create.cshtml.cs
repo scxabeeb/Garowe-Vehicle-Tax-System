@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 
@@ -21,6 +22,9 @@ public class CreateModel : PageModel
     public SelectList CarTypes { get; set; } = null!;
     public SelectList Movements { get; set; } = null!;
 
+    // Read-only Revenue Account info for the selected movement (set on POST validation)
+    public string? RevenueAccountDisplay { get; set; }
+
     public void OnGet()
     {
         LoadCarTypes();
@@ -32,6 +36,9 @@ public class CreateModel : PageModel
         if (Tax.CarTypeId == 0 || Tax.MovementId == 0)
         {
             ModelState.AddModelError("", "Please select both Car Type and Movement.");
+            LoadCarTypes();
+            LoadMovements(Tax.CarTypeId);
+            return Page();
         }
 
         bool exists = _context.TaxAmounts.Any(t =>
@@ -41,6 +48,9 @@ public class CreateModel : PageModel
         if (exists)
         {
             ModelState.AddModelError("", "This tax amount already exists.");
+            LoadCarTypes();
+            LoadMovements(Tax.CarTypeId);
+            return Page();
         }
 
         if (!ModelState.IsValid)
@@ -57,13 +67,23 @@ public class CreateModel : PageModel
         return RedirectToPage("Index");
     }
 
-    // 🔁 Ajax endpoint
+    // Ajax endpoint - now includes Revenue Account info
     public JsonResult OnGetMovements(int carTypeId)
     {
         var data = _context.Movements
+            .Include(m => m.RevenueAccount)
             .Where(m => m.CarTypeId == carTypeId)
             .OrderBy(m => m.Name)
-            .Select(m => new { m.Id, m.Name })
+            .Select(m => new
+            {
+                id = m.Id,
+                name = m.Name,
+                revenueAccountCode = m.RevenueAccount != null ? m.RevenueAccount.AccountCode : "",
+                revenueAccountName = m.RevenueAccount != null ? m.RevenueAccount.AccountName : "",
+                revenueAccountDisplay = m.RevenueAccount != null
+                    ? $"{m.RevenueAccount.AccountCode} - {m.RevenueAccount.AccountName}"
+                    : ""
+            })
             .ToList();
 
         return new JsonResult(data);
@@ -81,7 +101,7 @@ public class CreateModel : PageModel
     private void LoadMovements(int carTypeId)
     {
         Movements = new SelectList(
-            _context.Movements
+            _context.Movements.AsNoTracking()
                 .Where(m => m.CarTypeId == carTypeId)
                 .OrderBy(m => m.Name),
             "Id",

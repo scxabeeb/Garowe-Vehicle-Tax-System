@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VehicleTax.Web.Data;
 
@@ -10,9 +11,11 @@ using VehicleTax.Web.Data;
 namespace VehicleTax.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260803062720_AddCheckpoints")]
+    partial class AddCheckpoints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,14 +72,9 @@ namespace VehicleTax.Web.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("RevenueAccountId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CarTypeId");
-
-                    b.HasIndex("RevenueAccountId");
 
                     b.ToTable("Movements");
                 });
@@ -192,39 +190,6 @@ namespace VehicleTax.Web.Migrations
                     b.ToTable("ReceiptReferences");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RevenueAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("AccountCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountCode")
-                        .IsUnique();
-
-                    b.ToTable("RevenueAccounts");
-                });
-
             modelBuilder.Entity("VehicleTax.Web.Models.TaxAmount", b =>
                 {
                     b.Property<int>("Id")
@@ -323,14 +288,7 @@ namespace VehicleTax.Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VehicleTax.Web.Models.RevenueAccount", "RevenueAccount")
-                        .WithMany("Movements")
-                        .HasForeignKey("RevenueAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("CarType");
-
-                    b.Navigation("RevenueAccount");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.Payment", b =>
@@ -403,7 +361,7 @@ namespace VehicleTax.Web.Migrations
             modelBuilder.Entity("VehicleTax.Web.Models.User", b =>
                 {
                     b.HasOne("VehicleTax.Web.Models.Checkpoint", "Checkpoint")
-                        .WithMany("Users")
+                        .WithMany()
                         .HasForeignKey("CheckpointId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -419,16 +377,6 @@ namespace VehicleTax.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("CarType");
-                });
-
-            modelBuilder.Entity("VehicleTax.Web.Models.Checkpoint", b =>
-                {
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("VehicleTax.Web.Models.RevenueAccount", b =>
-                {
-                    b.Navigation("Movements");
                 });
 #pragma warning restore 612, 618
         }

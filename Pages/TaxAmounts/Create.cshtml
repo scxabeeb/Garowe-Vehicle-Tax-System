@@ -40,6 +40,18 @@
                         <span asp-validation-for="Tax.MovementId" class="text-danger"></span>
                     </div>
 
+                    <!-- Revenue Account (read-only, determined by Movement) -->
+                    <div class="mb-3" id="revenueAccountSection" style="display:none;">
+                        <label class="form-label fw-semibold">Revenue Account</label>
+                        <div class="form-control bg-light" id="revenueAccountDisplay">
+                            --
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            The Revenue Account is determined by the selected Movement and cannot be changed here.
+                        </small>
+                    </div>
+
                     <!-- Amount -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Amount</label>
@@ -73,8 +85,11 @@
 document.getElementById("carTypeSelect").addEventListener("change", function () {
     const carTypeId = this.value;
     const movementSelect = document.getElementById("movementSelect");
+    const revenueSection = document.getElementById("revenueAccountSection");
+    const revenueDisplay = document.getElementById("revenueAccountDisplay");
 
     movementSelect.innerHTML = '<option value="">Loading...</option>';
+    revenueSection.style.display = 'none';
 
     if (!carTypeId) {
         movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
@@ -86,9 +101,24 @@ document.getElementById("carTypeSelect").addEventListener("change", function () 
         .then(data => {
             movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
             data.forEach(m => {
-                movementSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                movementSelect.innerHTML += `<option value="${m.id}" data-revenue="${m.revenueAccountDisplay}">${m.name}</option>`;
             });
         });
+});
+
+document.getElementById("movementSelect").addEventListener("change", function () {
+    const selected = this.options[this.selectedIndex];
+    const revenueSection = document.getElementById("revenueAccountSection");
+    const revenueDisplay = document.getElementById("revenueAccountDisplay");
+
+    const display = selected.getAttribute("data-revenue");
+    if (display && display.trim() !== "") {
+        revenueDisplay.textContent = display;
+        revenueSection.style.display = "block";
+    } else {
+        revenueDisplay.textContent = "—";
+        revenueSection.style.display = "none";
+    }
 });
 </script>
 

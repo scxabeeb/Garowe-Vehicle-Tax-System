@@ -1,0 +1,86 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.RevenueAccounts.EditModel
+@{
+    ViewData["Title"] = "Edit Revenue Account";
+}
+
+<div class="module-page">
+    <div class="module-header mb-3">
+        <div>
+            <h3 class="fw-bold mb-1">Edit Revenue Account</h3>
+            <div class="sub">Update revenue account details.</div>
+        </div>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <form method="post" class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+            @if (Model.Account != null)
+            {
+                <input type="hidden" asp-for="Account.Id" />
+
+                <!-- Account Code -->
+                <div class="mb-3">
+                    <label asp-for="Account.AccountCode" class="form-label fw-semibold"></label>
+                    <input asp-for="Account.AccountCode"
+                           class="form-control"
+                           placeholder="e.g. 4101" />
+                    <span asp-validation-for="Account.AccountCode" class="text-danger small"></span>
+                </div>
+
+                <!-- Account Name -->
+                <div class="mb-3">
+                    <label asp-for="Account.AccountName" class="form-label fw-semibold"></label>
+                    <input asp-for="Account.AccountName"
+                           class="form-control"
+                           placeholder="e.g. Passing Vehicle Tax Revenue" />
+                    <span asp-validation-for="Account.AccountName" class="text-danger small"></span>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label asp-for="Account.Description" class="form-label fw-semibold"></label>
+                    <textarea asp-for="Account.Description"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Optional description..."></textarea>
+                    <span asp-validation-for="Account.Description" class="text-danger small"></span>
+                </div>
+
+                <!-- Is Active -->
+                <div class="mb-3 d-flex align-items-center">
+                    <input asp-for="Account.IsActive"
+                           class="form-check-input me-2"
+                           type="checkbox" />
+                    <label asp-for="Account.IsActive" class="form-label fw-semibold mb-0"></label>
+                </div>
+            }
+
+        </div>
+
+        <div class="card-footer bg-light text-end">
+            <a asp-page="Index" class="btn btn-outline-secondary me-2">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace VehicleTax.Web.Pages.Movements;
 
@@ -22,6 +23,7 @@ public class EditModel : PageModel
 
     // For dropdown
     public List<SelectListItem> CarTypes { get; set; } = new();
+    public List<SelectListItem> RevenueAccounts { get; set; } = new();
 
     private bool HasPermission(string permission)
     {
@@ -40,6 +42,19 @@ public class EditModel : PageModel
             .ToList();
     }
 
+    private void LoadRevenueAccounts()
+    {
+        RevenueAccounts = _context.RevenueAccounts
+            .Where(r => r.IsActive)
+            .OrderBy(r => r.AccountCode)
+            .Select(r => new SelectListItem
+            {
+                Value = r.Id.ToString(),
+                Text = $"{r.AccountCode} - {r.AccountName}"
+            })
+            .ToList();
+    }
+
     public IActionResult OnGet(int id)
     {
         if (!HasPermission("movement.edit"))
@@ -50,6 +65,7 @@ public class EditModel : PageModel
             return NotFound();
 
         LoadCarTypes();
+        LoadRevenueAccounts();
         return Page();
     }
 
@@ -59,11 +75,19 @@ public class EditModel : PageModel
             return Forbid();
 
         LoadCarTypes();
+        LoadRevenueAccounts();
 
         if (!ModelState.IsValid)
             return Page();
 
-        // 🚫 Block update if used in payments
+        // Validate Revenue Account
+        if (Movement.RevenueAccountId == null || Movement.RevenueAccountId == 0)
+        {
+            ModelState.AddModelError("Movement.RevenueAccountId", "Please select a Revenue Account.");
+            return Page();
+        }
+
+        // Block update if used in payments
         bool isUsed = _context.Payments.Any(p => p.MovementId == Movement.Id);
         if (isUsed)
         {
@@ -72,7 +96,7 @@ public class EditModel : PageModel
             return Page();
         }
 
-        // ❌ Prevent duplicate name
+        // Prevent duplicate name
         bool exists = _context.Movements.Any(m =>
             m.Name.ToLower() == Movement.Name.ToLower() &&
             m.Id != Movement.Id);

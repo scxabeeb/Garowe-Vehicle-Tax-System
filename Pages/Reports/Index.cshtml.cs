@@ -16,6 +16,13 @@ namespace VehicleTax.Web.Pages.Reports
         public int TotalPayments { get; set; }
     }
 
+    public class CheckpointSummary
+    {
+        public string CheckpointName { get; set; } = "";
+        public decimal TotalAmount { get; set; }
+        public int TotalPayments { get; set; }
+    }
+
     public class MovementSummary
     {
         public string MovementName { get; set; } = "";
@@ -27,6 +34,15 @@ namespace VehicleTax.Web.Pages.Reports
     {
         public string CarTypeName { get; set; } = "";
         public int Count { get; set; }
+        public decimal TotalAmount { get; set; }
+    }
+
+    public class RevenueAccountSummary
+    {
+        public int AccountId { get; set; }
+        public string AccountCode { get; set; } = "";
+        public string AccountName { get; set; } = "";
+        public int TotalPayments { get; set; }
         public decimal TotalAmount { get; set; }
     }
 
@@ -52,6 +68,8 @@ namespace VehicleTax.Web.Pages.Reports
         [BindProperty(SupportsGet = true)] public int? CarTypeId { get; set; }
         [BindProperty(SupportsGet = true)] public int? MovementId { get; set; }
         [BindProperty(SupportsGet = true)] public int? CollectorId { get; set; }
+        [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
+        [BindProperty(SupportsGet = true)] public int? RevenueAccountId { get; set; }
 
         // Pagination
         [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
@@ -63,9 +81,13 @@ namespace VehicleTax.Web.Pages.Reports
         public SelectList CarTypes { get; set; } = null!;
         public SelectList Movements { get; set; } = null!;
         public SelectList Collectors { get; set; } = null!;
+        public SelectList Checkpoints { get; set; } = null!;
+        public SelectList RevenueAccounts { get; set; } = null!;
         public List<CollectorSummary> CollectorSummaries { get; set; } = new();
+        public List<CheckpointSummary> CheckpointSummaries { get; set; } = new();
         public List<MovementSummary> MovementSummaries { get; set; } = new();
         public List<CarTypeSummary> CarTypeSummaries { get; set; } = new();
+        public List<RevenueAccountSummary> RevenueAccountSummaries { get; set; } = new();
         public List<DailyCollectionSummary> DailySummaries { get; set; } = new();
 
         // Totals
@@ -111,12 +133,33 @@ namespace VehicleTax.Web.Pages.Reports
                 "Username"
             );
 
+            Checkpoints = new SelectList(
+                await _context.Checkpoints
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync(),
+                "Id",
+                "Name"
+            );
+
+            // Revenue Accounts dropdown
+            RevenueAccounts = new SelectList(
+                await _context.RevenueAccounts
+                    .AsNoTracking()
+                    .OrderBy(r => r.AccountCode)
+                    .Select(r => new { r.Id, DisplayName = $"{r.AccountCode} - {r.AccountName}" })
+                    .ToListAsync(),
+                "Id",
+                "DisplayName"
+            );
+
             var query = _context.Payments
                 .Where(p => p.IsPaid && !p.IsReverted)
                 .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
                 .Include(p => p.Movement)
+                    .ThenInclude(m => m.RevenueAccount)
                 .Include(p => p.ReceiptReference)
-                .Include(p => p.Collector)
+                .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
                 .AsQueryable();
 
             if (FromDate.HasValue)
@@ -137,6 +180,12 @@ namespace VehicleTax.Web.Pages.Reports
             if (CollectorId.HasValue)
                 query = query.Where(p => p.CollectorId == CollectorId.Value);
 
+            if (CheckpointId.HasValue)
+                query = query.Where(p => p.Collector != null && p.Collector.CheckpointId == CheckpointId.Value);
+
+            if (RevenueAccountId.HasValue)
+                query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
+
             // Totals
             TotalPayments = await query.CountAsync();
             TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0;
@@ -152,6 +201,19 @@ namespace VehicleTax.Web.Pages.Reports
                 .Select(g => new CollectorSummary
                 {
                     CollectorName = g.Key!,
+                    TotalPayments = g.Count(),
+                    TotalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .ToListAsync();
+
+            CheckpointSummaries = await query
+                .GroupBy(p => p.Collector != null && p.Collector.Checkpoint != null
+                    ? p.Collector.Checkpoint.Name
+                    : "Unassigned")
+                .Select(g => new CheckpointSummary
+                {
+                    CheckpointName = g.Key,
                     TotalPayments = g.Count(),
                     TotalAmount = g.Sum(x => x.Amount)
                 })
@@ -183,6 +245,26 @@ namespace VehicleTax.Web.Pages.Reports
                 })
                 .OrderByDescending(x => x.TotalAmount)
                 .Take(5)
+                .ToListAsync();
+
+            // Revenue Account summary (collections by revenue account)
+            RevenueAccountSummaries = await query
+                .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
+                .GroupBy(p => new
+                {
+                    p.Movement!.RevenueAccount!.Id,
+                    p.Movement!.RevenueAccount!.AccountCode,
+                    p.Movement!.RevenueAccount!.AccountName
+                })
+                .Select(g => new RevenueAccountSummary
+                {
+                    AccountId = g.Key.Id,
+                    AccountCode = g.Key.AccountCode,
+                    AccountName = g.Key.AccountName,
+                    TotalPayments = g.Count(),
+                    TotalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
                 .ToListAsync();
 
             // 7-day daily collection trend
@@ -243,8 +325,9 @@ namespace VehicleTax.Web.Pages.Reports
                 .Where(p => p.IsPaid && !p.IsReverted)
                 .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
                 .Include(p => p.Movement)
+                    .ThenInclude(m => m.RevenueAccount)
                 .Include(p => p.ReceiptReference)
-                .Include(p => p.Collector)
+                .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
                 .AsQueryable();
 
             if (FromDate.HasValue)
@@ -265,23 +348,33 @@ namespace VehicleTax.Web.Pages.Reports
             if (CollectorId.HasValue)
                 query = query.Where(p => p.CollectorId == CollectorId.Value);
 
+            if (CheckpointId.HasValue)
+                query = query.Where(p => p.Collector != null && p.Collector.CheckpointId == CheckpointId.Value);
+
+            if (RevenueAccountId.HasValue)
+                query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
+
             var payments = await query
                 .OrderByDescending(p => p.PaidAt)
                 .ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Collector,Receipt No,Amount");
+            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Receipt No,Amount");
 
             foreach (var p in payments)
             {
                 sb.AppendLine(string.Join(",",
                     AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm"),
-                    p.Vehicle?.PlateNumber,
-                    p.Vehicle?.OwnerName,
-                    p.Vehicle?.Mobile,
-                    p.Vehicle?.CarType?.Name,
+                    p.Vehicle?.PlateNumber ?? "-",
+                    p.Vehicle?.OwnerName ?? "-",
+                    p.Vehicle?.Mobile ?? "-",
+                    p.Vehicle?.CarType?.Name ?? "-",
                     p.Movement?.Name ?? p.MovementType,
+                    p.Movement?.RevenueAccount != null
+                        ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}"
+                        : "-",
                     p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
+                    p.Collector?.Checkpoint?.Name ?? "Unassigned",
                     p.InvoiceNumber,
                     p.Amount
                 ));

@@ -13,5 +13,10 @@ namespace VehicleTax.Web.Models
         public int? CarTypeId { get; set; }   // 🔑 MUST be nullable
 
         public CarType? CarType { get; set; }
+
+        // 🔑 Revenue Account link (nullable to preserve existing data on migration)
+        public int? RevenueAccountId { get; set; }
+
+        public RevenueAccount? RevenueAccount { get; set; }
     }
 }

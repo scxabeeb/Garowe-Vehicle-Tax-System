@@ -1,0 +1,270 @@
+@page
+@model VehicleTax.Web.Pages.Checkpoints.IndexModel
+@{
+    ViewData["Title"] = "Checkpoints";
+}
+
+<div class="container mt-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h3 class="fw-bold mb-0">Checkpoints</h3>
+        <small class="text-muted">Assign collectors to checkpoints for payment tracking.</small>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <form method="post" asp-page-handler="Create" class="row g-2">
+                <div class="col-md-8">
+                    <label class="form-label">Checkpoint Name</label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g. East Gate" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Add Checkpoint</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px;">#</th>
+                        <th>Name</th>
+                        <th style="width:180px;">Assigned Users</th>
+                        <th style="width:340px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.Checkpoints.Any())
+                {
+                    var i = 1;
+                    foreach (var checkpoint in Model.Checkpoints)
+                    {
+                        <tr>
+                            <td>@i</td>
+                            <td>
+                                <form method="post" asp-page-handler="Edit" class="d-flex gap-2">
+                                    <input type="hidden" name="EditId" value="@checkpoint.Id" />
+                                    <input type="text" name="EditName" value="@checkpoint.Name" class="form-control" required />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">Save</button>
+                                </form>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-primary">@checkpoint.UsersAssigned</span>
+                                @if (checkpoint.UsersAssigned > 0)
+                                {
+                                    <small class="text-muted d-block">user(s)</small>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-success assign-users-btn"
+                                            data-checkpoint-id="@checkpoint.Id"
+                                            data-checkpoint-name="@checkpoint.Name"
+                                            title="Assign / Unassign Users">
+                                        <i class="bi bi-person-check"></i> Assign Users
+                                    </button>
+
+                                    <a asp-page="/Checkpoints/Collection"
+                                       asp-route-id="@checkpoint.Id"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View collection (from assigned users)">
+                                        <i class="bi bi-bar-chart-steps"></i> Collection
+                                    </a>
+
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@checkpoint.Id"
+                                          onsubmit="return confirm('Delete this checkpoint?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No checkpoints found</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ======================= Assign / Unassign Users Modal ======================= -->
+<div class="modal fade" id="assignUsersModal" tabindex="-1" aria-labelledby="assignUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="assignUsersForm" method="post" asp-page-handler="AssignUsers">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignUsersModalLabel">
+                        Assign Users to <span id="assignCheckpointName">…</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="checkpointId" id="assignCheckpointId" value="" />
+
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="checkbox" id="selectAllUsers" />
+                            <label for="selectAllUsers" class="mb-0">Select all</label>
+                        </div>
+                        <span class="badge bg-secondary" id="selectedCount">0 selected</span>
+                    </div>
+
+                    <input type="text" id="userSearch" class="form-control mb-3" placeholder="Filter users…" autocomplete="off" />
+
+                    <div id="assignUsersList" class="list-group" style="max-height: 320px; overflow-y: auto;">
+                        <p class="text-muted text-center mb-0">Loading…</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="saveAssignmentsBtn">Save Assignments</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const assignModalEl = document.getElementById('assignUsersModal');
+            const assignModal = new bootstrap.Modal(assignModalEl);
+            let allUsers = [];
+
+            // --- Open modal when "Assign Users" button is clicked ---
+            document.querySelectorAll('.assign-users-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const checkpointId = this.dataset.checkpointId;
+                    const checkpointName = this.dataset.checkpointName;
+
+                    document.getElementById('assignCheckpointName').textContent = checkpointName;
+                    document.getElementById('assignCheckpointId').value = checkpointId;
+                    document.getElementById('selectAllUsers').checked = false;
+                    document.getElementById('userSearch').value = '';
+                    document.getElementById('selectedCount').textContent = '0 selected';
+                    document.getElementById('assignUsersList').innerHTML = '<p class="text-muted text-center mb-0">Loading…</p>';
+
+                    try {
+                        const res = await fetch(`/Checkpoints/Index?handler=AssignUsers&id=${encodeURIComponent(checkpointId)}`);
+                        const data = await res.json();
+                        if (data.status !== 'success') throw new Error(data.message || 'Failed to load users');
+                        allUsers = data.users;
+                        renderUserList(allUsers);
+                    } catch (err) {
+                        document.getElementById('assignUsersList').innerHTML =
+                            `<p class="text-danger text-center mb-0">${err.message}</p>`;
+                    }
+
+                    assignModal.show();
+                });
+            });
+
+            // --- Render user list with checkboxes ---
+            function renderUserList(users) {
+                const container = document.getElementById('assignUsersList');
+                container.innerHTML = '';
+                users.forEach(u => {
+                    const div = document.createElement('div');
+                    div.className = 'list-group-item d-flex align-items-center justify-content-between';
+                    div.innerHTML = `
+                        <label class="d-flex align-items-center gap-2 mb-0 flex-grow-1 cursor-pointer">
+                            <input type="checkbox" class="user-checkbox" value="${u.id}" />
+                            <span>
+                                <strong>${escapeHtml(u.username)}</strong>
+                                <small class="text-muted d-block">${escapeHtml(u.role)}</small>
+                            </span>
+                        </label>
+                        ${u.isAssigned ? '<span class="badge bg-success ms-2">Assigned</span>' : ''}
+                    `;
+                    container.appendChild(div);
+                });
+                updateSelectAll();
+                attachCheckboxEvents();
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text || '';
+                return div.innerHTML;
+            }
+
+            // --- Select all / none ---
+            document.getElementById('selectAllUsers').addEventListener('change', function () {
+                const checkboxes = document.querySelectorAll('#assignUsersList .user-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                updateSelectedCount();
+            });
+
+            // --- Search filter ---
+            document.getElementById('userSearch').addEventListener('input', function () {
+                const term = (this.value || '').toLowerCase();
+                const filtered = allUsers.filter(u =>
+                    u.username.toLowerCase().includes(term) ||
+                    (u.role || '').toLowerCase().includes(term));
+                renderUserList(filtered);
+            });
+
+            function attachCheckboxEvents() {
+                document.querySelectorAll('#assignUsersList .user-checkbox').forEach(cb => {
+                    cb.addEventListener('change', function () {
+                        updateSelectedCount();
+                    });
+                });
+            }
+
+            function updateSelectedCount() {
+                const count = document.querySelectorAll('#assignUsersList .user-checkbox:checked').length;
+                document.getElementById('selectedCount').textContent = `${count} selected`;
+            }
+
+            function updateSelectAll() {
+                const checkboxes = document.querySelectorAll('#assignUsersList .user-checkbox');
+                const allChecked = checkboxes.length > 0 &&
+                    Array.from(checkboxes).every(cb => cb.checked);
+                const selectAll = document.getElementById('selectAllUsers');
+                selectAll.indeterminate = false;
+                selectAll.checked = allChecked;
+            }
+
+            // --- Form submit: collect selected user IDs and create hidden inputs ---
+            document.getElementById('assignUsersForm').addEventListener('submit', function (e) {
+                const checkboxes = document.querySelectorAll('#assignUsersList .user-checkbox:checked');
+                const hiddenContainer = this;
+
+                // Remove any previously injected hidden inputs for selectedUserIds
+                hiddenContainer.querySelectorAll('input[name="selectedUserIds"]').forEach(el => el.remove());
+
+                checkboxes.forEach(cb => {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'selectedUserIds';
+                    hidden.value = cb.value;
+                    hiddenContainer.appendChild(hidden);
+                });
+
+                // Allow normal form submission (anti-forgery token is rendered by the form tag helper)
+            });
+        })();
+    </script>
+}

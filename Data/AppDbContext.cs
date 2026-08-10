@@ -14,9 +14,11 @@ namespace VehicleTax.Web.Data
         public DbSet<Vehicle> Vehicles => Set<Vehicle>();
         public DbSet<CarType> CarTypes => Set<CarType>();
         public DbSet<TaxAmount> TaxAmounts => Set<TaxAmount>();
+        public DbSet<Checkpoint> Checkpoints => Set<Checkpoint>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<Movement> Movements => Set<Movement>();
         public DbSet<ReceiptReference> ReceiptReferences => Set<ReceiptReference>();
+        public DbSet<RevenueAccount> RevenueAccounts => Set<RevenueAccount>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +27,17 @@ namespace VehicleTax.Web.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .HasDatabaseName("IX_Users_Username");
+
+            modelBuilder.Entity<Checkpoint>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
+            // Collector → Checkpoint relation (reverse navigation via Users collection)
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Checkpoint)
+                .WithMany(c => c.Users)
+                .HasForeignKey(u => u.CheckpointId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Payment → Collector (User) relation
             modelBuilder.Entity<Payment>()
@@ -53,6 +66,23 @@ namespace VehicleTax.Web.Data
                 .WithMany()
                 .HasForeignKey(p => p.ReceiptReferenceId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ✅ RevenueAccount → Movements (one-to-many)
+            modelBuilder.Entity<RevenueAccount>()
+                .HasKey(r => r.Id);
+
+            modelBuilder.Entity<RevenueAccount>()
+                .HasIndex(r => r.AccountCode)
+                .IsUnique();
+
+            modelBuilder.Entity<Movement>()
+                .HasOne(m => m.RevenueAccount)
+                .WithMany(r => r.Movements)
+                .HasForeignKey(m => m.RevenueAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Movement>()
+                .HasIndex(m => m.RevenueAccountId);
         }
     }
 }

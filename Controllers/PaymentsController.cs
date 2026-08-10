@@ -398,6 +398,105 @@ namespace VehicleTax.Web.Controllers
         }
 
         // =======================
+        // GET PAYMENTS BY CHECKPOINT
+        // =======================
+        [HttpGet("checkpoint/{checkpointId}")]
+        public IActionResult GetByCheckpoint(int checkpointId, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            var checkpoint = _context.Checkpoints.FirstOrDefault(c => c.Id == checkpointId);
+            if (checkpoint == null)
+            {
+                return NotFound(new { status = "error", message = "Checkpoint not found" });
+            }
+
+            var query = _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Collector)
+                .Where(p => p.IsPaid && !p.IsReverted && p.Collector != null && p.Collector.CheckpointId == checkpointId)
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+            }
+
+            var items = query
+                .OrderByDescending(p => p.PaidAt)
+                .Select(p => new
+                {
+                    p.Id,
+                    invoiceId = p.InvoiceNumber,
+                    p.Amount,
+                    p.PaidAt,
+                    p.MovementType,
+                    plate = p.Vehicle != null ? p.Vehicle.PlateNumber : null,
+                    owner = p.Vehicle != null ? p.Vehicle.OwnerName : null,
+                    collector = p.Collector != null ? p.Collector.Username : "Unassigned"
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                status = "success",
+                checkpoint = checkpoint.Name,
+                checkpointId,
+                totalPayments = items.Count,
+                totalAmount = items.Sum(x => x.Amount),
+                items
+            });
+        }
+
+        // =======================
+        // CHECKPOINT COLLECTION RANKING
+        // =======================
+        [HttpGet("checkpoint-summary")]
+        public IActionResult GetCheckpointSummary([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
+        {
+            var query = _context.Payments
+                .Include(p => p.Collector)
+                .ThenInclude(c => c!.Checkpoint)
+                .Where(p => p.IsPaid && !p.IsReverted)
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+            }
+
+            var items = query
+                .GroupBy(p => p.Collector != null && p.Collector.Checkpoint != null
+                    ? p.Collector.Checkpoint.Name
+                    : "Unassigned")
+                .Select(g => new
+                {
+                    checkpoint = g.Key,
+                    totalPayments = g.Count(),
+                    totalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.totalAmount)
+                .ToList();
+
+            return Ok(new
+            {
+                status = "success",
+                totalCheckpoints = items.Count,
+                grandTotalPayments = items.Sum(x => x.totalPayments),
+                grandTotalAmount = items.Sum(x => x.totalAmount),
+                items
+            });
+        }
+
+        // =======================
         // GET RECEIPT PRINT DATA
         // =======================
         [HttpGet("{paymentId}/receipt")]

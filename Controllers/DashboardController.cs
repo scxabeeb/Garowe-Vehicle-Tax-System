@@ -77,5 +77,61 @@ namespace VehicleTax.Web.Controllers
                 todaysPayments
             });
         }
+
+        [HttpGet("top-checkpoints")]
+        public IActionResult GetTopCheckpoints(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            [FromQuery] int limit = 5)
+        {
+            if (limit < 1)
+            {
+                limit = 5;
+            }
+
+            if (limit > 20)
+            {
+                limit = 20;
+            }
+
+            var query = _context.Payments
+                .Include(p => p.Collector)
+                .ThenInclude(c => c!.Checkpoint)
+                .Where(p => p.IsPaid && !p.IsReverted)
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+            }
+
+            var items = query
+                .GroupBy(p => p.Collector != null && p.Collector.Checkpoint != null
+                    ? p.Collector.Checkpoint.Name
+                    : "Unassigned")
+                .Select(g => new
+                {
+                    checkpoint = g.Key,
+                    totalPayments = g.Count(),
+                    totalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.totalAmount)
+                .Take(limit)
+                .ToList();
+
+            return Ok(new
+            {
+                status = "success",
+                fromDate,
+                toDate,
+                limit,
+                items
+            });
+        }
     }
 }

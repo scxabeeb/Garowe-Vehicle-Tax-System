@@ -22,38 +22,54 @@
 
                 <input type="hidden" asp-for="Tax.Id" />
 
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
+
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">
+                    <label asp-for="Tax.CarTypeId" class="form-label fw-semibold">
                         Car Type
                     </label>
-
                     <select asp-for="Tax.CarTypeId"
                             asp-items="Model.CarTypes"
-                            class="form-select">
+                            class="form-select"
+                            id="carTypeSelect">
                     </select>
+                    <span asp-validation-for="Tax.CarTypeId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">
+                    <label asp-for="Tax.MovementId" class="form-label fw-semibold">
                         Movement
                     </label>
-
                     <select asp-for="Tax.MovementId"
                             asp-items="Model.Movements"
-                            class="form-select">
+                            class="form-select"
+                            id="movementSelect">
                     </select>
+                    <span asp-validation-for="Tax.MovementId" class="text-danger"></span>
+                </div>
+
+                <!-- Revenue Account (read-only, determined by Movement) -->
+                <div class="mb-3" id="revenueAccountSection" style="@(string.IsNullOrEmpty(Model.RevenueAccountDisplay) ? "display:none;" : "")">
+                    <label class="form-label fw-semibold">Revenue Account</label>
+                    <div class="form-control bg-light" id="revenueAccountDisplay">
+                        @(Model.RevenueAccountDisplay ?? "—")
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        The Revenue Account is determined by the selected Movement and cannot be changed here.
+                    </small>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">
+                    <label asp-for="Tax.Amount" class="form-label fw-semibold">
                         Amount
                     </label>
-
                     <input asp-for="Tax.Amount"
                            type="number"
                            step="0.01"
                            class="form-control"
                            required />
+                    <span asp-validation-for="Tax.Amount" class="text-danger"></span>
                 </div>
 
             </div>
@@ -77,3 +93,52 @@
 
     </div>
 </div>
+
+@section Scripts {
+<script>
+// Show Revenue Account info when movement changes
+function updateRevenueDisplay() {
+    const movementSelect = document.getElementById("movementSelect");
+    const selected = movementSelect.options[movementSelect.selectedIndex];
+    const display = selected.getAttribute("data-revenue");
+    const section = document.getElementById("revenueAccountSection");
+    const displayEl = document.getElementById("revenueAccountDisplay");
+
+    if (display && display.trim() !== "") {
+        displayEl.textContent = display;
+        section.style.display = "block";
+    } else {
+        displayEl.textContent = "—";
+        section.style.display = "none";
+    }
+}
+
+document.getElementById("carTypeSelect").addEventListener("change", function () {
+    const carTypeId = this.value;
+    const movementSelect = document.getElementById("movementSelect");
+
+    movementSelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (!carTypeId) {
+        movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+        return;
+    }
+
+    fetch(`?handler=Movements&carTypeId=${carTypeId}`)
+        .then(res => res.json())
+        .then(data => {
+            movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+            const currentVal = "@Model.Tax.MovementId";
+            data.forEach(m => {
+                const selected = m.id == currentVal ? " selected" : "";
+                movementSelect.innerHTML += `<option value="${m.id}" data-revenue="${m.revenueAccountDisplay}"${selected}>${m.name}</option>`;
+            });
+            updateRevenueDisplay();
+        });
+});
+
+document.getElementById("movementSelect").addEventListener("change", updateRevenueDisplay);
+</script>
+
+<partial name="_ValidationScriptsPartial" />
+}

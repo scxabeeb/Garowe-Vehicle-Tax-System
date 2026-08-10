@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 
@@ -42,6 +43,7 @@ public class UsersModel : PageModel
     public void OnGet()
     {
         Users = _context.Users
+            .Include(u => u.Checkpoint)
             .OrderBy(u => u.Username)
             .Select(u => new UserAccessView
             {

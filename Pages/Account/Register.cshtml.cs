@@ -5,6 +5,7 @@ using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace VehicleTax.Web.Pages.Account;
 
@@ -29,8 +30,20 @@ public class RegisterModel : PageModel
     [BindProperty]
     public string Role { get; set; } = "";
 
+    [BindProperty]
+    public int? CheckpointId { get; set; }
+
+    public SelectList Checkpoints { get; set; } = null!;
+
+    public void OnGet()
+    {
+        LoadCheckpoints();
+    }
+
     public IActionResult OnPost()
     {
+        LoadCheckpoints();
+
         if (string.IsNullOrWhiteSpace(Username)
             || string.IsNullOrWhiteSpace(Password)
             || string.IsNullOrWhiteSpace(Role))
@@ -45,11 +58,18 @@ public class RegisterModel : PageModel
             return Page();
         }
 
+        if (CheckpointId.HasValue && !_context.Checkpoints.Any(c => c.Id == CheckpointId.Value))
+        {
+            ModelState.AddModelError("", "Selected checkpoint does not exist");
+            return Page();
+        }
+
         var user = new User
         {
             Username = Username.Trim(),
             Role = Role,
-            Permissions = ""
+            Permissions = "",
+            CheckpointId = CheckpointId
         };
 
         user.Password = _passwordHasher.HashPassword(user, Password.Trim());
@@ -58,5 +78,16 @@ public class RegisterModel : PageModel
         _context.SaveChanges();
 
         return RedirectToPage("/Account/Users");
+    }
+
+    private void LoadCheckpoints()
+    {
+        Checkpoints = new SelectList(
+            _context.Checkpoints
+                .OrderBy(c => c.Name)
+                .ToList(),
+            "Id",
+            "Name"
+        );
     }
 }

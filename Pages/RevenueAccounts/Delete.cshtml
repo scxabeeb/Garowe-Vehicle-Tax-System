@@ -1,0 +1,49 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.RevenueAccounts.DeleteModel
+@{
+    ViewData["Title"] = "Delete Revenue Account";
+}
+
+<div class="module-page">
+    <div class="module-header mb-3">
+        <div>
+            <h3 class="fw-bold mb-1 text-danger">Delete Revenue Account</h3>
+            <div class="sub">This action cannot be undone.</div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Account != null)
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Are you sure you want to delete this revenue account?
+                </div>
+
+                <p><strong>Account Code:</strong> @Model.Account.AccountCode</p>
+                <p><strong>Account Name:</strong> @Model.Account.AccountName</p>
+                <p><strong>Description:</strong> @(Model.Account.Description ?? "N/A")</p>
+                <p><strong>Status:</strong> @(Model.Account.IsActive ? "Active" : "Inactive")</p>
+                <p><strong>Created:</strong> @Model.Account.CreatedAt.ToString("dd MMM yyyy")</p>
+            </div>
+
+            <div class="card-footer bg-light text-end">
+                <a asp-page="Index" class="btn btn-outline-secondary me-2">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-danger px-4">
+                    Yes, Delete
+                </button>
+            </div>
+        </div>
+    }
+</div>

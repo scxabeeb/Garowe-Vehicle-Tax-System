@@ -1,0 +1,141 @@
+@page
+@model VehicleTax.Web.Pages.Reports.RevenueAccountReportModel
+@{
+    ViewData["Title"] = "Revenue Account Report";
+}
+
+<div class="module-page">
+    <div class="module-header mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h3 class="fw-bold mb-1">Revenue Account Report</h3>
+                <div class="sub">Collections summarized by Revenue Account.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <form method="get" class="card module-filter-card p-3 mb-4">
+        <div class="row g-3">
+
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" asp-for="FromDate" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" asp-for="ToDate" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Revenue Account</label>
+                <select asp-for="RevenueAccountId"
+                        asp-items="Model.RevenueAccounts"
+                        class="form-select">
+                    <option value="">All Revenue Accounts</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Movement</label>
+                <select asp-for="MovementId"
+                        asp-items="Model.Movements"
+                        class="form-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Car Type</label>
+                <select asp-for="CarTypeId"
+                        asp-items="Model.CarTypes"
+                        class="form-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+
+            <div class="col-md-12 d-flex gap-2">
+                <button class="btn btn-primary module-action-btn">Apply Filters</button>
+                <a asp-page="./RevenueAccountReport" class="btn btn-secondary module-action-btn">Reset</a>
+                <a class="btn btn-success module-action-btn ms-auto"
+                   asp-page-handler="ExportExcel"
+                   asp-route-FromDate="@Model.FromDate"
+                   asp-route-ToDate="@Model.ToDate"
+                   asp-route-RevenueAccountId="@Model.RevenueAccountId"
+                   asp-route-MovementId="@Model.MovementId"
+                   asp-route-CarTypeId="@Model.CarTypeId">
+                    Export to Excel
+                </a>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- FILTER SUMMARY -->
+    <div class="alert alert-light module-alert mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        From <strong>@(Model.FromDate?.ToString("dd-MMM-yyyy") ?? "All")</strong>
+        &nbsp;|&nbsp;
+        To <strong>@(Model.ToDate?.ToString("dd-MMM-yyyy") ?? "All")</strong>
+    </div>
+
+    <!-- RESULT TABLE -->
+    <div class="card module-table-card">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Account Code</th>
+                        <th>Account Name</th>
+                        <th class="text-end">Number of Payments</th>
+                        <th class="text-end">Total Amount</th>
+                        <th class="text-center">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.ReportItems.Any())
+                    {
+                        foreach (var item in Model.ReportItems)
+                        {
+                            <tr>
+                                <td><strong>@item.AccountCode</strong></td>
+                                <td>@item.AccountName</td>
+                                <td class="text-end">@item.TotalPayments</td>
+                                <td class="text-end">@item.TotalAmount.ToString("N0")</td>
+                                <td class="text-center">
+                                    <a asp-page="./RevenueAccountDetails"
+                                       asp-route-accountId="@item.AccountId"
+                                       asp-route-FromDate="@Model.FromDate"
+                                       asp-route-ToDate="@Model.ToDate"
+                                       asp-route-MovementId="@Model.MovementId"
+                                       asp-route-CarTypeId="@Model.CarTypeId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No data found for the selected filters.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="2"><strong>TOTAL</strong></th>
+                        <th class="text-end"><strong>@Model.GrandTotalPayments</strong></th>
+                        <th class="text-end"><strong>@Model.GrandTotalAmount.ToString("N0")</strong></th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>

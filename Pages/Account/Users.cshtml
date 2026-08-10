@@ -16,6 +16,9 @@
             <div class="sub">Manage user accounts, permissions, and access visibility.</div>
         </div>
         <div class="d-flex gap-2">
+            <a asp-page="/Checkpoints/Index" class="btn btn-outline-light btn-sm admin-btn">
+                <i class="bi bi-geo-alt"></i> Checkpoints
+            </a>
             <a asp-page="/Account/Register" class="btn btn-light btn-sm admin-btn">
                 <i class="bi bi-person-plus"></i> Register User
             </a>
@@ -68,6 +71,7 @@
                 <tr>
                     <th>Username</th>
                     <th>Role</th>
+                    <th>Checkpoint</th>
                     <th>Status</th>
                     <th>Permissions</th>
                     <th>Can See Pages</th>
@@ -89,6 +93,7 @@
                         <td data-label="Role">
                             <span class="badge bg-info text-dark">@u.User.Role</span>
                         </td>
+                        <td data-label="Checkpoint">@(u.User.Checkpoint?.Name ?? "Not assigned")</td>
                         <td data-label="Status">
                             @if (u.User.IsLocked)
                             {

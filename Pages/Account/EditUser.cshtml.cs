@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using Microsoft.AspNetCore.Identity;
@@ -22,6 +23,8 @@ namespace VehicleTax.Web.Pages.Account
         [BindProperty]
         public User EditUser { get; set; } = new();
 
+        public SelectList Checkpoints { get; set; } = null!;
+
         public IActionResult OnGet(int id)
         {
             var user = _context.Users.FirstOrDefault(u => u.Id == id);
@@ -30,6 +33,7 @@ namespace VehicleTax.Web.Pages.Account
 
             EditUser = user;
             EditUser.Password = "";
+            LoadCheckpoints();
             return Page();
         }
 
@@ -39,14 +43,35 @@ namespace VehicleTax.Web.Pages.Account
             if (dbUser == null)
                 return RedirectToPage("/Account/Users");
 
+            LoadCheckpoints();
+
+            if (EditUser.CheckpointId.HasValue && !_context.Checkpoints.Any(c => c.Id == EditUser.CheckpointId.Value))
+            {
+                ModelState.AddModelError("", "Selected checkpoint does not exist");
+                EditUser.Password = "";
+                return Page();
+            }
+
             dbUser.Username = EditUser.Username.Trim();
             dbUser.Role = EditUser.Role;
+            dbUser.CheckpointId = EditUser.CheckpointId;
 
             if (!string.IsNullOrWhiteSpace(EditUser.Password))
                 dbUser.Password = _passwordHasher.HashPassword(dbUser, EditUser.Password.Trim());
 
             _context.SaveChanges();
             return RedirectToPage("/Account/Users");
+        }
+
+        private void LoadCheckpoints()
+        {
+            Checkpoints = new SelectList(
+                _context.Checkpoints
+                    .OrderBy(c => c.Name)
+                    .ToList(),
+                "Id",
+                "Name"
+            );
         }
     }
 }

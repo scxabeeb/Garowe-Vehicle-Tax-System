@@ -56,6 +56,17 @@
                               class="text-danger small"></span>
                     </div>
 
+                    <!-- Revenue Account -->
+                    <div class="mb-3">
+                        <label asp-for="RevenueAccountId" class="form-label fw-semibold">Revenue Account</label>
+                        <select asp-for="RevenueAccountId"
+                                class="form-select"
+                                asp-items="Model.RevenueAccounts">
+                            <option value="">-- Select Revenue Account --</option>
+                        </select>
+                        <span asp-validation-for="RevenueAccountId" class="text-danger small"></span>
+                    </div>
+
                 </div>
 
                 <div class="card-footer bg-light text-end">

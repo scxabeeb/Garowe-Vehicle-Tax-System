@@ -1,0 +1,170 @@
+@page "{accountId:int}"
+@model VehicleTax.Web.Pages.Reports.RevenueAccountDetailsModel
+@{
+    ViewData["Title"] = "Revenue Account Details";
+}
+
+@if (Model.Account == null)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Revenue Account not found.
+    </div>
+    return;
+}
+
+<div class="module-page">
+    <div class="module-header mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h3 class="fw-bold mb-1">
+                    <i class="bi bi-receipt"></i> Revenue Account Details
+                </h3>
+                <div class="sub">
+                    @Model.Account.AccountCode - @Model.Account.AccountName &nbsp;|&nbsp;
+                    <span class="badge bg-@(Model.Account.IsActive ? "bg-success" : "bg-secondary")">
+                        @(Model.Account.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+            </div>
+            <a asp-page="./RevenueAccountReport" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Report
+            </a>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <form method="get" class="card module-filter-card p-3 mb-4">
+        <div class="row g-3">
+
+            <input type="hidden" name="accountId" value="@Model.Account.Id" />
+
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" asp-for="FromDate" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" asp-for="ToDate" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Movement</label>
+                <select asp-for="MovementId"
+                        asp-items="Model.Movements"
+                        class="form-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Car Type</label>
+                <select asp-for="CarTypeId"
+                        asp-items="Model.CarTypes"
+                        class="form-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+
+            <div class="col-md-12 d-flex gap-2">
+                <button class="btn btn-primary module-action-btn">Apply Filters</button>
+                <a asp-page="./RevenueAccountDetails"
+                   asp-route-accountId="@Model.Account.Id"
+                   class="btn btn-secondary module-action-btn">Reset</a>
+                <a class="btn btn-success module-action-btn ms-auto"
+                   asp-page-handler="ExportExcel"
+                   asp-route-accountId="@Model.Account.Id"
+                   asp-route-FromDate="@Model.FromDate"
+                   asp-route-ToDate="@Model.ToDate"
+                   asp-route-MovementId="@Model.MovementId"
+                   asp-route-CarTypeId="@Model.CarTypeId">
+                    Export to Excel
+                </a>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- SUMMARY -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card module-kpi-card border-0 text-center">
+                <div class="card-body">
+                    <div class="module-kpi-title">Total Transactions</div>
+                    <h3 class="module-kpi-value text-primary">@Model.TotalTransactions</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card module-kpi-card border-0 text-center">
+                <div class="card-body">
+                    <div class="module-kpi-title">Total Amount</div>
+                    <h3 class="module-kpi-value text-success">@Model.TotalAmount.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card module-kpi-card border-0 text-center">
+                <div class="card-body">
+                    <div class="module-kpi-title">Average Amount</div>
+                    <h3 class="module-kpi-value text-warning">
+                        @(Model.TotalTransactions > 0
+                            ? (Model.TotalAmount / Model.TotalTransactions).ToString("N0")
+                            : "0")
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANSACTIONS TABLE -->
+    <div class="card module-table-card">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Receipt No</th>
+                        <th>Plate Number</th>
+                        <th>Owner Name</th>
+                        <th>Car Type</th>
+                        <th>Movement</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Transactions.Any())
+                    {
+                        foreach (var t in Model.Transactions)
+                        {
+                            <tr>
+                                <td>@t.Date.ToString("dd-MMM-yyyy")</td>
+                                <td>@t.ReceiptNumber</td>
+                                <td>@t.PlateNumber</td>
+                                <td>@t.OwnerName</td>
+                                <td>@t.CarTypeName</td>
+                                <td>@t.MovementName</td>
+                                <td class="text-end">@t.Amount.ToString("N0")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No transactions found for the selected filters.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="6" class="fw-bold text-end">TOTAL</td>
+                        <td class="text-end fw-bold">@Model.TotalAmount.ToString("N0")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>

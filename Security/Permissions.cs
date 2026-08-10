@@ -20,6 +20,12 @@ public static class Permissions
     public const string UserEdit   = "user.edit";
     public const string UserDelete = "user.delete";
 
+    // REVENUE ACCOUNTS
+    public const string RevenueAccountView   = "revenueaccount.view";
+    public const string RevenueAccountCreate = "revenueaccount.create";
+    public const string RevenueAccountEdit   = "revenueaccount.edit";
+    public const string RevenueAccountDelete = "revenueaccount.delete";
+
     // REPORTS
     public const string ReportsView = "reports.view";
 }

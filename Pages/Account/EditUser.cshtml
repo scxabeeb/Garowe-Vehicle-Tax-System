@@ -45,6 +45,13 @@
                     </select>
                 </div>
 
+                <div class="mb-4">
+                    <label class="form-label">Checkpoint</label>
+                    <select asp-for="EditUser.CheckpointId" asp-items="Model.Checkpoints" class="form-select">
+                        <option value="">No checkpoint</option>
+                    </select>
+                </div>
+
                 <div class="d-grid gap-2 d-md-flex">
                     <button type="submit" class="btn btn-success w-100 admin-btn">
                         <i class="bi bi-save"></i> Save Changes

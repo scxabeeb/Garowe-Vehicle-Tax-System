@@ -1,0 +1,133 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.Checkpoints.CollectionModel
+@{
+    ViewData["Title"] = $"Collection — {Model.Checkpoint?.Name ?? "Checkpoint"}";
+}
+
+<div class="container mt-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">
+                <i class="bi bi-bar-chart-steps"></i>
+                Checkpoint Collection: @Model.Checkpoint?.Name
+            </h3>
+            <small class="text-muted">
+                Payments collected by users assigned to this checkpoint.
+                @if (Model.TotalCollectors > 0)
+                {
+                    <span class="badge bg-info text-dark">@Model.TotalCollectors collector(s) assigned</span>
+                }
+            </small>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-page="/Checkpoints/Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Checkpoints
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Filters -->
+    <form method="get" class="card p-3 mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" asp-for="FromDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" asp-for="ToDate" class="form-control" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                <a asp-page="/Checkpoints/Collection" asp-route-id="@Model.Id" class="btn btn-secondary w-100">Reset</a>
+                <a asp-page-handler="ExportCsv" asp-route-id="@Model.Id"
+                   asp-route-FromDate="@Model.FromDate"
+                   asp-route-ToDate="@Model.ToDate"
+                   class="btn btn-success w-100">
+                    <i class="bi bi-download"></i> Export CSV
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Summary KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <div class="text-muted small">Total Payments</div>
+                    <h3 class="fw-bold text-primary mb-0">@Model.TotalPayments</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <div class="text-muted small">Total Collected</div>
+                    <h3 class="fw-bold text-success mb-0">@Model.TotalAmount.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <div class="text-muted small">Assigned Collectors</div>
+                    <h3 class="fw-bold text-info mb-0">@Model.TotalCollectors</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Plate</th>
+                            <th>Owner</th>
+                            <th>Car Type</th>
+                            <th>Movement</th>
+                            <th>Collector</th>
+                            <th>Checkpoint</th>
+                            <th>Receipt No</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (Model.Payments.Any())
+                    {
+                        foreach (var p in Model.Payments)
+                        {
+                            <tr>
+                                <td>@AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd")</td>
+                                <td>@p.Vehicle?.PlateNumber</td>
+                                <td>@p.Vehicle?.OwnerName</td>
+                                <td>@(p.Vehicle?.CarType?.Name ?? "-")</td>
+                                <td>@(p.Movement?.Name ?? p.MovementType)</td>
+                                <td>@(p.Collector?.Username ?? "Unassigned")</td>
+                                <td>@(p.Collector?.Checkpoint?.Name ?? "-")</td>
+                                <td>@p.InvoiceNumber</td>
+                                <td class="text-end">@p.Amount.ToString("N0")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">No payments found for this checkpoint.</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

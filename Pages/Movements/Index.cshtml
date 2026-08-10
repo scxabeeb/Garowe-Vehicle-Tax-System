@@ -60,6 +60,7 @@
                         <th style="width:70px">#</th>
                         <th>Movement Name</th>
                         <th>Car Type</th>
+                        <th>Revenue Account</th>
                         <th class="text-center" style="width:180px">
                             Actions
                         </th>
@@ -87,6 +88,18 @@
                                     <span class="text-muted">No Car Type</span>
                                 }
                             </td>
+                            <td>
+                                @if (item.RevenueAccount != null)
+                                {
+                                    <span class="badge bg-primary">
+                                        @item.RevenueAccount.AccountCode - @item.RevenueAccount.AccountName
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not assigned</span>
+                                }
+                            </td>
                             <td class="text-center">
                                 <a asp-page="Edit"
                                    asp-route-id="@item.Id"
@@ -106,7 +119,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="4" class="text-center text-muted">
+                        <td colspan="5" class="text-center text-muted">
                             No movements found
                         </td>
                     </tr>
