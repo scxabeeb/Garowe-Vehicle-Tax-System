@@ -111,8 +111,11 @@ yarn.lock
 
 # Docker
 *.dockerfile
-*.dockerignore
 Dockerfile*
+!Dockerfile
+!Dockerfile.*
+*.dockerignore
+!.dockerignore
 docker-compose*.yml
 docker-compose*.yaml
 

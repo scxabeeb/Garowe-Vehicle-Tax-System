@@ -8,6 +8,7 @@ using VehicleTax.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -115,6 +116,14 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+// ==================================
+// Forwarded Headers (for reverse proxy / Railway)
+// ==================================
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 var allowRunWithoutDatabase = builder.Configuration.GetValue<bool>("Startup:AllowRunWithoutDatabase");
 
