@@ -160,6 +160,9 @@ namespace VehicleTax.Web.Pages.Reports
                     .ThenInclude(m => m.RevenueAccount)
                 .Include(p => p.ReceiptReference)
                 .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
+                // Also load the checkpoint snapshot so the UI shows the
+                // checkpoint that was active when the payment was recorded.
+                .Include(p => p.Checkpoint)
                 .AsQueryable();
 
             if (FromDate.HasValue)
@@ -180,8 +183,10 @@ namespace VehicleTax.Web.Pages.Reports
             if (CollectorId.HasValue)
                 query = query.Where(p => p.CollectorId == CollectorId.Value);
 
+            // Filter by the Payment.CheckpointId snapshot (not the collector's
+            // current checkpoint) so reassignment does not change historical data.
             if (CheckpointId.HasValue)
-                query = query.Where(p => p.Collector != null && p.Collector.CheckpointId == CheckpointId.Value);
+                query = query.Where(p => p.CheckpointId == CheckpointId.Value);
 
             if (RevenueAccountId.HasValue)
                 query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
@@ -207,9 +212,11 @@ namespace VehicleTax.Web.Pages.Reports
                 .OrderByDescending(x => x.TotalAmount)
                 .ToListAsync();
 
+            // Checkpoint summary — group by the snapshot checkpoint so that
+            // payments stay attributed to the checkpoint they were collected under.
             CheckpointSummaries = await query
-                .GroupBy(p => p.Collector != null && p.Collector.Checkpoint != null
-                    ? p.Collector.Checkpoint.Name
+                .GroupBy(p => p.Checkpoint != null
+                    ? p.Checkpoint.Name
                     : "Unassigned")
                 .Select(g => new CheckpointSummary
                 {
@@ -328,6 +335,8 @@ namespace VehicleTax.Web.Pages.Reports
                     .ThenInclude(m => m.RevenueAccount)
                 .Include(p => p.ReceiptReference)
                 .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
+                // Also load the checkpoint snapshot for the CSV export.
+                .Include(p => p.Checkpoint)
                 .AsQueryable();
 
             if (FromDate.HasValue)
@@ -348,8 +357,10 @@ namespace VehicleTax.Web.Pages.Reports
             if (CollectorId.HasValue)
                 query = query.Where(p => p.CollectorId == CollectorId.Value);
 
+            // Filter by the Payment.CheckpointId snapshot (not the collector's
+            // current checkpoint) so reassignment does not change historical data.
             if (CheckpointId.HasValue)
-                query = query.Where(p => p.Collector != null && p.Collector.CheckpointId == CheckpointId.Value);
+                query = query.Where(p => p.CheckpointId == CheckpointId.Value);
 
             if (RevenueAccountId.HasValue)
                 query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
@@ -378,7 +389,9 @@ namespace VehicleTax.Web.Pages.Reports
                         ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}"
                         : "-",
                     p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
-                    p.Collector?.Checkpoint?.Name ?? "Unassigned",
+                    // Use the snapshot checkpoint name so historical
+                    // payments keep the checkpoint they were collected under.
+                    p.Checkpoint?.Name ?? "Unassigned",
                     p.InvoiceNumber,
                     p.Amount
                 ));

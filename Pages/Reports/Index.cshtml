@@ -117,9 +117,11 @@
     </div>
     <div class="col-md-4">
         <div class="card module-kpi-card border-0 text-center">
-            <div class="module-kpi-title">Total Collected</div>
-            <h3 class="module-kpi-value text-success">@Model.TotalAmount.ToString("N0")</h3>
-            <div class="module-kpi-sub">Revenue Account Collections</div>
+            <div class="card-body">
+                <div class="module-kpi-title">Total Collected</div>
+                <h3 class="module-kpi-value text-success">@Model.TotalAmount.ToString("N0")</h3>
+                <div class="module-kpi-sub">Revenue Account Collections</div>
+            </div>
         </div>
     </div>
 </div>
@@ -404,7 +406,7 @@
                         <td>@(p.Movement?.Name ?? p.MovementType)</td>
                         <td>@(p.Movement?.RevenueAccount != null ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}" : "-")</td>
                         <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
-                        <td>@(p.Collector?.Checkpoint?.Name ?? "Unassigned")</td>
+                        <td>@(p.Checkpoint?.Name ?? "Unassigned")</td>
                         <td>@p.InvoiceNumber</td>
                         <td class="text-end">@p.Amount.ToString("N0")</td>
                     </tr>
