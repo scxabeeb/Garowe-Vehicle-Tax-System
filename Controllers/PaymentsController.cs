@@ -71,6 +71,10 @@ namespace VehicleTax.Web.Controllers
                 PaidAt = paidAt,
                 ReceiptReferenceId = reference?.Id,
                 CollectorId = collector?.Id,
+                // Snapshot the checkpoint at payment time so historical
+                // payments stay attributed to the original checkpoint even
+                // if the collector is later reassigned.
+                CheckpointId = collector?.CheckpointId,
                 IsPaid = true,
                 IsReverted = false,
                 PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod) ? null : dto.PaymentMethod,
@@ -175,6 +179,10 @@ namespace VehicleTax.Web.Controllers
                 PaidAt = now,
                 ReceiptReferenceId = reference?.Id,
                 CollectorId = dto.CollectorId,
+                // Snapshot the checkpoint at payment time so historical
+                // payments stay attributed to the original checkpoint even
+                // if the collector is later reassigned.
+                CheckpointId = collector.CheckpointId,
                 IsReverted = false
             };
 
@@ -248,6 +256,10 @@ namespace VehicleTax.Web.Controllers
                 IsPaid = false,
                 IsReverted = false,
                 CollectorId = invoiceCollector?.Id,
+                // Snapshot the checkpoint at payment time so historical
+                // payments stay attributed to the original checkpoint even
+                // if the collector is later reassigned.
+                CheckpointId = invoiceCollector?.CheckpointId,
                 ReceiptReferenceId = null
             };
 
@@ -326,6 +338,10 @@ namespace VehicleTax.Web.Controllers
             payment.IsPaid = true;
             payment.PaidAt = paidAt;
             payment.CollectorId = collector.Id;
+            // Snapshot the checkpoint at payment time so historical
+            // payments stay attributed to the original checkpoint even
+            // if the collector is later reassigned.
+            payment.CheckpointId = collector.CheckpointId;
             payment.PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod) ? payment.PaymentMethod : dto.PaymentMethod;
             payment.PaidBy = string.IsNullOrWhiteSpace(dto.PaidBy) ? payment.PaidBy : dto.PaidBy;
             payment.Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? payment.Remarks : dto.Remarks;
@@ -400,6 +416,10 @@ namespace VehicleTax.Web.Controllers
         // =======================
         // GET PAYMENTS BY CHECKPOINT
         // =======================
+        // Uses the Payment.CheckpointId snapshot so that payments remain
+        // attributed to the original checkpoint even after the collector
+        // is reassigned to a different checkpoint.
+        // =======================
         [HttpGet("checkpoint/{checkpointId}")]
         public IActionResult GetByCheckpoint(int checkpointId, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
         {
@@ -412,7 +432,8 @@ namespace VehicleTax.Web.Controllers
             var query = _context.Payments
                 .Include(p => p.Vehicle)
                 .Include(p => p.Collector)
-                .Where(p => p.IsPaid && !p.IsReverted && p.Collector != null && p.Collector.CheckpointId == checkpointId)
+                .Include(p => p.Checkpoint)
+                .Where(p => p.IsPaid && !p.IsReverted && p.CheckpointId == checkpointId)
                 .AsQueryable();
 
             if (fromDate.HasValue)
@@ -436,7 +457,8 @@ namespace VehicleTax.Web.Controllers
                     p.MovementType,
                     plate = p.Vehicle != null ? p.Vehicle.PlateNumber : null,
                     owner = p.Vehicle != null ? p.Vehicle.OwnerName : null,
-                    collector = p.Collector != null ? p.Collector.Username : "Unassigned"
+                    collector = p.Collector != null ? p.Collector.Username : "Unassigned",
+                    checkpointName = p.Checkpoint != null ? p.Checkpoint.Name : "Unassigned"
                 })
                 .ToList();
 
@@ -454,12 +476,14 @@ namespace VehicleTax.Web.Controllers
         // =======================
         // CHECKPOINT COLLECTION RANKING
         // =======================
+        // Groups by the Payment.CheckpointId snapshot so that each
+        // payment is attributed to the checkpoint it was collected under.
+        // =======================
         [HttpGet("checkpoint-summary")]
         public IActionResult GetCheckpointSummary([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
         {
             var query = _context.Payments
-                .Include(p => p.Collector)
-                .ThenInclude(c => c!.Checkpoint)
+                .Include(p => p.Checkpoint)
                 .Where(p => p.IsPaid && !p.IsReverted)
                 .AsQueryable();
 
@@ -474,8 +498,8 @@ namespace VehicleTax.Web.Controllers
             }
 
             var items = query
-                .GroupBy(p => p.Collector != null && p.Collector.Checkpoint != null
-                    ? p.Collector.Checkpoint.Name
+                .GroupBy(p => p.Checkpoint != null
+                    ? p.Checkpoint.Name
                     : "Unassigned")
                 .Select(g => new
                 {

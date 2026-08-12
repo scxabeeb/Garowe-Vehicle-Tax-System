@@ -197,6 +197,10 @@ public class CollectModel : PageModel
             payment.IsPaid = true;
             payment.PaidAt = DateTime.UtcNow;
             payment.CollectorId = collector.Id;
+            // Snapshot the checkpoint at payment time so historical
+            // payments stay attributed to the original checkpoint even
+            // if the collector is later reassigned.
+            payment.CheckpointId = collector.CheckpointId;
 
             _context.SaveChanges();
 

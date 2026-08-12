@@ -358,6 +358,10 @@ namespace VehicleTax.Web.Pages.Reports
                 .OrderByDescending(p => p.PaidAt)
                 .ToListAsync();
 
+            // Calculate totals from filtered data
+            TotalPayments = payments.Count;
+            TotalAmount = payments.Sum(p => p.Amount);
+
             var sb = new StringBuilder();
             sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Receipt No,Amount");
 
@@ -379,6 +383,9 @@ namespace VehicleTax.Web.Pages.Reports
                     p.Amount
                 ));
             }
+
+            // Add total row to the exported CSV (11 columns to match header)
+            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,{TotalAmount:N0}");
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "text/csv", $"Payments_{AppTime.Now:yyyyMMddHHmmss}.csv");

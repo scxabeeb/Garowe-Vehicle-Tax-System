@@ -55,7 +55,7 @@
         </div>
     </form>
 
-    <!-- Summary KPIs -->
+    <!-- Summary KPI -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center">
@@ -113,7 +113,7 @@
                                 <td>@(p.Vehicle?.CarType?.Name ?? "-")</td>
                                 <td>@(p.Movement?.Name ?? p.MovementType)</td>
                                 <td>@(p.Collector?.Username ?? "Unassigned")</td>
-                                <td>@(p.Collector?.Checkpoint?.Name ?? "-")</td>
+                                <td>@(p.Checkpoint?.Name ?? "-")</td>
                                 <td>@p.InvoiceNumber</td>
                                 <td class="text-end">@p.Amount.ToString("N0")</td>
                             </tr>

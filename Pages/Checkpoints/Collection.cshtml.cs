@@ -57,17 +57,18 @@ public class CollectionModel : PageModel
     }
 
     /// <summary>
-    /// Collection comes from assigned users: payments collected by users
-    /// who are assigned to this checkpoint (User.CheckpointId == checkpoint.Id).
+    /// Collection comes from the Payment.CheckpointId snapshot: payments
+    /// collected by users who were assigned to this checkpoint at the time
+    /// the payment was recorded.  This ensures that when a collector is
+    /// reassigned to a different checkpoint, the previous checkpoint's
+    /// collection remains unchanged.
     /// </summary>
     private async Task LoadCollectionAsync()
     {
-        var assignedUserIds = await _context.Users
+        // Count collectors currently assigned to this checkpoint (for KPI display)
+        TotalCollectors = await _context.Users
             .Where(u => u.CheckpointId == Id)
-            .Select(u => u.Id)
-            .ToListAsync();
-
-        TotalCollectors = assignedUserIds.Count;
+            .CountAsync();
 
         var query = _context.Payments
             .Include(p => p.Vehicle)
@@ -75,9 +76,8 @@ public class CollectionModel : PageModel
             .Include(p => p.Movement)
             .Include(p => p.ReceiptReference)
             .Include(p => p.Collector)
-            .ThenInclude(c => c!.Checkpoint)
-            .Where(p => p.IsPaid && !p.IsReverted && p.CollectorId.HasValue)
-            .Where(p => assignedUserIds.Contains(p.CollectorId!.Value))
+            .Include(p => p.Checkpoint)
+            .Where(p => p.IsPaid && !p.IsReverted && p.CheckpointId == Id)
             .AsQueryable();
 
         if (FromDate.HasValue)
@@ -125,7 +125,7 @@ public class CollectionModel : PageModel
                 p.Vehicle?.CarType?.Name ?? "-",
                 p.Movement?.Name ?? p.MovementType,
                 p.Collector?.Username ?? "Unassigned",
-                p.Collector?.Checkpoint?.Name ?? "-",
+                p.Checkpoint?.Name ?? "-",
                 p.InvoiceNumber,
                 p.Amount.ToString("N2")
             ));

@@ -46,6 +46,15 @@ namespace VehicleTax.Web.Data
                 .HasForeignKey(p => p.CollectorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Payment → Checkpoint relation (snapshot of checkpoint at payment time)
+            // Ensures historical payments stay attributed to the original checkpoint
+            // even when a collector is later reassigned to a different checkpoint.
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Checkpoint)
+                .WithMany()
+                .HasForeignKey(p => p.CheckpointId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Payment → Vehicle relation
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Vehicle)

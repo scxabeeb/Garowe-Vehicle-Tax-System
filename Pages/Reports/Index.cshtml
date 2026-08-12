@@ -417,6 +417,16 @@
                 </tr>
             }
             </tbody>
+            @if (Model.Payments.Any())
+            {
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="9" class="fw-bold text-end">TOTAL</td>
+                        <td class="fw-bold text-center">@Model.TotalPayments</td>
+                        <td class="text-end fw-bold">@Model.TotalAmount.ToString("N0")</td>
+                    </tr>
+                </tfoot>
+            }
         </table>
     </div>
 </div>

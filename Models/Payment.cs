@@ -25,6 +25,15 @@ namespace VehicleTax.Web.Models
         public int? CollectorId { get; set; }
         public User? Collector { get; set; }
 
+        /// <summary>
+        /// Snapshot of the checkpoint the collector was assigned to at the
+        /// time the payment was recorded.  This ensures historical
+        /// payments stay attributed to the original checkpoint even when
+        /// the collector is later reassigned to a different checkpoint.
+        /// </summary>
+        public int? CheckpointId { get; set; }
+        public Checkpoint? Checkpoint { get; set; }
+
         public int? ReceiptReferenceId { get; set; }
         public ReceiptReference? ReceiptReference { get; set; }
 
