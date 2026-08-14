@@ -187,9 +187,12 @@
                                              <input type="hidden" name="paymentId" value="@p.Id" />
                                              <select name="checkpointId" class="form-select form-select-sm mb-2">
                                                  <option value="">— Default —</option>
-                                                 @foreach (var c in Model.Checkpoints)
+                                                 @if (Model.Checkpoints != null)
                                                  {
-                                                     <option value="@c.Value">@c.Text</option>
+                                                     @foreach (var c in Model.Checkpoints)
+                                                     {
+                                                         <option value="@c.Value">@c.Text</option>
+                                                     }
                                                  }
                                              </select>
                                              <button type="submit" class="btn btn-sm btn-success w-100">

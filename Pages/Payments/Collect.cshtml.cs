@@ -76,6 +76,7 @@ public class CollectModel : PageModel
 
         LoadVehicle();
         LoadMovements();
+        LoadCheckpoints();
     }
 
     // =======================
@@ -85,6 +86,7 @@ public class CollectModel : PageModel
     {
         LoadVehicle();
         LoadMovements();
+        LoadCheckpoints();
 
         if (Vehicle == null || MovementId == 0)
             return;
@@ -114,6 +116,7 @@ public class CollectModel : PageModel
         {
             LoadVehicle();
             LoadMovements();
+            LoadCheckpoints();
 
             if (Vehicle == null)
             {
@@ -151,6 +154,7 @@ public class CollectModel : PageModel
             ErrorMessage = ex.Message;
             LoadVehicle();
             LoadMovements();
+            LoadCheckpoints();
             return Page();
         }
     }
@@ -246,6 +250,7 @@ public class CollectModel : PageModel
             if (!User.IsInRole("Admin"))
             {
                 ErrorMessage = "Only admins can revert payments.";
+                LoadCheckpoints();
                 return Page();
             }
 
@@ -296,6 +301,7 @@ public class CollectModel : PageModel
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            LoadCheckpoints();
             return Page();
         }
     }
