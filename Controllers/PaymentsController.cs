@@ -438,8 +438,11 @@ namespace VehicleTax.Web.Controllers
             var query = _context.Payments
                 .Include(p => p.Vehicle)
                 .Include(p => p.Collector)
+                    .ThenInclude(c => c!.Checkpoint)
                 .Include(p => p.Checkpoint)
-                .Where(p => p.IsPaid && !p.IsReverted && p.CheckpointId == checkpointId)
+                .Where(p => p.IsPaid && !p.IsReverted &&
+                    (p.CheckpointId == checkpointId ||
+                     (p.CheckpointId == null && p.Collector != null && p.Collector.CheckpointId == checkpointId)))
                 .AsQueryable();
 
             if (fromDate.HasValue)

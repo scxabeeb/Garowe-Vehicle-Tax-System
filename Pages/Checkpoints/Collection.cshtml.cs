@@ -76,8 +76,11 @@ public class CollectionModel : PageModel
             .Include(p => p.Movement)
             .Include(p => p.ReceiptReference)
             .Include(p => p.Collector)
+                .ThenInclude(c => c!.Checkpoint)
             .Include(p => p.Checkpoint)
-            .Where(p => p.IsPaid && !p.IsReverted && p.CheckpointId == Id)
+            .Where(p => p.IsPaid && !p.IsReverted &&
+                (p.CheckpointId == Id ||
+                 (p.CheckpointId == null && p.Collector != null && p.Collector.CheckpointId == Id)))
             .AsQueryable();
 
         if (FromDate.HasValue)

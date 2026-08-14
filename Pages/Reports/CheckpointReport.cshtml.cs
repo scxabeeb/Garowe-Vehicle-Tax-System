@@ -57,6 +57,8 @@ public class CheckpointReportModel : PageModel
         // ---- Checkpoint-level summary (always all checkpoints) ----
         var summaryQuery = _context.Payments
             .Include(p => p.Checkpoint)
+            .Include(p => p.Collector)
+                .ThenInclude(c => c!.Checkpoint)
             .Where(p => p.IsPaid && !p.IsReverted)
             .AsQueryable();
 
@@ -66,17 +68,26 @@ public class CheckpointReportModel : PageModel
         if (ToDate.HasValue)
             summaryQuery = summaryQuery.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
 
-        CheckpointSummaries = await summaryQuery
-            .GroupBy(p => p.Checkpoint != null ? p.Checkpoint.Name : "Unassigned")
+        var checkpointSummaries = summaryQuery
+            .AsEnumerable()
+            .GroupBy(p =>
+            {
+                // Use the snapshot if set; otherwise fall back to the collector's current checkpoint
+                if (p.Checkpoint != null) return p.Checkpoint;
+                if (p.Collector?.Checkpoint != null) return p.Collector.Checkpoint;
+                return new Checkpoint { Id = 0, Name = "Unassigned" };
+            })
             .Select(g => new CheckpointSummaryRow
             {
-                Id = g.FirstOrDefault().Checkpoint != null ? g.FirstOrDefault().Checkpoint!.Id : 0,
-                Name = g.Key,
+                Id = g.Key.Id,
+                Name = g.Key.Name,
                 TotalPayments = g.Count(),
                 TotalAmount = g.Sum(x => x.Amount)
             })
             .OrderByDescending(x => x.TotalAmount)
-            .ToListAsync();
+            .ToList();
+
+        CheckpointSummaries = checkpointSummaries;
 
         TotalCheckpoints = CheckpointSummaries.Count;
 
@@ -91,6 +102,7 @@ public class CheckpointReportModel : PageModel
             .Include(p => p.Movement).ThenInclude(m => m.RevenueAccount)
             .Include(p => p.ReceiptReference)
             .Include(p => p.Collector)
+                .ThenInclude(c => c!.Checkpoint)
             .Include(p => p.Checkpoint)
             .Where(p => p.IsPaid && !p.IsReverted)
             .AsQueryable();
@@ -101,10 +113,12 @@ public class CheckpointReportModel : PageModel
         if (ToDate.HasValue)
             query = query.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
 
-        // Filter by the Payment.CheckpointId snapshot (not the collector's
-        // current checkpoint) so reassignment does not change historical data.
+        // Filter by the Payment.CheckpointId snapshot first; if null, fall
+        // back to the collector's currently-assigned checkpoint so old
+        // payments without a snapshot are still attributed.
         if (CheckpointId.HasValue)
-            query = query.Where(p => p.CheckpointId == CheckpointId.Value);
+            query = query.Where(p => p.CheckpointId == CheckpointId.Value ||
+                (p.CheckpointId == null && p.Collector != null && p.Collector.CheckpointId == CheckpointId.Value));
 
         TotalPayments = await query.CountAsync();
         TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0m;

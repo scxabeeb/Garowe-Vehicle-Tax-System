@@ -111,13 +111,17 @@ namespace VehicleTax.Web.Controllers
                 query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
             }
 
-            // Group by the snapshot Payment.Checkpoint (not the collector's live
-            // checkpoint) so historical payments stay attributed to the
-            // checkpoint they were collected under.
+            // Use the snapshot Payment.Checkpoint first; if null, fall back
+            // to the collector's current checkpoint so historical payments
+            // without a snapshot are still attributed.
             var items = query
-                .GroupBy(p => p.Checkpoint != null
-                    ? p.Checkpoint.Name
-                    : "Unassigned")
+                .AsEnumerable()
+                .GroupBy(p =>
+                {
+                    if (p.Checkpoint != null) return p.Checkpoint.Name;
+                    if (p.Collector?.Checkpoint != null) return p.Collector.Checkpoint.Name;
+                    return "Unassigned";
+                })
                 .Select(g => new
                 {
                     checkpoint = g.Key,
