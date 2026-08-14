@@ -331,91 +331,91 @@
                             </a>
 
                             <ul class="dropdown-menu shadow border-0" style="max-height: 75vh; overflow-y: auto;">
-                                <li class="menu-category">Revenue & Audit</li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/Index">
-                                        <i class="bi bi-graph-up-arrow"></i>
-                                        Payment Summary Report
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/RevenueAccountReport">
-                                        <i class="bi bi-wallet2"></i>
-                                        Revenue Account Report
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/CheckpointReport">
-                                        <i class="bi bi-bar-chart-column"></i>
-                                        Checkpoint Collection Report
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/Logs">
-                                        <i class="bi bi-journal-text"></i>
-                                        Logs & Audit Report
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Transactions/Index">
-                                        <i class="bi bi-arrow-left-right"></i>
-                                        Transactions Audit Log
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
                                 <li class="menu-category">Operations Reports</li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/vehicles">
+                                       asp.page="/Reports/vehicles">
                                         <i class="bi bi-truck"></i>
                                         Vehicle Registry Report
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/movements">
+                                       asp.page="/Reports/movements">
                                         <i class="bi bi-arrow-left-right"></i>
                                         Movement Catalog Report
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/taxmovement">
+                                       asp.page="/Reports/taxmovement">
                                         <i class="bi bi-bar-chart"></i>
                                         Tax by Movement Report
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/taxmovementcartype">
+                                       asp.page="/Reports/taxmovementcartype">
                                         <i class="bi bi-diagram-3"></i>
                                         Tax by Movement & Car Type
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/TaxAmountReport">
+                                       asp.page="/Reports/TaxAmountReport">
                                         <i class="bi bi-currency-dollar"></i>
                                         Tax Amount Schedule
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/ReceiptReferences">
+                                       asp.page="/Reports/ReceiptReferences">
                                         <i class="bi bi-receipt"></i>
                                         Receipt References Report
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/usersreport">
+                                       asp.page="/Reports/usersreport">
                                         <i class="bi bi-people"></i>
                                         User Activity Report
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li class="menu-category">Revenue & Audit</li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp.page="/Reports/Index">
+                                        <i class="bi bi-graph-up-arrow"></i>
+                                        Payment Summary Report
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp.page="/Reports/RevenueAccountReport">
+                                        <i class="bi bi-wallet2"></i>
+                                        Revenue Account Report
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp.page="/Reports/CheckpointReport">
+                                        <i class="bi bi-bar-chart-column"></i>
+                                        Checkpoint Collection Report
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp.page="/Reports/Logs">
+                                        <i class="bi bi-journal-text"></i>
+                                        Logs & Audit Report
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp.page="/Transactions/Index">
+                                        <i class="bi bi-arrow-left-right"></i>
+                                        Transactions Audit Log
                                     </a>
                                 </li>
                              </ul>
@@ -438,7 +438,7 @@
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2"
-                                           asp-page="/Account/Users">
+                                           asp.page="/Account/Users">
                                             <i class="bi bi-list-ul"></i>
                                             Manage Users
                                         </a>
@@ -449,7 +449,7 @@
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2"
-                                           asp-page="/Account/Register">
+                                           asp.page="/Account/Register">
                                             <i class="bi bi-person-plus"></i>
                                             Create User
                                         </a>
@@ -460,7 +460,7 @@
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2"
-                                           asp-page="/Account/UserSecurity">
+                                           asp.page="/Account/UserSecurity">
                                             <i class="bi bi-shield-lock"></i>
                                             User Security
                                         </a>
@@ -510,7 +510,7 @@
 
                             <li>
                                 <a class="dropdown-item d-flex align-items-center"
-                                   asp-page="/Account/ChangePassword">
+                                   asp.page="/Account/ChangePassword">
                                     <i class="bi bi-key me-2"></i>
                                     Change Password
                                 </a>
@@ -532,7 +532,7 @@
                 else
                 {
                     <li class="nav-item">
-                        <a class="btn btn-sm btn-outline-light" asp-page="/Account/Login">
+                        <a class="btn btn-sm btn-outline-light" asp.page="/Account/Login">
                             <i class="bi bi-box-arrow-in-right"></i> Login
                         </a>
                     </li>

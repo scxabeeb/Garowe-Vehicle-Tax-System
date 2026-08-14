@@ -51,6 +51,8 @@
             <tr>
                 <th>#</th>
                 <th>Username</th>
+                <th>Full Name</th>
+                <th>Phone</th>
                 <th>Role</th>
                 <th>Permissions</th>
                 <th>Status</th>
@@ -74,6 +76,8 @@
                 <tr>
                     <td>@i</td>
                     <td>@user.Username</td>
+                    <td>@user.FullName</td>
+                    <td>@user.Phone</td>
                     <td>
                         <span class="badge @badgeClass">@user.Role</span>
                     </td>
@@ -97,7 +101,7 @@
         else
         {
             <tr>
-                <td colspan="5" class="text-center text-muted">
+                <td colspan="7" class="text-center text-muted">
                     No users found.
                 </td>
             </tr>
