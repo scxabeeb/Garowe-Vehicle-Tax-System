@@ -24,12 +24,14 @@ public class CollectModel : PageModel
     [BindProperty] public string PlateNumber { get; set; } = "";
     [BindProperty] public int MovementId { get; set; }
     [BindProperty] public int Quantity { get; set; } = 1;
+    [BindProperty] public int? CheckpointId { get; set; }
 
     // =======================
     // VIEW DATA
     // =======================
     public Vehicle? Vehicle { get; set; }
     public SelectList Movements { get; set; } = null!;
+    public SelectList Checkpoints { get; set; } = null!;
     public decimal UnitAmount { get; set; }
     public decimal Amount { get; set; }
 
@@ -43,6 +45,7 @@ public class CollectModel : PageModel
     public void OnGet()
     {
         LoadMovements();
+        LoadCheckpoints();
     }
 
     public IActionResult OnPostReset()
@@ -56,6 +59,7 @@ public class CollectModel : PageModel
         Vehicle = null;
         Payments = new List<Payment>();
         LoadMovements();
+        LoadCheckpoints();
         return Page();
     }
 
@@ -145,6 +149,8 @@ public class CollectModel : PageModel
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            LoadVehicle();
+            LoadMovements();
             return Page();
         }
     }
@@ -152,7 +158,13 @@ public class CollectModel : PageModel
     // =======================
     // COLLECT INVOICE (ADMIN ONLY)
     // =======================
-    public IActionResult OnPostCollectInvoice(int paymentId)
+    // The checkpoint dropdown on the form lets the admin explicitly choose
+    // which checkpoint this payment is attributed to.  If no checkpoint is
+    // selected, the collector's currently-assigned checkpoint is used as a
+    // fallback so payments are never left without a checkpoint when one is
+    // available.
+    // =======================
+    public IActionResult OnPostCollectInvoice(int paymentId, int? checkpointId = null)
     {
         try
         {
@@ -161,6 +173,7 @@ public class CollectModel : PageModel
                 ErrorMessage = "Only admins can collect invoice payments.";
                 LoadVehicle();
                 LoadMovements();
+                LoadCheckpoints();
                 return Page();
             }
 
@@ -176,6 +189,7 @@ public class CollectModel : PageModel
                 ErrorMessage = "Admin user not found.";
                 LoadVehicle();
                 LoadMovements();
+                LoadCheckpoints();
                 return Page();
             }
 
@@ -185,6 +199,7 @@ public class CollectModel : PageModel
                 ErrorMessage = "Invalid invoice.";
                 LoadVehicle();
                 LoadMovements();
+                LoadCheckpoints();
                 return Page();
             }
 
@@ -200,7 +215,11 @@ public class CollectModel : PageModel
             // Snapshot the checkpoint at payment time so historical
             // payments stay attributed to the original checkpoint even
             // if the collector is later reassigned.
-            payment.CheckpointId = collector.CheckpointId;
+            // Prefer the checkpoint explicitly selected from the dropdown;
+            // otherwise fall back to the collector's checkpoint.
+            payment.CheckpointId = checkpointId.HasValue
+                ? checkpointId.Value
+                : collector.CheckpointId;
 
             _context.SaveChanges();
 
@@ -212,12 +231,13 @@ public class CollectModel : PageModel
             ErrorMessage = ex.Message;
             LoadVehicle();
             LoadMovements();
+            LoadCheckpoints();
             return Page();
         }
     }
 
     // =======================
-    // REVERT (ADMIN ONLY)  (FIXED)
+    // REVERT (ADMIN ONLY)
     // =======================
     public IActionResult OnPostRevert(int paymentId, string reason)
     {
@@ -319,6 +339,15 @@ public class CollectModel : PageModel
             _context.Movements
                 .Where(m => movementIds.Contains(m.Id))
                 .OrderBy(m => m.Name),
+            "Id",
+            "Name"
+        );
+    }
+
+    private void LoadCheckpoints()
+    {
+        Checkpoints = new SelectList(
+            _context.Checkpoints.AsNoTracking().OrderBy(c => c.Name),
             "Id",
             "Name"
         );

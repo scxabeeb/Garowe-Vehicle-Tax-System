@@ -346,7 +346,20 @@
                                         Revenue Account Report
                                     </a>
                                 </li>
-
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/CheckpointReport">
+                                        <i class="bi bi-bar-chart-column"></i>
+                                        Checkpoint Collection Report
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Reports/Logs">
+                                        <i class="bi bi-journal-text"></i>
+                                        Logs & Audit Report
+                                    </a>
+                                </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Transactions/Index">
@@ -356,65 +369,65 @@
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li class="menu-category">Operations Reports</li>
-                                 <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/vehicles">
                                         <i class="bi bi-journal-text"></i>
                                         Vehicle Registry Report
                                     </a>
                                 </li>
-                                 <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/movements">
                                         <i class="bi bi-journal-text"></i>
                                         Movement Catalog Report
                                     </a>
                                 </li>
-                                   <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/taxmovement">
                                         <i class="bi bi-journal-text"></i>
                                         Tax by Movement Report
                                     </a>
                                 </li>
-                                  <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/taxmovementcartype">
                                         <i class="bi bi-journal-text"></i>
                                         Tax by Movement & Car Type
                                     </a>
                                 </li>
-                                   <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/usersreport">
                                         <i class="bi bi-journal-text"></i>
                                         User Activity Report
                                     </a>
                                 </li>
-                                  <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/TaxAmountReport">
                                         <i class="bi bi-journal-text"></i>
                                         Tax Amount Schedule
                                     </a>
                                 </li>
-                                  <li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/ReceiptReferences">
                                         <i class="bi bi-journal-text"></i>
                                          Receipt References Report
-                                     </a>
-                                 </li>
-                                 <li>
-                                     <a class="dropdown-item d-flex align-items-center gap-2"
-                                        asp-page="/Checkpoints/Index">
-                                         <i class="bi bi-geo-alt"></i>
-                                         Checkpoint Collections
-                                     </a>
-                                 </li>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2"
+                                       asp-page="/Checkpoints/Index">
+                                        <i class="bi bi-geo-alt"></i>
+                                        Checkpoint Collections
+                                    </a>
+                                </li>
                              </ul>
-                         </li>
-                     }
+                        </li>
+                    }
 
                     @if (canUserView || canUserCreate)
                     {
@@ -489,7 +502,7 @@
                             <li class="px-3 pt-3 pb-2">
                                 <div class="profile-card">
                                     <span class="profile-avatar-lg">
-                                        @User.Identity!.Name!.Substring(0,1).ToUpper()
+                                        @(User.Identity!.Name.Substring(0,1).ToUpper())
                                     </span>
                                     <div>
                                         <div class="fw-bold">@User.Identity.Name</div>
@@ -502,7 +515,6 @@
 
                             <li><hr class="dropdown-divider" /></li>
 
-                            <!-- 🔐 Change Password -->
                             <li>
                                 <a class="dropdown-item d-flex align-items-center"
                                    asp-page="/Account/ChangePassword">
@@ -513,7 +525,6 @@
 
                             <li><hr class="dropdown-divider" /></li>
 
-                            <!-- 🚪 Logout -->
                             <li>
                                 <button type="button"
                                         class="dropdown-item text-danger d-flex align-items-center"
@@ -540,29 +551,13 @@
 </nav>
 
 <main class="container mt-4 flex-fill">
-    @if (Context.Request.Path.StartsWithSegments("/Reports"))
-    {
-        <div class="report-banner d-flex align-items-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <img src="/images/Logo.jpeg" width="58" height="58" style="border-radius:50%;border:2px solid #b8c7ff;" />
-                <div>
-                    <div class="fw-bold" style="font-size:1.05rem;">Garowe Local Government</div>
-                    <div class="text-muted">Vehicle Tax Reporting Center</div>
-                </div>
-            </div>
-            <div class="text-muted small d-none d-md-block">
-                @VehicleTax.Web.AppTime.Now.ToString("dd MMM yyyy")
-            </div>
-        </div>
-    }
-
     @RenderBody()
 </main>
 
 <footer class="mt-5 py-3 border-top text-center text-muted small bg-white">
     <div class="d-flex align-items-center justify-content-center gap-2">
         <img src="/images/Logo.jpeg" width="24" height="24" style="border-radius:50%;" />
-        <span>© @VehicleTax.Web.AppTime.Now.Year Garowe Local Government - Vehicle Tax System</span>
+        <span>&copy; @VehicleTax.Web.AppTime.Now.Year Garowe Local Government - Vehicle Tax System</span>
     </div>
 </footer>
 

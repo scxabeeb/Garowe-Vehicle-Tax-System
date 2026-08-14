@@ -1,8 +1,8 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using VehicleTax.Web;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
@@ -60,6 +60,13 @@ public class IndexModel : PageModel
     // =========================
     public string CollectorLabels { get; set; } = "[]";
     public string CollectorAmounts { get; set; } = "[]";
+
+    // =========================
+    // REVENUE ACCOUNT CHART
+    // =========================
+    public string RevenueAccountLabels { get; set; } = "[]";
+    public string RevenueAccountAmounts { get; set; } = "[]";
+    public decimal RevenueAccountGrandTotal { get; set; }
 
     public void OnGet()
     {
@@ -182,5 +189,27 @@ public class IndexModel : PageModel
 
         CollectorLabels = JsonSerializer.Serialize(collectorData.Select(c => c.Collector));
         CollectorAmounts = JsonSerializer.Serialize(collectorData.Select(c => c.Total));
+
+        // =========================
+        // REVENUE ACCOUNT CHART
+        // =========================
+        var revenueAccountData = _context.Payments
+            .Include(p => p.Movement)
+                .ThenInclude(m => m.RevenueAccount)
+            .Where(p => p.IsPaid && !p.IsReverted)
+            .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
+            .GroupBy(p => $"{p.Movement!.RevenueAccount!.AccountCode} - {p.Movement!.RevenueAccount!.AccountName}")
+            .Select(g => new
+            {
+                Account = g.Key,
+                Total = g.Sum(x => x.Amount)
+            })
+            .OrderByDescending(x => x.Total)
+            .Take(5)
+            .ToList();
+
+        RevenueAccountGrandTotal = revenueAccountData.Sum(x => x.Total);
+        RevenueAccountLabels = JsonSerializer.Serialize(revenueAccountData.Select(r => r.Account));
+        RevenueAccountAmounts = JsonSerializer.Serialize(revenueAccountData.Select(r => r.Total));
     }
 }

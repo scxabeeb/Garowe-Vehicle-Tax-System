@@ -95,8 +95,9 @@ namespace VehicleTax.Web.Controllers
             }
 
             var query = _context.Payments
+                .Include(p => p.Checkpoint)
                 .Include(p => p.Collector)
-                .ThenInclude(c => c!.Checkpoint)
+                    .ThenInclude(c => c!.Checkpoint)
                 .Where(p => p.IsPaid && !p.IsReverted)
                 .AsQueryable();
 
@@ -110,9 +111,12 @@ namespace VehicleTax.Web.Controllers
                 query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
             }
 
+            // Group by the snapshot Payment.Checkpoint (not the collector's live
+            // checkpoint) so historical payments stay attributed to the
+            // checkpoint they were collected under.
             var items = query
-                .GroupBy(p => p.Collector != null && p.Collector.Checkpoint != null
-                    ? p.Collector.Checkpoint.Name
+                .GroupBy(p => p.Checkpoint != null
+                    ? p.Checkpoint.Name
                     : "Unassigned")
                 .Select(g => new
                 {
@@ -130,6 +134,75 @@ namespace VehicleTax.Web.Controllers
                 fromDate,
                 toDate,
                 limit,
+                items
+            });
+        }
+
+        // =======================
+        // REVENUE ACCOUNT SUMMARY
+        // =======================
+        // Returns the top revenue accounts by total collection amount for
+        // the given date range.  Uses the snapshot Payment.Checkpoint so
+        // reassignment does not affect historical attribution.
+        [HttpGet("revenue-account-summary")]
+        public IActionResult GetRevenueAccountSummary(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            [FromQuery] int limit = 5)
+        {
+            if (limit < 1)
+            {
+                limit = 5;
+            }
+
+            if (limit > 20)
+            {
+                limit = 20;
+            }
+
+            var query = _context.Payments
+                .Include(p => p.Movement)
+                    .ThenInclude(m => m.RevenueAccount)
+                .Where(p => p.IsPaid && !p.IsReverted)
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+            }
+
+            var items = query
+                .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
+                .GroupBy(p => new
+                {
+                    p.Movement!.RevenueAccount!.Id,
+                    label = $"{p.Movement!.RevenueAccount!.AccountCode} - {p.Movement!.RevenueAccount!.AccountName}"
+                })
+                .Select(g => new
+                {
+                    revenueAccountId = g.Key.Id,
+                    revenueAccount = g.Key.label,
+                    totalPayments = g.Count(),
+                    totalAmount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.totalAmount)
+                .Take(limit)
+                .ToList();
+
+            var grandTotal = items.Sum(x => x.totalAmount);
+
+            return Ok(new
+            {
+                status = "success",
+                fromDate,
+                toDate,
+                limit,
+                grandTotal,
                 items
             });
         }

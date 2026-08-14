@@ -38,10 +38,13 @@ public class ReceiptModel : PageModel
     {
         if (paymentId.HasValue)
         {
+            // Load the Checkpoint navigation so the receipt can display
+            // the checkpoint the payment was attributed to at collection time.
             Payment = _context.Payments
                 .Include(p => p.Vehicle)
                 .Include(p => p.Movement)
                 .Include(p => p.Collector)
+                .Include(p => p.Checkpoint)
                 .Include(p => p.ReceiptReference)
                 .FirstOrDefault(p => p.Id == paymentId.Value);
 
@@ -160,6 +163,13 @@ public class ReceiptModel : PageModel
         payment.PaidAt = DateTime.UtcNow;
         payment.CollectorId = adminUser.Id;
 
+        // 🔴 FIX: Snapshot the checkpoint at payment time so historical
+        // payments stay attributed to the original checkpoint even if the
+        // collector is later reassigned to a different checkpoint.
+        // Without this, payments collected via the web Receipt page show
+        // "Unassigned" in checkpoint reports.
+        payment.CheckpointId = adminUser.CheckpointId;
+
         _context.SaveChanges();
 
         TempData["SuccessMessage"] = "Invoice collected successfully. Receipt is ready to print.";
@@ -216,6 +226,9 @@ public class ReceiptModel : PageModel
             Amount = tax.Amount * safeQty,
             PaidAt = DateTime.UtcNow,
             CollectorId = adminUser.Id,
+            // 🔴 FIX: Snapshot the checkpoint at payment time so historical
+            // payments stay attributed to the original checkpoint.
+            CheckpointId = adminUser.CheckpointId,
             IsPaid = true,
             IsReverted = false
         };

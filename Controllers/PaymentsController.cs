@@ -74,7 +74,9 @@ namespace VehicleTax.Web.Controllers
                 // Snapshot the checkpoint at payment time so historical
                 // payments stay attributed to the original checkpoint even
                 // if the collector is later reassigned.
-                CheckpointId = collector?.CheckpointId,
+                CheckpointId = dto.CheckpointId.HasValue
+                    ? dto.CheckpointId.Value
+                    : collector?.CheckpointId,
                 IsPaid = true,
                 IsReverted = false,
                 PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod) ? null : dto.PaymentMethod,
@@ -259,7 +261,9 @@ namespace VehicleTax.Web.Controllers
                 // Snapshot the checkpoint at payment time so historical
                 // payments stay attributed to the original checkpoint even
                 // if the collector is later reassigned.
-                CheckpointId = invoiceCollector?.CheckpointId,
+                CheckpointId = dto.CheckpointId.HasValue
+                    ? dto.CheckpointId.Value
+                    : invoiceCollector?.CheckpointId,
                 ReceiptReferenceId = null
             };
 
@@ -341,7 +345,9 @@ namespace VehicleTax.Web.Controllers
             // Snapshot the checkpoint at payment time so historical
             // payments stay attributed to the original checkpoint even
             // if the collector is later reassigned.
-            payment.CheckpointId = collector.CheckpointId;
+            payment.CheckpointId = dto.CheckpointId.HasValue
+                ? dto.CheckpointId.Value
+                : collector.CheckpointId;
             payment.PaymentMethod = string.IsNullOrWhiteSpace(dto.PaymentMethod) ? payment.PaymentMethod : dto.PaymentMethod;
             payment.PaidBy = string.IsNullOrWhiteSpace(dto.PaidBy) ? payment.PaidBy : dto.PaidBy;
             payment.Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? payment.Remarks : dto.Remarks;
@@ -836,11 +842,13 @@ namespace VehicleTax.Web.Controllers
         public int MovementId { get; set; }
         public int Quantity { get; set; } = 1;
         public int? CollectorId { get; set; }
+        public int? CheckpointId { get; set; }
     }
 
     public class CollectInvoiceDto
     {
         public int CollectorId { get; set; }
+        public int? CheckpointId { get; set; }
         public string? ReferenceNumber { get; set; }
         public DateTime? PaidAt { get; set; }
         public string? PaymentMethod { get; set; }
@@ -860,6 +868,7 @@ namespace VehicleTax.Web.Controllers
         public int Quantity { get; set; } = 1;
         public string? ReferenceNumber { get; set; }
         public int? CollectorId { get; set; }
+        public int? CheckpointId { get; set; }
         public string? PaymentMethod { get; set; }
         public string? PaidBy { get; set; }
         public string? Remarks { get; set; }

@@ -324,6 +324,10 @@
                                         <td class="meta-label">Collector</td>
                                         <td>@(Model.Payment.Collector?.Username ?? "Not assigned")</td>
                                     </tr>
+                                    <tr>
+                                        <td class="meta-label">Checkpoint</td>
+                                        <td>@(Model.Payment.Checkpoint?.Name ?? "Unassigned")</td>
+                                    </tr>
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.PaymentMethod))
                                     {
                                         <tr>
@@ -358,6 +362,7 @@
                                     <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
                                     <p><strong>Invoice ID:</strong> @Model.Payment.InvoiceNumber</p>
                                     <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
+                                    <p><strong>Checkpoint:</strong> @(Model.Payment.Checkpoint?.Name ?? "Unassigned")</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     <p class="mb-1"><strong>Amount Due:</strong></p>

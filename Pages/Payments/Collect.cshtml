@@ -179,17 +179,24 @@
                                 {
                                     <span class="text-muted small">No actions</span>
                                 }
-                                else if (!p.IsPaid)
-                                {
-                                    if (User.IsInRole("Admin"))
-                                    {
-                                        <form method="post" asp-page-handler="CollectInvoice" class="mb-2">
-                                            <input type="hidden" name="paymentId" value="@p.Id" />
-                                            <button type="submit" class="btn btn-sm btn-success w-100">
-                                                <i class="bi bi-cash"></i> Collect Invoice
-                                            </button>
-                                        </form>
-                                    }
+                                 else if (!p.IsPaid)
+                                 {
+                                     if (User.IsInRole("Admin"))
+                                     {
+                                         <form method="post" asp-page-handler="CollectInvoice" class="mb-2">
+                                             <input type="hidden" name="paymentId" value="@p.Id" />
+                                             <select name="checkpointId" class="form-select form-select-sm mb-2">
+                                                 <option value="">— Default —</option>
+                                                 @foreach (var c in Model.Checkpoints)
+                                                 {
+                                                     <option value="@c.Value">@c.Text</option>
+                                                 }
+                                             </select>
+                                             <button type="submit" class="btn btn-sm btn-success w-100">
+                                                 <i class="bi bi-cash"></i> Collect
+                                             </button>
+                                         </form>
+                                     }
                                     else
                                     {
                                         <span class="badge bg-secondary d-block mb-2">Admin only</span>

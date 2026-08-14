@@ -209,33 +209,54 @@
         </div>
     </div>
 
-</div>
+    <!-- CHECKPOINT -->
+    <div class="col-lg-6">
+        <div class="card panel-card h-100">
+            <div class="card-body">
+                <h6 class="panel-title mb-0">Checkpoint Performance</h6>
+                <p class="text-muted small mb-2">Collections by checkpoint (snapshot).</p>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <input type="date" id="checkpointFromDate" class="form-control form-control-sm w-auto" />
+                    <input type="date" id="checkpointToDate" class="form-control form-control-sm w-auto" />
+                    <button type="button" id="checkpointApplyBtn" class="btn btn-sm btn-primary">Apply</button>
+                    <button type="button" id="checkpointResetBtn" class="btn btn-sm btn-outline-secondary">Reset</button>
+                </div>
+                <canvas id="checkpointChart"></canvas>
+                <div id="checkpointChartHint" class="text-muted small mt-2">Loading checkpoint data...</div>
+            </div>
+        </div>
+    </div>
 
-<div class="row g-4 mb-4">
+    <!-- REVENUE ACCOUNT -->
     <div class="col-lg-6">
         <div class="card panel-card h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="panel-title mb-0">Top Checkpoints</h6>
-                    <span class="text-muted small">Live from API</span>
+                    <h6 class="panel-title mb-0">Collections by Revenue Account</h6>
+                    <span class="text-muted small fw-bold">$@Model.RevenueAccountGrandTotal.ToString("N0") total</span>
                 </div>
-                <div class="row g-2 mb-2">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label form-label-sm mb-1">From</label>
-                        <input type="date" id="checkpointFromDate" class="form-control form-control-sm" />
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <label class="form-label form-label-sm mb-1">To</label>
-                        <input type="date" id="checkpointToDate" class="form-control form-control-sm" />
-                    </div>
-                    <div class="col-12 col-md-4 d-flex align-items-end gap-2">
-                        <button type="button" id="checkpointApplyBtn" class="btn btn-sm btn-primary w-100">Apply</button>
-                        <button type="button" id="checkpointResetBtn" class="btn btn-sm btn-outline-secondary w-100">Reset</button>
-                    </div>
+                <p class="text-muted small mb-2">Top revenue accounts by collected amount.</p>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <input type="date" id="revAccountFromDate" class="form-control form-control-sm w-auto" />
+                    <input type="date" id="revAccountToDate" class="form-control form-control-sm w-auto" />
+                    <button type="button" id="revAccountApplyBtn" class="btn btn-sm btn-primary">Apply</button>
+                    <button type="button" id="revAccountResetBtn" class="btn btn-sm btn-outline-secondary">Reset</button>
                 </div>
-                <p class="text-muted small mb-2">Top checkpoints by collected amount.</p>
-                <canvas id="checkpointChart"></canvas>
-                <div id="checkpointChartHint" class="text-muted small mt-2">Loading checkpoint performance...</div>
+                <canvas id="revenueAccountChart"></canvas>
+                <div id="revenueAccountChartHint" class="text-muted small mt-2">Loading revenue account data...</div>
+                <table class="table table-sm table-bordered table-striped mt-3" id="revenueAccountTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Revenue Account</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="revenueAccountTableBody"></tbody>
+                </table>
+                <!-- Revenue Account Pagination -->
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-center" id="revenueAccountPagination"></ul>
+                </nav>
             </div>
         </div>
     </div>
@@ -265,6 +286,7 @@
                         <th>Mobile</th>
                         <th>Movement</th>
                         <th>Collector</th>
+                        <th>Checkpoint</th>
                         <th class="text-end">Amount</th>
                     </tr>
                 </thead>
@@ -277,6 +299,7 @@
                         <td>@p.Vehicle?.Mobile</td>
                         <td>@p.MovementType</td>
                         <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
+                        <td>@(p.Checkpoint?.Name ?? "Unassigned")</td>
                         <td class="text-end fw-bold">$@p.Amount.ToString("N0")</td>
                     </tr>
                 }
@@ -350,7 +373,7 @@ const collectorChart = new Chart(document.getElementById('collectorChart'), {
     }
 });
 
-let checkpointChart = null;
+let revenueAccountChart = null;
 
 function formatDateInputValue(dateObj) {
     const year = dateObj.getFullYear();
@@ -359,9 +382,9 @@ function formatDateInputValue(dateObj) {
     return `${year}-${month}-${day}`;
 }
 
-function setDefaultCheckpointDateRange() {
-    const fromInput = document.getElementById('checkpointFromDate');
-    const toInput = document.getElementById('checkpointToDate');
+function setDefaultRevAccountDateRange() {
+    const fromInput = document.getElementById('revAccountFromDate');
+    const toInput = document.getElementById('revAccountToDate');
 
     if (!fromInput || !toInput) {
         return;
@@ -374,6 +397,99 @@ function setDefaultCheckpointDateRange() {
     fromInput.value = formatDateInputValue(weekStart);
     toInput.value = formatDateInputValue(today);
 }
+
+async function loadRevenueAccountChart() {
+    const hint = document.getElementById('revenueAccountChartHint');
+    const chartCanvas = document.getElementById('revenueAccountChart');
+    const tableBody = document.getElementById('revenueAccountTableBody');
+    const fromInput = document.getElementById('revAccountFromDate');
+    const toInput = document.getElementById('revAccountToDate');
+
+    if (!hint || !chartCanvas || !fromInput || !toInput) {
+        return;
+    }
+
+    try {
+        const query = new URLSearchParams();
+        query.set('limit', '5');
+
+        if (fromInput.value) {
+            query.set('fromDate', fromInput.value);
+        }
+
+        if (toInput.value) {
+            query.set('toDate', toInput.value);
+        }
+
+        const response = await fetch(`/api/dashboard/revenue-account-summary?${query.toString()}`, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load revenue account data.');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload.items) ? payload.items : [];
+        const grandTotal = payload.grandTotal || 0;
+
+        hint.innerText = `Total: $${Number(grandTotal).toLocaleString()} for ${items.length} account(s).`;
+        hint.classList.remove('text-muted');
+        hint.classList.add('text-success', 'fw-bold');
+
+        if (items.length === 0) {
+            hint.innerText = 'No revenue account data available for selected filters.';
+            return;
+        }
+
+        const labels = items.map(x => x.revenueAccount);
+        const amounts = items.map(x => x.totalAmount);
+
+        if (revenueAccountChart) {
+            revenueAccountChart.destroy();
+        }
+
+        revenueAccountChart = new Chart(chartCanvas, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Collected Amount',
+                    data: amounts,
+                    backgroundColor: '#8b5cf6'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Populate the datagrid table below the chart
+        tableBody.innerHTML = '';
+        items.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.revenueAccount}</td>
+                <td class="text-end fw-bold">$${Number(item.totalAmount).toLocaleString()}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        setupPagination('revenueAccountTable', 'revenueAccountPagination', 5);
+    } catch (error) {
+        hint.innerText = 'Unable to load revenue account data right now.';
+    }
+}
+
+let checkpointChart = null;
 
 async function loadCheckpointChart() {
     const hint = document.getElementById('checkpointChartHint');
@@ -444,9 +560,27 @@ async function loadCheckpointChart() {
         });
 
         hint.innerText = 'Top checkpoints for selected date range.';
+        hint.classList.remove('text-muted');
+        hint.classList.add('text-success');
     } catch (error) {
         hint.innerText = 'Unable to load checkpoint performance right now.';
     }
+}
+
+function setDefaultCheckpointDateRange() {
+    const fromInput = document.getElementById('checkpointFromDate');
+    const toInput = document.getElementById('checkpointToDate');
+
+    if (!fromInput || !toInput) {
+        return;
+    }
+
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - 6);
+
+    fromInput.value = formatDateInputValue(weekStart);
+    toInput.value = formatDateInputValue(today);
 }
 
 /* =========================
@@ -516,4 +650,13 @@ document.getElementById('checkpointResetBtn')?.addEventListener('click', () => {
 });
 
 loadCheckpointChart();
+
+// Revenue Account chart
+setDefaultRevAccountDateRange();
+document.getElementById('revAccountApplyBtn')?.addEventListener('click', loadRevenueAccountChart);
+document.getElementById('revAccountResetBtn')?.addEventListener('click', () => {
+    setDefaultRevAccountDateRange();
+    loadRevenueAccountChart();
+});
+loadRevenueAccountChart();
 </script>

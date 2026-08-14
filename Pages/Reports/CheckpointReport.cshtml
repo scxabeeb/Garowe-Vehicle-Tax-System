@@ -1,0 +1,282 @@
+@page
+@model VehicleTax.Web.Pages.Reports.CheckpointReportModel
+
+<div class="container mt-4">
+
+    <div class="report-banner">
+        <div class="d-flex align-items-center gap-3">
+            <img src="/images/Logo.jpeg" width="58" height="58" style="border-radius:50%;border:2px solid #b8c7ff;" />
+            <div>
+                <div class="fw-bold" style="font-size:1.05rem;">Garowe Local Government</div>
+                <div class="text-muted">Checkpoint Collection Report</div>
+            </div>
+        </div>
+        <div class="text-muted small d-none d-md-block">
+            @VehicleTax.Web.AppTime.Now.ToString("dd MMM yyyy")
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <form method="get" class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" asp-for="FromDate" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" asp-for="ToDate" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Checkpoint</label>
+                    <select asp-for="CheckpointId"
+                            asp-items="Model.CheckpointList"
+                            class="form-select">
+                        <option value="">All Checkpoints</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Apply Filters
+                    </button>
+                    <a asp-page="/Reports/CheckpointReport" class="btn btn-secondary w-100">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Checkpoints</div>
+                    <h3 class="fw-bold mb-0 text-primary">@Model.TotalCheckpoints</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Total Payments</div>
+                    <h3 class="fw-bold mb-0 text-warning">@Model.TotalPayments</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Total Collected</div>
+                    <h3 class="fw-bold mb-0 text-success">$@Model.TotalAmount.ToString("N0")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Avg / Payment</div>
+                    <h3 class="fw-bold mb-0 text-info">$@(Model.TotalPayments > 0 ? (Model.TotalAmount / Model.TotalPayments).ToString("N0") : "0")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECKPOINT CHART -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-bar-chart-column"></i> Checkpoint Collection Bar Chart
+            </h6>
+            <canvas id="checkpointChart"></canvas>
+        </div>
+    </div>
+
+    <!-- CHECKPOINT SUMMARY TABLE -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-table"></i> Checkpoint Summary
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Checkpoint</th>
+                            <th class="text-end">Payments</th>
+                            <th class="text-end">Total Amount</th>
+                            <th class="text-end">Avg / Payment</th>
+                            <th class="text-center">Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.CheckpointSummaries.Count; i++)
+                        {
+                            var cs = Model.CheckpointSummaries[i];
+                            var avg = cs.TotalPayments > 0 ? cs.TotalAmount / cs.TotalPayments : 0m;
+                            var share = Model.TotalAmount > 0
+                                ? (cs.TotalAmount / Model.TotalAmount) * 100
+                                : 0m;
+                            <tr>
+                                <td class="fw-bold text-center">@(i + 1)</td>
+                                <td>
+                                    @if (cs.Id > 0)
+                                    {
+                                        <a asp-page="/Checkpoints/Collection" asp-route-id="@cs.Id"
+                                           class="text-decoration-none"
+                                           style="color: #1f4ed3;">
+                                            @cs.Name
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">@cs.Name</span>
+                                    }
+                                </td>
+                                <td class="text-end">@cs.TotalPayments</td>
+                                <td class="text-end fw-bold">$@cs.TotalAmount.ToString("N0")</td>
+                                <td class="text-end">$@avg.ToString("N0")</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info text-dark">@share.ToString("0.0")%</span>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.CheckpointSummaries.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No checkpoint data for selected filters.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAILED PAYMENTS TABLE -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">Detailed Payments</h6>
+                <a asp-page-handler="ExportCsv"
+                   asp-route-FromDate="@Model.FromDate"
+                   asp-route-ToDate="@Model.ToDate"
+                   asp-route-CheckpointId="@Model.CheckpointId"
+                   asp-route-CurrentPage="@Model.CurrentPage"
+                   asp-route-PageSize="@Model.PageSize"
+                   class="btn btn-success btn-sm">
+                    <i class="bi bi-file-earmark-download"></i> Export to CSV
+                </a>
+            </div>
+
+            <form method="get" class="d-inline">
+                <input type="hidden" name="FromDate" value="@Model.FromDate" />
+                <input type="hidden" name="ToDate" value="@Model.ToDate" />
+                <input type="hidden" name="CheckpointId" value="@Model.CheckpointId" />
+                <select name="PageSize"
+                        class="form-select d-inline w-auto"
+                        onchange="this.form.submit()">
+                    <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
+                    <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
+                    <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
+                    <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
+                    <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">All</option>
+                </select>
+                <span class="ms-1">rows</span>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Plate</th>
+                            <th>Owner</th>
+                            <th>Movement</th>
+                            <th>Collector</th>
+                            <th>Checkpoint</th>
+                            <th>Payment Method</th>
+                            <th>Receipt</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Payments)
+                        {
+                            <tr class="@(p.IsReverted ? "table-danger" : "")">
+                                <td>@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@p.Vehicle?.PlateNumber</td>
+                                <td>@p.Vehicle?.OwnerName</td>
+                                <td>@(p.Movement?.Name ?? p.MovementType)</td>
+                                <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
+                                <td><span class="badge bg-secondary">@(p.Checkpoint?.Name ?? "Unassigned")</span></td>
+                                <td>@(string.IsNullOrWhiteSpace(p.PaymentMethod) ? "-" : p.PaymentMethod)</td>
+                                <td>@(p.ReceiptReference?.ReferenceNumber ?? "-")</td>
+                                <td class="text-end fw-bold">$@p.Amount.ToString("N0")</td>
+                            </tr>
+                        }
+                        @if (!Model.Payments.Any())
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">No payments found for the selected filters.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1 && Model.PageSize > 0)
+            {
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-page="/Reports/CheckpointReport"
+                                   asp-route-FromDate="@Model.FromDate"
+                                   asp-route-ToDate="@Model.ToDate"
+                                   asp-route-CheckpointId="@Model.CheckpointId"
+                                   asp-route-CurrentPage="@i"
+                                   asp-route-PageSize="@Model.PageSize">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('checkpointChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Model.CheckpointChartLabels),
+                datasets: [{
+                    label: 'Collected Amount',
+                    data: @Html.Raw(Model.CheckpointChartAmounts),
+                    backgroundColor: ['#0f766e','#10b981','#0d9488','#0d6efd','#8b5cf6','#f59e0b','#ef4444','#8e44ad','#3b82f6','#10b981']
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    }
+</script>
+
