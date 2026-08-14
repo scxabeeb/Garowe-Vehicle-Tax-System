@@ -194,14 +194,16 @@ public class IndexModel : PageModel
         // REVENUE ACCOUNT CHART
         // =========================
         var revenueAccountData = _context.Payments
-            .Include(p => p.Movement)
-                .ThenInclude(m => m.RevenueAccount)
             .Where(p => p.IsPaid && !p.IsReverted)
             .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
-            .GroupBy(p => $"{p.Movement!.RevenueAccount!.AccountCode} - {p.Movement!.RevenueAccount!.AccountName}")
+            .GroupBy(p => new
+            {
+                p.Movement!.RevenueAccount!.AccountCode,
+                p.Movement!.RevenueAccount!.AccountName
+            })
             .Select(g => new
             {
-                Account = g.Key,
+                Account = g.Key.AccountCode + " - " + g.Key.AccountName,
                 Total = g.Sum(x => x.Amount)
             })
             .OrderByDescending(x => x.Total)
