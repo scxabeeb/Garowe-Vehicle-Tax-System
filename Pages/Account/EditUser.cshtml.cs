@@ -53,6 +53,8 @@ namespace VehicleTax.Web.Pages.Account
             }
 
             dbUser.Username = EditUser.Username.Trim();
+            dbUser.FullName = EditUser.FullName.Trim();
+            dbUser.Phone = EditUser.Phone.Trim();
             dbUser.Role = EditUser.Role;
             dbUser.CheckpointId = EditUser.CheckpointId;
 

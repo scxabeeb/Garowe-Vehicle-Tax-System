@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using VehicleTax.Web.Data;
@@ -23,6 +23,12 @@ public class RegisterModel : PageModel
 
     [BindProperty]
     public string Username { get; set; } = "";
+
+    [BindProperty]
+    public string FullName { get; set; } = "";
+
+    [BindProperty]
+    public string Phone { get; set; } = "";
 
     [BindProperty]
     public string Password { get; set; } = "";
@@ -67,6 +73,8 @@ public class RegisterModel : PageModel
         var user = new User
         {
             Username = Username.Trim(),
+            FullName = FullName.Trim(),
+            Phone = Phone.Trim(),
             Role = Role,
             Permissions = "",
             CheckpointId = CheckpointId
