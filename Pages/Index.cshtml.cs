@@ -109,6 +109,7 @@ public class IndexModel : PageModel
             .Include(p => p.Vehicle)
             .Include(p => p.Collector)
             .Include(p => p.ReceiptReference)
+            .Include(p => p.Checkpoint)
             .Where(p => p.IsPaid && !p.IsReverted)
             .OrderByDescending(p => p.PaidAt)
             .Take(10)
