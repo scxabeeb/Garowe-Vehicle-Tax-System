@@ -182,10 +182,11 @@ namespace VehicleTax.Web.Controllers
 
             var items = query
                 .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
+                .AsEnumerable()
                 .GroupBy(p => new
                 {
                     p.Movement!.RevenueAccount!.Id,
-                    label = $"{p.Movement!.RevenueAccount!.AccountCode} - {p.Movement!.RevenueAccount!.AccountName}"
+                    label = p.Movement!.RevenueAccount!.AccountCode + " - " + p.Movement!.RevenueAccount!.AccountName
                 })
                 .Select(g => new
                 {

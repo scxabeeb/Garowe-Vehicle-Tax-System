@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace VehicleTax.Web.Pages.Account;
 
+[IgnoreAntiforgeryToken]
 public class LogoutModel : PageModel
 {
     public async Task<IActionResult> OnPostAsync()
