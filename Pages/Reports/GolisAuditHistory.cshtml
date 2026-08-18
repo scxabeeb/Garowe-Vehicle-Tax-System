@@ -87,9 +87,16 @@
                                     }
                                 </td>
                                 <td>
-                                    <a asp-page="./GolisAudit" asp-route-auditId="@a.Id" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
+                                    <div class="d-flex gap-1">
+                                        <a asp-page="./GolisAudit" asp-route-auditId="@a.Id" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <form method="post" asp-page="./GolisAudit" asp-page-handler="DeleteAudit" asp-route-auditId="@a.Id" onsubmit="return confirm('Delete this entire audit?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }

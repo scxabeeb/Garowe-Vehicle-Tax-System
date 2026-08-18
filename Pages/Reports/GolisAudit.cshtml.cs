@@ -210,6 +210,35 @@ public class GolisAuditModel : PageModel
         return RedirectToPage(new { auditId = audit.Id });
     }
 
+    public IActionResult OnPostEditTransaction(int transactionId, GolisTransactionInputModel transaction)
+    {
+        if (!AuditId.HasValue)
+            return NotFound();
+
+        var tx = _context.GolisTransactions.FirstOrDefault(t => t.Id == transactionId && t.GolisAuditId == AuditId.Value);
+        if (tx == null)
+            return NotFound();
+
+        var audit = _context.GolisAudits.Find(AuditId.Value);
+        if (audit == null || audit.Status == AuditStatus.Finalized)
+            return NotFound();
+
+        tx.GolisTransactionReference = transaction.Reference;
+        tx.TransactionDate = transaction.Date.Date;
+        tx.TransactionTime = transaction.Time;
+        tx.MobileNumber = transaction.MobileNumber;
+        tx.Amount = transaction.Amount;
+        tx.Description = transaction.Description;
+        tx.Notes = transaction.Notes;
+        tx.ReviewedAt = DateTime.UtcNow;
+        tx.ReviewedByUserId = GetCurrentUser()?.Id;
+
+        _context.SaveChanges();
+        ReconcileAudit(audit.Id);
+
+        return RedirectToPage(new { auditId = audit.Id });
+    }
+
     public IActionResult OnPostDeleteTransaction(int transactionId)
     {
         var tx = _context.GolisTransactions.Find(transactionId);
@@ -223,6 +252,22 @@ public class GolisAuditModel : PageModel
         ReconcileAudit(auditId);
 
         return RedirectToPage(new { auditId });
+    }
+
+    public IActionResult OnPostDeleteAudit(int auditId)
+    {
+        var audit = _context.GolisAudits
+            .Include(a => a.GolisTransactions)
+            .FirstOrDefault(a => a.Id == auditId);
+
+        if (audit == null)
+            return NotFound();
+
+        _context.GolisTransactions.RemoveRange(audit.GolisTransactions);
+        _context.GolisAudits.Remove(audit);
+        _context.SaveChanges();
+
+        return RedirectToPage("./GolisAuditHistory");
     }
 
     public IActionResult OnGetExport(int auditId, string type)
