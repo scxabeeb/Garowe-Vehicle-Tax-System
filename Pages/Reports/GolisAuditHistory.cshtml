@@ -1,0 +1,101 @@
+@page
+@model VehicleTax.Web.Pages.Reports.GolisAuditHistoryModel
+
+<div class="container mt-4">
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-clock-history"></i>
+        Golis Audit History
+    </h3>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Statement number, notes..." />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="statusFilter" class="form-select">
+                        <option value="" selected="@(Model.StatusFilter == null ? "selected" : null)">All</option>
+                        <option value="Draft" selected="@(Model.StatusFilter == AuditStatus.Draft ? "selected" : null)">Draft</option>
+                        <option value="Finalized" selected="@(Model.StatusFilter == AuditStatus.Finalized ? "selected" : null)">Finalized</option>
+                        <option value="Reopened" selected="@(Model.StatusFilter == AuditStatus.Reopened ? "selected" : null)">Reopened</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                    <a asp-page="./GolisAuditHistory" class="btn btn-secondary">Reset</a>
+                </div>
+                <div class="col-md-2 d-flex align-items-end justify-content-end">
+                    <a asp-page="./GolisAudit" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> New Audit
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Audit ID</th>
+                            <th>Statement Number</th>
+                            <th>Period</th>
+                            <th class="text-end">Golis Total</th>
+                            <th class="text-end">System Total</th>
+                            <th class="text-end">Difference</th>
+                            <th>Matched</th>
+                            <th>Unmatched</th>
+                            <th>Auditor</th>
+                            <th>Audit Date</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.Audits)
+                        {
+                            <tr>
+                                <td>@a.Id</td>
+                                <td>@a.StatementNumber</td>
+                                <td>@a.AuditPeriodFrom.ToString("dd MMM yyyy") - @a.AuditPeriodTo.ToString("dd MMM yyyy")</td>
+                                <td class="text-end">$@a.TotalGolisAmount.ToString("N0")</td>
+                                <td class="text-end">$@a.TotalSystemAmount.ToString("N0")</td>
+                                <td class="text-end @(a.Difference == 0 ? "text-success" : "text-danger")">$@a.Difference.ToString("N0")</td>
+                                <td>@a.MatchedCount</td>
+                                <td>@(a.TotalGolisTransactions - a.MatchedCount)</td>
+                                <td>@(a.FinalizedByUser?.Username ?? a.CreatedByUser?.Username ?? "-")</td>
+                                <td>@(a.FinalizedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? a.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm"))</td>
+                                <td>
+                                    @if (a.Status == AuditStatus.Finalized)
+                                    {
+                                        <span class="badge bg-success">Finalized</span>
+                                    }
+                                    else if (a.Status == AuditStatus.Reopened)
+                                    {
+                                        <span class="badge bg-warning text-dark">Reopened</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Draft</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-page="./GolisAudit" asp-route-auditId="@a.Id" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,377 @@
+@page
+@model VehicleTax.Web.Pages.Reports.GolisAuditModel
+
+@{
+    var statusClass = new Dictionary<string, string>
+    {
+        { "Matched", "success" },
+        { "NotInSystem", "danger" },
+        { "AmountMismatch", "warning" },
+        { "Duplicate", "info" },
+        { "SystemOnly", "primary" },
+        { "NeedsReview", "secondary" }
+    };
+}
+
+<div class="container mt-4">
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-shield-check"></i>
+        Golis Transaction Audit
+    </h3>
+
+    @if (Model.Audit == null)
+    {
+        <!-- CREATE AUDIT -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Create New Golis Audit</h5>
+                <form method="post" asp-page-handler="Create">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Statement Number</label>
+                            <input type="text" asp-for="Input.StatementNumber" class="form-control" required />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">From Date</label>
+                            <input type="date" asp-for="Input.FromDate" class="form-control" required />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">To Date</label>
+                            <input type="date" asp-for="Input.ToDate" class="form-control" required />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Statement Total</label>
+                            <input type="number" step="0.01" asp-for="Input.StatementTotal" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Transaction Count</label>
+                            <input type="number" asp-for="Input.StatementTransactionCount" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-12">
+                            <label class="form-label">Notes</label>
+                            <textarea asp-for="Input.Notes" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create Audit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- AUDIT HEADER -->
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="fw-bold mb-1">Audit #@Model.Audit.Id - @Model.Audit.StatementNumber</h5>
+                        <p class="text-muted mb-1">
+                            Period: @Model.Audit.AuditPeriodFrom.ToString("dd MMM yyyy") - @Model.Audit.AuditPeriodTo.ToString("dd MMM yyyy")
+                        </p>
+                        <p class="text-muted mb-0">
+                            Status:
+                            @if (Model.Audit.Status == AuditStatus.Finalized)
+                            {
+                                <span class="badge bg-success">Finalized</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Draft</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div class="btn-group">
+                            @if (!Model.IsReadOnly)
+                            {
+                                <form method="post" asp-page-handler="Finalize" asp-route-auditId="@Model.Audit.Id" onsubmit="return confirm('Are you sure you want to finalize this audit?');">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle"></i> Finalize Audit
+                                    </button>
+                                </form>
+                            }
+                            else if (User.IsInRole("Admin"))
+                            {
+                                <form method="post" asp-page-handler="Reopen" asp-route-auditId="@Model.Audit.Id" onsubmit="return confirm('Reopen this audit?');">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Reopen
+                                    </button>
+                                </form>
+                            }
+                            <a asp-page="./GolisAuditHistory" class="btn btn-outline-secondary ms-2">Audit History</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Total Golis</div>
+                        <h4 class="fw-bold mb-0">@Model.TotalGolisTransactions</h4>
+                        <div class="text-muted small fw-semibold">$@Model.TotalGolisAmount.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Total System</div>
+                        <h4 class="fw-bold mb-0">@Model.TotalSystemTransactions</h4>
+                        <div class="text-muted small fw-semibold">$@Model.TotalSystemAmount.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Matched</div>
+                        <h4 class="fw-bold mb-0 text-success">@Model.MatchedCount</h4>
+                        <div class="text-muted small fw-semibold">$@Model.MatchedAmount.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Difference</div>
+                        <h4 class="fw-bold mb-0 @(Model.Difference == 0 ? "text-success" : "text-danger")">$@Model.Difference.ToString("N0")</h4>
+                        <div class="text-muted small fw-semibold">Golis - System</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-2">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Not in System</div>
+                        <h5 class="fw-bold mb-0 text-danger">@Model.NotInSystemCount</h5>
+                        <div class="text-muted small fw-semibold">$@Model.NotInSystemAmount.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Amount Mismatch</div>
+                        <h5 class="fw-bold mb-0 text-warning">@Model.AmountMismatchCount</h5>
+                        <div class="text-muted small fw-semibold">$@Model.AmountMismatchAmount.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">Duplicate</div>
+                        <h5 class="fw-bold mb-0 text-info">@Model.DuplicateCount</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card shadow-sm border-0 text-center h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold">System Only</div>
+                        <h5 class="fw-bold mb-0 text-primary">@Model.SystemOnlyCount</h5>
+                        <div class="text-muted small fw-semibold">$@Model.SystemOnlyAmount.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <form method="post" asp-page-handler="Reconcile" asp-route-auditId="@Model.Audit.Id" class="me-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-arrow-repeat"></i> Reconcile
+                            </button>
+                        </form>
+                        <a href="?auditId=@Model.Audit.Id&handler=Export&type=golis" class="btn btn-outline-success me-2">
+                            <i class="bi bi-file-earmark-excel"></i> Export Golis
+                        </a>
+                        <a href="?auditId=@Model.Audit.Id&handler=Export&type=system" class="btn btn-outline-success">
+                            <i class="bi bi-file-earmark-excel"></i> Export System
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!Model.IsReadOnly)
+        {
+            <!-- UPLOAD + ADD TRANSACTION -->
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <h6 class="fw-bold">Upload Statement</h6>
+                            <form method="post" asp-page-handler="Upload" enctype="multipart/form-data">
+                                <input type="hidden" name="auditId" value="@Model.Audit.Id" />
+                                <input type="file" name="uploadedFile" class="form-control mb-2" accept=".pdf,.xlsx,.xls,.csv,.png,.jpg,.jpeg" />
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-upload"></i> Upload
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="fw-bold">Add Golis Transaction</h6>
+                            <form method="post" asp-page-handler="AddTransaction">
+                                <div class="row g-2">
+                                    <div class="col-md-2">
+                                        <input type="text" name="transaction.Reference" class="form-control" placeholder="Reference" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="date" name="transaction.Date" class="form-control" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="time" name="transaction.Time" class="form-control" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" name="transaction.MobileNumber" class="form-control" placeholder="Mobile" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" step="0.01" name="transaction.Amount" class="form-control" placeholder="Amount" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" name="transaction.Description" class="form-control" placeholder="Description" />
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Add Transaction
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- FILTERS -->
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <input type="hidden" name="auditId" value="@Model.Audit.Id" />
+                    <div class="col-md-4">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Reference, mobile, description..." />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Status Filter</label>
+                        <select name="statusFilter" class="form-select">
+                            <option value="All" selected="@(Model.StatusFilter == "All" ? "selected" : null)">All</option>
+                            <option value="Matched" selected="@(Model.StatusFilter == "Matched" ? "selected" : null)">Matched</option>
+                            <option value="NotInSystem" selected="@(Model.StatusFilter == "NotInSystem" ? "selected" : null)">Not in System</option>
+                            <option value="AmountMismatch" selected="@(Model.StatusFilter == "AmountMismatch" ? "selected" : null)">Amount Mismatch</option>
+                            <option value="Duplicate" selected="@(Model.StatusFilter == "Duplicate" ? "selected" : null)">Duplicate</option>
+                            <option value="NeedsReview" selected="@(Model.StatusFilter == "NeedsReview" ? "selected" : null)">Needs Review</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        <a href="?auditId=@Model.Audit.Id" class="btn btn-secondary">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- GOLIS TRANSACTIONS TABLE -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Golis Transactions</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-sm align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>Mobile</th>
+                                <th class="text-end">Golis Amount</th>
+                                <th>System Receipt</th>
+                                <th class="text-end">System Amount</th>
+                                <th class="text-end">Difference</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.GolisRows)
+                            {
+                                <tr class="table-@statusClass.GetValueOrDefault(row.Status, "light")">
+                                    <td>@row.Reference</td>
+                                    <td>@row.Date.ToString("dd MMM yyyy") @(string.IsNullOrEmpty(row.Time) ? "" : $"{@row.Time}")</td>
+                                    <td>@row.Mobile</td>
+                                    <td class="text-end">$@row.Amount.ToString("N0")</td>
+                                    <td>@row.SystemReceipt</td>
+                                    <td class="text-end">$@row.SystemAmount.ToString("N0")</td>
+                                    <td class="text-end">$@row.Difference.ToString("N0")</td>
+                                    <td>
+                                        <span class="badge bg-@statusClass.GetValueOrDefault(row.Status, "secondary")">@row.Status</span>
+                                    </td>
+                                    <td>@row.Notes</td>
+                                    <td>
+                                        @if (!Model.IsReadOnly)
+                                        {
+                                            <form method="post" asp-page-handler="DeleteTransaction" asp-route-transactionId="@row.Id" onsubmit="return confirm('Delete this transaction?');">
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SYSTEM-ONLY TRANSACTIONS -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">System-Only Transactions</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-sm align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>System Receipt</th>
+                                <th>Date</th>
+                                <th>Plate</th>
+                                <th class="text-end">Amount</th>
+                                <th>Golis Reference</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.SystemOnlyRows)
+                            {
+                                <tr>
+                                    <td>@row.ReceiptNumber</td>
+                                    <td>@row.Date.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td>@row.Plate</td>
+                                    <td class="text-end">$@row.Amount.ToString("N0")</td>
+                                    <td>@row.GolisReference</td>
+                                    <td><span class="badge bg-primary">@row.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

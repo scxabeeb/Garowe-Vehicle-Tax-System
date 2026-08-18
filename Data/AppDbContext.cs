@@ -19,6 +19,8 @@ namespace VehicleTax.Web.Data
         public DbSet<Movement> Movements => Set<Movement>();
         public DbSet<ReceiptReference> ReceiptReferences => Set<ReceiptReference>();
         public DbSet<RevenueAccount> RevenueAccounts => Set<RevenueAccount>();
+        public DbSet<GolisAudit> GolisAudits => Set<GolisAudit>();
+        public DbSet<GolisTransaction> GolisTransactions => Set<GolisTransaction>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -92,6 +94,54 @@ namespace VehicleTax.Web.Data
 
             modelBuilder.Entity<Movement>()
                 .HasIndex(m => m.RevenueAccountId);
+
+            // GolisAudit → CreatedByUser relation
+            modelBuilder.Entity<GolisAudit>()
+                .HasOne(a => a.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // GolisAudit → FinalizedByUser relation
+            modelBuilder.Entity<GolisAudit>()
+                .HasOne(a => a.FinalizedByUser)
+                .WithMany()
+                .HasForeignKey(a => a.FinalizedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // GolisTransaction → GolisAudit relation
+            modelBuilder.Entity<GolisTransaction>()
+                .HasOne(t => t.GolisAudit)
+                .WithMany(a => a.GolisTransactions)
+                .HasForeignKey(t => t.GolisAuditId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // GolisTransaction → EnteredByUser relation
+            modelBuilder.Entity<GolisTransaction>()
+                .HasOne(t => t.EnteredByUser)
+                .WithMany()
+                .HasForeignKey(t => t.EnteredByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // GolisTransaction → ReviewedByUser relation
+            modelBuilder.Entity<GolisTransaction>()
+                .HasOne(t => t.ReviewedByUser)
+                .WithMany()
+                .HasForeignKey(t => t.ReviewedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // GolisTransaction → MatchedPayment relation
+            modelBuilder.Entity<GolisTransaction>()
+                .HasOne(t => t.MatchedPayment)
+                .WithMany()
+                .HasForeignKey(t => t.MatchedPaymentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<GolisTransaction>()
+                .HasIndex(t => t.GolisTransactionReference);
+
+            modelBuilder.Entity<GolisTransaction>()
+                .HasIndex(t => new { t.GolisAuditId, t.ReconciliationStatus });
         }
     }
 }
