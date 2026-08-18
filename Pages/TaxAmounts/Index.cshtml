@@ -89,7 +89,7 @@
                         <tr>
                             <td class="fw-semibold">@t.CarType!.Name</td>
                             <td>@t.Movement!.Name</td>
-                            <td class="text-end fw-semibold">@t.Amount.ToString("N0")</td>
+                            <td class="text-end fw-semibold">$@t.Amount.ToString("N0")</td>
                             <td class="text-center">
                                 <a asp-page="Edit"
                                    asp-route-id="@t.Id"

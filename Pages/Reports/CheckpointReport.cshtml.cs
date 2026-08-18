@@ -21,6 +21,7 @@ public class CheckpointReportModel : PageModel
     [BindProperty(SupportsGet = true)] public DateTime? FromDate { get; set; }
     [BindProperty(SupportsGet = true)] public DateTime? ToDate { get; set; }
     [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
+    [BindProperty(SupportsGet = true)] public string? GolisBillNo { get; set; }
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -120,6 +121,9 @@ public class CheckpointReportModel : PageModel
             query = query.Where(p => p.CheckpointId == CheckpointId.Value ||
                 (p.CheckpointId == null && p.Collector != null && p.Collector.CheckpointId == CheckpointId.Value));
 
+        if (!string.IsNullOrWhiteSpace(GolisBillNo))
+            query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(GolisBillNo));
+
         TotalPayments = await query.CountAsync();
         TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
@@ -162,10 +166,13 @@ public class CheckpointReportModel : PageModel
         if (CheckpointId.HasValue)
             query = query.Where(p => p.CheckpointId == CheckpointId.Value);
 
+        if (!string.IsNullOrWhiteSpace(GolisBillNo))
+            query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(GolisBillNo));
+
         var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Payment Method,Receipt No,Amount");
+        sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Payment Method,Receipt No,Golis Bill No,Amount");
 
         foreach (var p in data)
         {
@@ -183,7 +190,8 @@ public class CheckpointReportModel : PageModel
                 Escape(p.Checkpoint?.Name ?? "Unassigned"),
                 Escape(p.PaymentMethod ?? "-"),
                 Escape(p.InvoiceNumber),
-                p.Amount.ToString("N2")
+                Escape(p.TransactionId ?? "-"),
+                p.Amount.ToString("N0")
             ));
         }
 

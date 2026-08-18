@@ -67,9 +67,10 @@ namespace VehicleTax.Web.Pages.Reports
         [BindProperty(SupportsGet = true)] public string? PlateNumber { get; set; }
         [BindProperty(SupportsGet = true)] public int? CarTypeId { get; set; }
         [BindProperty(SupportsGet = true)] public int? MovementId { get; set; }
-        [BindProperty(SupportsGet = true)] public int? CollectorId { get; set; }
-        [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
-        [BindProperty(SupportsGet = true)] public int? RevenueAccountId { get; set; }
+    [BindProperty(SupportsGet = true)] public int? CollectorId { get; set; }
+    [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
+    [BindProperty(SupportsGet = true)] public int? RevenueAccountId { get; set; }
+    [BindProperty(SupportsGet = true)] public string? GolisBillNo { get; set; }
 
         // Pagination
         [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
@@ -190,6 +191,9 @@ namespace VehicleTax.Web.Pages.Reports
 
             if (RevenueAccountId.HasValue)
                 query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
+
+            if (!string.IsNullOrWhiteSpace(GolisBillNo))
+                query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(GolisBillNo));
 
             // Totals
             TotalPayments = await query.CountAsync();
@@ -365,6 +369,9 @@ namespace VehicleTax.Web.Pages.Reports
             if (RevenueAccountId.HasValue)
                 query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
 
+            if (!string.IsNullOrWhiteSpace(GolisBillNo))
+                query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(GolisBillNo));
+
             var payments = await query
                 .OrderByDescending(p => p.PaidAt)
                 .ToListAsync();
@@ -374,7 +381,7 @@ namespace VehicleTax.Web.Pages.Reports
             TotalAmount = payments.Sum(p => p.Amount);
 
             var sb = new StringBuilder();
-            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Receipt No,Amount");
+            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Receipt No,Golis Bill No,Amount");
 
             foreach (var p in payments)
             {
@@ -393,12 +400,13 @@ namespace VehicleTax.Web.Pages.Reports
                     // payments keep the checkpoint they were collected under.
                     p.Checkpoint?.Name ?? "Unassigned",
                     p.InvoiceNumber,
-                    p.Amount
+                    p.TransactionId ?? "-",
+                    p.Amount.ToString("N0")
                 ));
             }
 
             // Add total row to the exported CSV (11 columns to match header)
-            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,{TotalAmount:N0}");
+            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,,,{TotalAmount:N0}");
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "text/csv", $"Payments_{AppTime.Now:yyyyMMddHHmmss}.csv");

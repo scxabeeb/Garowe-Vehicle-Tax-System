@@ -292,7 +292,7 @@
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Receipt Number</td>
-                                        <td>@(Model.Payment.IsPaid ? Model.Payment.InvoiceNumber : "Pending")</td>
+                                        <td>@Model.Payment.InvoiceNumber</td>
                                     </tr>
                                     <tr>
                                         <td class="meta-label">Short Code</td>
@@ -344,10 +344,14 @@
                                     }
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.TransactionId))
                                     {
-                                        <tr>
-                                            <td class="meta-label">Golis Bill No</td>
-                                            <td>@Model.Payment.TransactionId</td>
-                                        </tr>
+                                    <tr>
+                                        <td class="meta-label">Golis Bill No</td>
+                                        <td>@Model.Payment.TransactionId</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="meta-label">Receipt Number</td>
+                                        <td>@Model.Payment.InvoiceNumber</td>
+                                    </tr>
                                     }
                                 </tbody>
                             </table>
@@ -359,18 +363,19 @@
                             <h5 class="mb-3">@(Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary")</h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
-                                    <p><strong>Invoice ID:</strong> @Model.Payment.InvoiceNumber</p>
-                                    <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
-                                    <p><strong>Checkpoint:</strong> @(Model.Payment.Checkpoint?.Name ?? "Unassigned")</p>
+                    <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
+                    <p><strong>Invoice ID:</strong> @Model.Payment.InvoiceNumber</p>
+                    <p><strong>Receipt Number:</strong> @(Model.Payment.IsReverted ? "Cancelled" : Model.Payment.InvoiceNumber)</p>
+                    <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
+                    <p><strong>Checkpoint:</strong> @(Model.Payment.Checkpoint?.Name ?? "Unassigned")</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     <p class="mb-1"><strong>Amount Due:</strong></p>
-                                    <div class="fs-3 fw-bold summary-amount">@Model.Payment.Amount.ToString("N0")</div>
+                                    <div class="fs-3 fw-bold summary-amount">$@Model.Payment.Amount.ToString("N0")</div>
                                     <div>
                                         @if (Model.Payment.IsReverted)
                                         {
-                                            <span class="badge bg-danger">Reverted</span>
+                                            <span class="badge bg-danger">Cancelled</span>
                                         }
                                         else if (Model.Payment.IsPaid)
                                         {

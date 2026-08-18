@@ -136,7 +136,7 @@ public class ReceiptModel : PageModel
 
         if (payment.IsReverted)
         {
-            TempData["ErrorMessage"] = "Reverted invoice cannot be collected.";
+            TempData["ErrorMessage"] = "Cancelled invoice cannot be collected.";
             return RedirectToPage(new { paymentId, printMode = PrintMode });
         }
 

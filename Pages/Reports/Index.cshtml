@@ -57,6 +57,11 @@
         </div>
 
         <div class="col-md-3">
+            <label class="form-label">Golis Bill No</label>
+            <input type="text" asp-for="GolisBillNo" class="form-control" placeholder="Search by bill no..." />
+        </div>
+
+        <div class="col-md-3">
             <label class="form-label">Collector</label>
             <select asp-for="CollectorId"
                     asp-items="Model.Collectors"
@@ -90,9 +95,10 @@
        asp-route-PlateNumber="@Model.PlateNumber"
        asp-route-CarTypeId="@Model.CarTypeId"
        asp-route-MovementId="@Model.MovementId"
-       asp-route-RevenueAccountId="@Model.RevenueAccountId"
-       asp-route-CollectorId="@Model.CollectorId"
-       asp-route-CheckpointId="@Model.CheckpointId">
+                       asp-route-RevenueAccountId="@Model.RevenueAccountId"
+                       asp-route-CollectorId="@Model.CollectorId"
+                       asp-route-CheckpointId="@Model.CheckpointId"
+                       asp-route-GolisBillNo="@Model.GolisBillNo">
         Export to Excel
     </a>
 </div>
@@ -119,7 +125,7 @@
         <div class="card module-kpi-card border-0 text-center">
             <div class="card-body">
                 <div class="module-kpi-title">Total Collected</div>
-                <h3 class="module-kpi-value text-success">@Model.TotalAmount.ToString("N0")</h3>
+                <h3 class="module-kpi-value text-success">$@Model.TotalAmount.ToString("N0")</h3>
                 <div class="module-kpi-sub">Revenue Account Collections</div>
             </div>
         </div>
@@ -143,7 +149,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">@($"{ra.AccountCode} - {ra.AccountName}") (@ra.TotalPayments)</span>
-                                <span>@ra.TotalAmount.ToString("N0")</span>
+                                <span>$@ra.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="Revenue account amount">
                                 <div class="progress-bar bg-info" style="width:@pct.ToString("0.#")%"></div>
@@ -177,7 +183,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">@m.MovementName (@m.Count)</span>
-                                <span>@m.TotalAmount.ToString("N0")</span>
+                                <span>$@m.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="Movement amount">
                                 <div class="progress-bar bg-primary" style="width:@pct.ToString("0.#")%"></div>
@@ -208,7 +214,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">@c.CarTypeName (@c.Count)</span>
-                                <span>@c.TotalAmount.ToString("N0")</span>
+                                <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="Car type amount">
                                 <div class="progress-bar bg-success" style="width:@pct.ToString("0.#")%"></div>
@@ -241,7 +247,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">@c.CollectorName (@c.TotalPayments)</span>
-                                <span>@c.TotalAmount.ToString("N0")</span>
+                                <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="Collector amount">
                                 <div class="progress-bar bg-warning" style="width:@pct.ToString("0.#")%"></div>
@@ -272,7 +278,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">@c.CheckpointName (@c.TotalPayments)</span>
-                                <span>@c.TotalAmount.ToString("N0")</span>
+                                <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="Checkpoint amount">
                                 <div class="progress-bar bg-secondary" style="width:@pct.ToString("0.#")%"></div>
@@ -303,7 +309,7 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">@d.Date.ToString("dd MMM")</span>
-                                <span>@d.TotalAmount.ToString("N0")</span>
+                                <span>$@d.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="Daily collection">
                                 <div class="progress-bar bg-info" style="width:@pct.ToString("0.#")%"></div>
@@ -331,6 +337,7 @@
     <input type="hidden" name="RevenueAccountId" value="@Model.RevenueAccountId" />
     <input type="hidden" name="CollectorId" value="@Model.CollectorId" />
     <input type="hidden" name="CheckpointId" value="@Model.CheckpointId" />
+    <input type="hidden" name="GolisBillNo" value="@Model.GolisBillNo" />
 
     <div class="d-flex align-items-center gap-2">
         <label class="fw-bold">Show</label>
@@ -389,6 +396,7 @@
                     <th>Collector</th>
                     <th>Checkpoint</th>
                     <th>Receipt No</th>
+                    <th>Golis Bill No</th>
                     <th class="text-end">Amount</th>
                 </tr>
             </thead>
@@ -408,14 +416,15 @@
                         <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
                         <td>@(p.Checkpoint?.Name ?? "Unassigned")</td>
                         <td>@p.InvoiceNumber</td>
-                        <td class="text-end">@p.Amount.ToString("N0")</td>
+                        <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "-" : p.TransactionId)</td>
+                        <td class="text-end">$@p.Amount.ToString("N0")</td>
                     </tr>
                 }
             }
             else
             {
                 <tr>
-                    <td colspan="11" class="text-center text-muted">No payments found</td>
+                    <td colspan="12" class="text-center text-muted">No payments found</td>
                 </tr>
             }
             </tbody>
@@ -423,9 +432,9 @@
             {
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="9" class="fw-bold text-end">TOTAL</td>
+                        <td colspan="10" class="fw-bold text-end">TOTAL</td>
                         <td class="fw-bold text-center">@Model.TotalPayments</td>
-                        <td class="text-end fw-bold">@Model.TotalAmount.ToString("N0")</td>
+                        <td class="text-end fw-bold">$@Model.TotalAmount.ToString("N0")</td>
                     </tr>
                 </tfoot>
             }
@@ -453,7 +462,8 @@
                        asp-route-MovementId="@Model.MovementId"
                        asp-route-RevenueAccountId="@Model.RevenueAccountId"
                        asp-route-CollectorId="@Model.CollectorId"
-                       asp-route-CheckpointId="@Model.CheckpointId">
+                       asp-route-CheckpointId="@Model.CheckpointId"
+                       asp-route-GolisBillNo="@Model.GolisBillNo">
                         @i
                     </a>
                 </li>

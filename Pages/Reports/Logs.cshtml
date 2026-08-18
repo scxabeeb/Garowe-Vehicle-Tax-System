@@ -36,7 +36,7 @@
                     <select asp-for="Action" class="form-select">
                         <option value="All">All Actions</option>
                         <option value="Completed">Completed Only</option>
-                        <option value="Reverted">Reverted Only</option>
+                        <option value="Reverted">Cancelled Only</option>
                     </select>
                 </div>
 
@@ -95,7 +95,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Reverted</div>
+                    <div class="text-muted small fw-semibold">Cancelled</div>
                     <h3 class="fw-bold mb-0 text-danger">@Model.RevertedCount</h3>
                     <div class="text-muted small fw-semibold">$@Model.TotalRevertedAmount.ToString("N0")</div>
                 </div>
@@ -165,8 +165,8 @@
                             <th>Receipt</th>
                             <th class="text-end">Amount</th>
                             <th>Status</th>
-                            <th>Reverted By</th>
-                            <th>Revert Reason</th>
+                            <th>Cancelled By</th>
+                            <th>Cancel Reason</th>
                             <th>Paid By</th>
                             <th>Remarks</th>
                         </tr>
@@ -201,7 +201,7 @@
                                 <td>
                                     @if (t.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Reverted</span>
+                                        <span class="badge bg-danger">Cancelled</span>
                                     }
                                     else
                                     {

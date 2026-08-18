@@ -130,7 +130,7 @@ public class CollectionModel : PageModel
                 p.Collector?.Username ?? "Unassigned",
                 p.Checkpoint?.Name ?? "-",
                 p.InvoiceNumber,
-                p.Amount.ToString("N2")
+                p.Amount.ToString("N0")
             ));
         }
 

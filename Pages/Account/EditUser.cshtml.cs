@@ -52,9 +52,16 @@ namespace VehicleTax.Web.Pages.Account
                 return Page();
             }
 
+            if (string.IsNullOrWhiteSpace(EditUser.Username))
+            {
+                ModelState.AddModelError("", "Username is required");
+                EditUser.Password = "";
+                return Page();
+            }
+
             dbUser.Username = EditUser.Username.Trim();
-            dbUser.FullName = EditUser.FullName.Trim();
-            dbUser.Phone = EditUser.Phone.Trim();
+            dbUser.FullName = EditUser.FullName?.Trim() ?? "";
+            dbUser.Phone = EditUser.Phone?.Trim() ?? "";
             dbUser.Role = EditUser.Role;
             dbUser.CheckpointId = EditUser.CheckpointId;
 

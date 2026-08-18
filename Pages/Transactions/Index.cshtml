@@ -8,6 +8,46 @@
         All Transactions
     </h3>
 
+    <!-- SUMMARY CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Total Transactions</div>
+                    <h3 class="fw-bold mb-0 text-primary">@Model.TotalTransactions</h3>
+                    <div class="text-muted small fw-semibold">$@Model.TotalAmount.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Completed</div>
+                    <h3 class="fw-bold mb-0 text-success">@Model.CompletedCount</h3>
+                    <div class="text-muted small fw-semibold">$@Model.CompletedAmount.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Cancelled</div>
+                    <h3 class="fw-bold mb-0 text-danger">@Model.CancelledCount</h3>
+                    <div class="text-muted small fw-semibold">$@Model.CancelledAmount.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-muted small fw-semibold">Net Amount</div>
+                    <h3 class="fw-bold mb-0 text-info">$@Model.NetAmount.ToString("N0")</h3>
+                    <div class="text-muted small fw-semibold">Completed - Cancelled</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FILTERS -->
     <form method="get" class="card shadow-sm border-0 mb-3">
         <div class="card-body">
@@ -37,9 +77,9 @@
                 <div class="col-md-3">
                     <label class="form-label">Action</label>
                     <select asp-for="Action" class="form-select">
-                        <option value="All">All</option>
+                        <option value="All">All (Completed & Cancelled)</option>
                         <option value="Completed">Completed</option>
-                        <option value="Reverted">Reverted</option>
+                        <option value="Reverted">Cancelled</option>
                     </select>
                 </div>
 
@@ -97,10 +137,11 @@
                             <th>Movement</th>
                             <th>Collector</th>
                             <th>Amount</th>
-                            <th>Receipt</th>
+                            <th>Receipt No</th>
+                            <th>Golis Bill No</th>
                             <th>Status</th>
-                            <th>Reverted By</th>
-                            <th>Revert Reason</th>
+                            <th>Cancelled By</th>
+                            <th>Cancel Reason</th>
                         </tr>
                     </thead>
 
@@ -113,12 +154,13 @@
                                 <td>@t.Vehicle?.CarType?.Name</td>
                                 <td>@t.MovementType</td>
                                 <td>@(t.Collector?.Username ?? "System")</td>
-                                <td>@t.Amount.ToString("N0")</td>
-                                <td>@t.ReceiptReference?.ReferenceNumber</td>
+                                <td>$@t.Amount.ToString("N0")</td>
+                                <td>@(t.ReceiptReference != null ? t.ReceiptReference.ReferenceNumber : t.InvoiceNumber)</td>
+                                <td>@(string.IsNullOrWhiteSpace(t.TransactionId) ? "-" : t.TransactionId)</td>
                                 <td>
                                     @if (t.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Reverted</span>
+                                        <span class="badge bg-danger">Cancelled</span>
                                     }
                                     else
                                     {

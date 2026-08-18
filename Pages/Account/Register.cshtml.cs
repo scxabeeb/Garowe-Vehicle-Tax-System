@@ -73,8 +73,8 @@ public class RegisterModel : PageModel
         var user = new User
         {
             Username = Username.Trim(),
-            FullName = FullName.Trim(),
-            Phone = Phone.Trim(),
+            FullName = FullName?.Trim() ?? "",
+            Phone = Phone?.Trim() ?? "",
             Role = Role,
             Permissions = "",
             CheckpointId = CheckpointId

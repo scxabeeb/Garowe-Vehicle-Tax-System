@@ -99,7 +99,7 @@
             <div class="card module-kpi-card border-0 text-center">
                 <div class="card-body">
                     <div class="module-kpi-title">Total Amount</div>
-                    <h3 class="module-kpi-value text-success">@Model.TotalAmount.ToString("N0")</h3>
+                    <h3 class="module-kpi-value text-success">$@Model.TotalAmount.ToString("N0")</h3>
                 </div>
             </div>
         </div>
@@ -109,7 +109,7 @@
                     <div class="module-kpi-title">Average Amount</div>
                     <h3 class="module-kpi-value text-warning">
                         @(Model.TotalTransactions > 0
-                            ? (Model.TotalAmount / Model.TotalTransactions).ToString("N0")
+                            ? "$" + (Model.TotalAmount / Model.TotalTransactions).ToString("N0")
                             : "0")
                     </h3>
                 </div>
@@ -144,7 +144,7 @@
                                 <td>@t.OwnerName</td>
                                 <td>@t.CarTypeName</td>
                                 <td>@t.MovementName</td>
-                                <td class="text-end">@t.Amount.ToString("N0")</td>
+                                <td class="text-end">$@t.Amount.ToString("N0")</td>
                             </tr>
                         }
                     }
@@ -160,7 +160,7 @@
                 <tfoot class="table-light">
                     <tr>
                         <td colspan="6" class="fw-bold text-end">TOTAL</td>
-                        <td class="text-end fw-bold">@Model.TotalAmount.ToString("N0")</td>
+                        <td class="text-end fw-bold">$@Model.TotalAmount.ToString("N0")</td>
                     </tr>
                 </tfoot>
             </table>

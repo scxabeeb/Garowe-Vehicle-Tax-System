@@ -14,7 +14,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
             <h4 class="mb-1 admin-header-title">Permission Manager</h4>
-            <div class="sub">Configure access for <strong>@Model.UserInfo.Username</strong></div>
+            <div class="sub">Configure access for <strong>@Model.UserInfo.Username</strong>@(string.IsNullOrWhiteSpace(Model.UserInfo.FullName) ? "" : $" — {Model.UserInfo.FullName}")</div>
         </div>
         <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
             <i class="bi bi-arrow-left"></i> Back to Users

@@ -32,7 +32,7 @@
                     <option value="all" selected="@(Model.PaymentStatus == "all" ? "selected" : null)">All</option>
                     <option value="paid" selected="@(Model.PaymentStatus == "paid" ? "selected" : null)">Paid</option>
                     <option value="pending" selected="@(Model.PaymentStatus == "pending" ? "selected" : null)">Pending</option>
-                    <option value="reverted" selected="@(Model.PaymentStatus == "reverted" ? "selected" : null)">Reverted</option>
+                    <option value="reverted" selected="@(Model.PaymentStatus == "reverted" ? "selected" : null)">Cancelled</option>
                 </select>
             </div>
 
@@ -129,13 +129,13 @@
                                 <td>@payment.PlateNumber</td>
                                 <td>@payment.OwnerName</td>
                                 <td>@payment.MovementType</td>
-                                <td class="text-end fw-bold">@payment.Amount.ToString("N0")</td>
+                                <td class="text-end fw-bold">$@payment.Amount.ToString("N0")</td>
                                 <td>@payment.PaidAt.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>@payment.CollectorName</td>
                                 <td>
                                     @if (payment.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Reverted</span>
+                                        <span class="badge bg-danger">Cancelled</span>
                                     }
                                     else if (payment.IsPaid)
                                     {

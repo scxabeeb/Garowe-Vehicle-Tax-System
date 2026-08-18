@@ -95,13 +95,13 @@
                         <div class="alert alert-info mt-4">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <strong>Unit:</strong> @Model.UnitAmount
+                                    <strong>Unit:</strong> $@Model.UnitAmount.ToString("N0")
                                 </div>
                                 <div class="col-md-4">
                                     <strong>Qty:</strong> @Model.Quantity
                                 </div>
                                 <div class="col-md-4 text-end fw-bold">
-                                    Total: @Model.Amount
+                                    Total: $@Model.Amount.ToString("N0")
                                 </div>
                             </div>
                         </div>
@@ -152,7 +152,7 @@
                                 <td>@p.Id</td>
                                 <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@p.MovementType</td>
-                                <td>@p.Amount</td>
+                                <td>$@p.Amount.ToString("N0")</td>
                                 <td>
                                     <a asp-page="/Payments/Receipt" asp-route-paymentId="@p.Id">
                                         @p.InvoiceNumber
@@ -163,7 +163,7 @@
                                 <td>
                                     @if (p.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Reverted</span>
+                                        <span class="badge bg-danger">Cancelled</span>
                                     }
                                     else if (p.IsPaid)
                                     {
@@ -218,10 +218,10 @@
                                         <input type="text"
                                                name="reason"
                                                class="form-control mb-2"
-                                               placeholder="Reason for revert"
+                                               placeholder="Reason for cancellation"
                                                required />
                                         <button type="submit" class="btn btn-sm btn-warning w-100">
-                                            <i class="bi bi-arrow-counterclockwise"></i> Revert
+                                            <i class="bi bi-x-circle"></i> Cancel
                                         </button>
                                     </form>
 

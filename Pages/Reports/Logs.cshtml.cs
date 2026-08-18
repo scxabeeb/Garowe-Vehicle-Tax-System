@@ -162,7 +162,7 @@ public class LogsModel : PageModel
         var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Date,Plate,Car Type,Movement,Revenue Account,Collector,Checkpoint,Payment Method,Transaction ID,Receipt No,Amount,Status,Reverted By,Revert Reason,Remarks,Paid By");
+        sb.AppendLine("Date,Plate,Car Type,Movement,Revenue Account,Collector,Checkpoint,Payment Method,Transaction ID,Receipt No,Amount,Status,Cancelled By,Cancel Reason,Remarks,Paid By");
 
         foreach (var p in data)
         {
@@ -179,8 +179,8 @@ public class LogsModel : PageModel
                 Escape(p.PaymentMethod ?? "-"),
                 Escape(p.TransactionId ?? "-"),
                 Escape(p.ReceiptReference?.ReferenceNumber ?? "-"),
-                p.Amount.ToString("N2"),
-                Escape(p.IsReverted ? "Reverted" : "Completed"),
+                p.Amount.ToString("N0"),
+                Escape(p.IsReverted ? "Cancelled" : "Completed"),
                 Escape(p.RevertedByUser?.Username ?? "-"),
                 Escape(p.RevertReason),
                 Escape(p.Remarks),

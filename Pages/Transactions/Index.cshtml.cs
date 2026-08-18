@@ -40,6 +40,15 @@ public class IndexModel : PageModel
     public List<User> Users { get; set; } = new();
     public List<Payment> Transactions { get; set; } = new();
 
+    // Summary totals
+    public int TotalTransactions { get; set; }
+    public decimal TotalAmount { get; set; }
+    public int CompletedCount { get; set; }
+    public decimal CompletedAmount { get; set; }
+    public int CancelledCount { get; set; }
+    public decimal CancelledAmount { get; set; }
+    public decimal NetAmount => CompletedAmount - CancelledAmount;
+
     public void OnGet()
     {
         Users = _context.Users.OrderBy(u => u.Username).ToList();
@@ -51,12 +60,16 @@ public class IndexModel : PageModel
             .Include(p => p.Collector)
             .AsQueryable();
 
-        // Filters
+        // Filters (use action date: PaidAt for completed, RevertedAt for cancelled)
         if (FromDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date >= FromDate.Value.Date);
+            query = query.Where(p =>
+                (!p.IsReverted && p.PaidAt.Date >= FromDate.Value.Date) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date >= FromDate.Value.Date));
 
         if (ToDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date <= ToDate.Value.Date);
+            query = query.Where(p =>
+                (!p.IsReverted && p.PaidAt.Date <= ToDate.Value.Date) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date <= ToDate.Value.Date));
 
         if (UserId.HasValue)
             query = query.Where(p =>
@@ -72,7 +85,17 @@ public class IndexModel : PageModel
                 query = query.Where(p => p.IsReverted);
         }
 
-        query = query.OrderByDescending(p => p.PaidAt);
+        // Compute summary totals from the filtered dataset (before paging)
+        var allFiltered = query.ToList();
+        TotalTransactions = allFiltered.Count;
+        TotalAmount = allFiltered.Sum(p => p.Amount);
+        CompletedCount = allFiltered.Count(p => !p.IsReverted);
+        CompletedAmount = allFiltered.Where(p => !p.IsReverted).Sum(p => p.Amount);
+        CancelledCount = allFiltered.Count(p => p.IsReverted);
+        CancelledAmount = allFiltered.Where(p => p.IsReverted).Sum(p => p.Amount);
+
+        // Latest action first: use RevertedAt for cancelled, PaidAt for completed.
+        query = query.OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt);
 
         // PageSize = 0 means show all
         if (PageSize > 0)
@@ -97,10 +120,14 @@ public class IndexModel : PageModel
 
         // Same filters as OnGet
         if (FromDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date >= FromDate.Value.Date);
+            query = query.Where(p =>
+                (!p.IsReverted && p.PaidAt.Date >= FromDate.Value.Date) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date >= FromDate.Value.Date));
 
         if (ToDate.HasValue)
-            query = query.Where(p => p.PaidAt.Date <= ToDate.Value.Date);
+            query = query.Where(p =>
+                (!p.IsReverted && p.PaidAt.Date <= ToDate.Value.Date) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date <= ToDate.Value.Date));
 
         if (UserId.HasValue)
             query = query.Where(p =>
@@ -117,11 +144,11 @@ public class IndexModel : PageModel
         }
 
         var data = query
-            .OrderByDescending(p => p.PaidAt)
+            .OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt)
             .ToList();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Date,Plate,Car Type,Movement,Collector,Amount,Receipt,Status,Reverted By,Revert Reason");
+        sb.AppendLine("Date,Plate,Car Type,Movement,Collector,Amount,Receipt No,Golis Bill No,Status,Cancelled By,Cancel Reason");
 
         foreach (var t in data)
         {
@@ -131,9 +158,10 @@ public class IndexModel : PageModel
                 Escape(t.Vehicle?.CarType?.Name),
                 Escape(t.MovementType),
                 Escape(t.Collector?.Username ?? "System"),
-                Escape(t.Amount.ToString()),
-                Escape(t.ReceiptReference?.ReferenceNumber),
-                Escape(t.IsReverted ? "Reverted" : "Completed"),
+                Escape(t.Amount.ToString("N0")),
+                Escape(t.ReceiptReference != null ? t.ReceiptReference.ReferenceNumber : t.InvoiceNumber),
+                Escape(string.IsNullOrWhiteSpace(t.TransactionId) ? "-" : t.TransactionId),
+                Escape(t.IsReverted ? "Cancelled" : "Completed"),
                 Escape(t.RevertedByUser?.Username),
                 Escape(t.RevertReason)
             ));

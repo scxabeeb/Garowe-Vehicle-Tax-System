@@ -249,14 +249,14 @@ public class CollectModel : PageModel
         {
             if (!User.IsInRole("Admin"))
             {
-                ErrorMessage = "Only admins can revert payments.";
+                ErrorMessage = "Only admins can cancel payments.";
                 LoadCheckpoints();
                 return Page();
             }
 
             if (string.IsNullOrWhiteSpace(reason))
             {
-                ErrorMessage = "Revert reason is required.";
+                ErrorMessage = "Cancel reason is required.";
                 return Page();
             }
 
@@ -266,7 +266,7 @@ public class CollectModel : PageModel
 
             if (payment == null || payment.IsReverted)
             {
-                ErrorMessage = "Invalid payment or already reverted.";
+                ErrorMessage = "Invalid payment or already cancelled.";
                 return Page();
             }
 
@@ -295,7 +295,7 @@ public class CollectModel : PageModel
 
             _context.SaveChanges();
 
-            TempData["SuccessMessage"] = "Payment reverted successfully.";
+            TempData["SuccessMessage"] = "Payment cancelled successfully.";
             return RedirectToPage();
         }
         catch (Exception ex)

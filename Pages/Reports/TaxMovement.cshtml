@@ -59,7 +59,7 @@
     <div class="card-body text-center">
         <div class="module-kpi-title">Total Tax Collected</div>
         <h2 class="module-kpi-value text-success">
-            @Model.TotalTax.ToString("N0")
+            $@Model.TotalTax.ToString("N0")
         </h2>
     </div>
 </div>
@@ -83,7 +83,7 @@
                     <tr>
                         <td>@item.MovementName</td>
                         <td>@item.TotalPayments</td>
-                        <td>@item.TotalAmount.ToString("N0")</td>
+                        <td>$@item.TotalAmount.ToString("N0")</td>
                     </tr>
                 }
             </tbody>

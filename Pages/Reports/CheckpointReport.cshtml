@@ -41,6 +41,12 @@
                     </select>
                 </div>
 
+                <div class="col-md-3">
+                    <label class="form-label">Golis Bill No</label>
+                    <input type="text" asp-for="GolisBillNo" class="form-control"
+                           placeholder="Search by bill no..." />
+                </div>
+
                 <div class="col-md-3 d-flex align-items-end gap-2">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-search"></i> Apply Filters
@@ -170,18 +176,20 @@
                    asp.route-FromDate="@Model.FromDate"
                    asp.route-ToDate="@Model.ToDate"
                    asp.route-CheckpointId="@Model.CheckpointId"
+                   asp.route-GolisBillNo="@Model.GolisBillNo"
                    asp.route-CurrentPage="@Model.CurrentPage"
                    asp.route-PageSize="@Model.PageSize"
                    class="btn btn-success btn-sm">
-                    <i class="bi bi.file-earmark-download"></i> Export to CSV
+                     <i class="bi bi.file-earmark-download"></i> Export to CSV
                 </a>
             </div>
 
             <form method="get" class="d-inline">
                 <input type="hidden" name="FromDate" value="@Model.FromDate" />
                 <input type="hidden" name="ToDate" value="@Model.ToDate" />
-                <input type="hidden" name="CheckpointId" value="@Model.CheckpointId" />
-                <select name="PageSize"
+                   <input type="hidden" name="CheckpointId" value="@Model.CheckpointId" />
+                   <input type="hidden" name="GolisBillNo" value="@Model.GolisBillNo" />
+                   <select name="PageSize"
                         class="form-select d-inline w-auto"
                         onchange="this.form.submit()">
                     <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
@@ -205,6 +213,7 @@
                             <th>Checkpoint</th>
                             <th>Payment Method</th>
                             <th>Receipt</th>
+                            <th>Golis Bill No</th>
                             <th class="text-end">Amount</th>
                         </tr>
                     </thead>
@@ -220,13 +229,14 @@
                                 <td><span class="badge bg-secondary">@(p.Checkpoint?.Name ?? "Unassigned")</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(p.PaymentMethod) ? "-" : p.PaymentMethod)</td>
                                 <td>@(p.ReceiptReference?.ReferenceNumber ?? "-")</td>
+                                <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "-" : p.TransactionId)</td>
                                 <td class="text-end fw-bold">$@p.Amount.ToString("N0")</td>
                             </tr>
                         }
                         @if (!Model.Payments.Any())
                         {
                             <tr>
-                                <td colspan="9" class="text-center text-muted">No payments found for the selected filters.</td>
+                                <td colspan="10" class="text-center text-muted">No payments found for the selected filters.</td>
                             </tr>
                         }
                     </tbody>

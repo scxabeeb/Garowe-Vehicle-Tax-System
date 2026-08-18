@@ -70,6 +70,8 @@
             <thead class="table-dark">
                 <tr>
                     <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Phone</th>
                     <th>Role</th>
                     <th>Checkpoint</th>
                     <th>Status</th>
@@ -90,6 +92,8 @@
 
                     <tr>
                         <td data-label="Username" class="fw-semibold">@u.User.Username</td>
+                        <td data-label="Full Name">@(string.IsNullOrWhiteSpace(u.User.FullName) ? "-" : u.User.FullName)</td>
+                        <td data-label="Phone">@(string.IsNullOrWhiteSpace(u.User.Phone) ? "-" : u.User.Phone)</td>
                         <td data-label="Role">
                             <span class="badge bg-info text-dark">@u.User.Role</span>
                         </td>

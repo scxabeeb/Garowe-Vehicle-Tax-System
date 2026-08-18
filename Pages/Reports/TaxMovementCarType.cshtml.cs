@@ -150,7 +150,7 @@ namespace VehicleTax.Web.Pages.Reports
 
             foreach (var item in data)
             {
-                sb.AppendLine($"{item.MovementName},{item.CarTypeName},{item.TotalPayments},{item.TotalAmount}");
+                sb.AppendLine($"{item.MovementName},{item.CarTypeName},{item.TotalPayments},{item.TotalAmount:N0}");
             }
 
             return File(

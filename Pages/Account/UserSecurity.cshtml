@@ -115,6 +115,14 @@
                                 <td class="fw-semibold">@selectedUser.Username</td>
                             </tr>
                             <tr>
+                                <th>Full Name</th>
+                                <td>@(string.IsNullOrWhiteSpace(selectedUser.FullName) ? "-" : selectedUser.FullName)</td>
+                            </tr>
+                            <tr>
+                                <th>Phone</th>
+                                <td>@(string.IsNullOrWhiteSpace(selectedUser.Phone) ? "-" : selectedUser.Phone)</td>
+                            </tr>
+                            <tr>
                                 <th>Role</th>
                                 <td><span class="badge bg-info text-dark">@selectedUser.Role</span></td>
                             </tr>

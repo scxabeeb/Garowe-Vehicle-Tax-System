@@ -43,6 +43,8 @@ namespace VehicleTax.Web.Pages.Reports
             {
                 query = query.Where(u =>
                     u.Username.Contains(Search!) ||
+                    u.FullName.Contains(Search!) ||
+                    u.Phone.Contains(Search!) ||
                     u.Role.Contains(Search!) ||
                     u.Permissions.Contains(Search!));
             }
@@ -81,6 +83,8 @@ namespace VehicleTax.Web.Pages.Reports
             {
                 query = query.Where(u =>
                     u.Username.Contains(search!) ||
+                    u.FullName.Contains(search!) ||
+                    u.Phone.Contains(search!) ||
                     u.Role.Contains(search!) ||
                     u.Permissions.Contains(search!));
             }
@@ -98,11 +102,11 @@ namespace VehicleTax.Web.Pages.Reports
 
             var users = query.ToList();
 
-            var csv = "Id,Username,Role,Permissions,Status\n";
+            var csv = "Id,Username,Full Name,Phone,Role,Permissions,Status\n";
             foreach (var u in users)
             {
                 var state = u.IsLocked ? "Locked" : "Active";
-                csv += $"{u.Id},{u.Username},{u.Role},\"{u.Permissions}\",{state}\n";
+                csv += $"{u.Id},{u.Username},\"{u.FullName}\",{u.Phone},{u.Role},\"{u.Permissions}\",{state}\n";
             }
 
             return File(

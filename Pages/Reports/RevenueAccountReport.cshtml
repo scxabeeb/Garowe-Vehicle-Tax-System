@@ -102,7 +102,7 @@
                                 <td><strong>@item.AccountCode</strong></td>
                                 <td>@item.AccountName</td>
                                 <td class="text-end">@item.TotalPayments</td>
-                                <td class="text-end">@item.TotalAmount.ToString("N0")</td>
+                                <td class="text-end">$@item.TotalAmount.ToString("N0")</td>
                                 <td class="text-center">
                                     <a asp-page="./RevenueAccountDetails"
                                        asp-route-accountId="@item.AccountId"
@@ -130,7 +130,7 @@
                     <tr>
                         <th colspan="2"><strong>TOTAL</strong></th>
                         <th class="text-end"><strong>@Model.GrandTotalPayments</strong></th>
-                        <th class="text-end"><strong>@Model.GrandTotalAmount.ToString("N0")</strong></th>
+                        <th class="text-end"><strong>$@Model.GrandTotalAmount.ToString("N0")</strong></th>
                         <th></th>
                     </tr>
                 </tfoot>
