@@ -105,6 +105,15 @@ builder.Services.PostConfigure<GolisWebhookSettings>(options =>
 
 builder.Services.AddHttpClient<VehicleTax.Web.Services.Golis.IGolisApiService, VehicleTax.Web.Services.Golis.GolisApiService>();
 
+// Audit Reference Number service — transaction-safe sequential number generation
+builder.Services.AddScoped<VehicleTax.Web.Services.IPaymentReferenceService, VehicleTax.Web.Services.PaymentReferenceService>();
+
+// ── RF / FMIS (Finance) services ──────────────────────────────────
+builder.Services.Configure<VehicleTax.Web.Services.FmisOptions>(builder.Configuration.GetSection("Fmis"));
+builder.Services.AddHttpClient("Fmis");
+builder.Services.AddScoped<VehicleTax.Web.Services.IRfNumberService, VehicleTax.Web.Services.RfNumberService>();
+builder.Services.AddScoped<VehicleTax.Web.Services.IFmisTransferService, VehicleTax.Web.Services.FmisTransferService>();
+
 // =========================
 // Session
 // =========================

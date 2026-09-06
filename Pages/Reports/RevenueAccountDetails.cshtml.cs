@@ -11,6 +11,7 @@ namespace VehicleTax.Web.Pages.Reports
 {
     public class TransactionDetail
     {
+        public int? ReferenceNo { get; set; }
         public DateTime Date { get; set; }
         public string ReceiptNumber { get; set; } = "";
         public string PlateNumber { get; set; } = "";
@@ -74,11 +75,11 @@ namespace VehicleTax.Web.Pages.Reports
             sb.AppendLine($"Revenue Account Details: {Account.AccountCode} - {Account.AccountName}");
             sb.AppendLine($"From: {FromDate?.ToString("dd-MMM-yyyy") ?? "All"}  To: {ToDate?.ToString("dd-MMM-yyyy") ?? "All"}");
             sb.AppendLine("");
-            sb.AppendLine("Date,Receipt No,Plate,Owner,Car Type,Movement,Amount");
+            sb.AppendLine("Ref No,Date,Receipt No,Plate,Owner,Car Type,Movement,Amount");
 
             foreach (var t in Transactions)
             {
-                sb.AppendLine($"{t.Date:yyyy-MM-dd HH:mm},{t.ReceiptNumber},{t.PlateNumber},{t.OwnerName},{t.CarTypeName},{t.MovementName},{t.Amount:N0}");
+                sb.AppendLine($"{(t.ReferenceNo?.ToString() ?? "-")},{t.Date:yyyy-MM-dd HH:mm},{t.ReceiptNumber},{t.PlateNumber},{t.OwnerName},{t.CarTypeName},{t.MovementName},{t.Amount:N0}");
             }
 
             sb.AppendLine($"TOTAL,{TotalTransactions},{TotalAmount:N0}");
@@ -134,6 +135,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .OrderByDescending(p => p.PaidAt)
                 .Select(p => new TransactionDetail
                 {
+                    ReferenceNo = p.ReferenceNo,
                     Date = p.PaidAt,
                     ReceiptNumber = p.InvoiceNumber,
                     PlateNumber = p.Vehicle!.PlateNumber,

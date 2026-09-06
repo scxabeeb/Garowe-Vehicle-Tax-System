@@ -120,6 +120,9 @@ public class MobileMoneyController : ControllerBase
             ReceiptReferenceId = receipt?.Id,
             CollectorId = collector.Id,
             TransactionId = apiResponse.TransactionId
+            // NOTE: This is a mobile-money *initiation* — IsPaid remains false (pending)
+            // and ReferenceNo stays NULL. The audit Reference No. is assigned by the
+            // GolisWebhookController when the webhook confirms the payment as Paid.
         };
 
         _context.Payments.Add(payment);

@@ -363,6 +363,7 @@
                             <h5 class="mb-3">@(Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary")</h5>
                             <div class="row">
                                 <div class="col-md-6">
+                    <p><strong>Reference No.:</strong> @(Model.Payment.ReferenceNo?.ToString() ?? "-")</p>
                     <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
                     <p><strong>Invoice ID:</strong> @Model.Payment.InvoiceNumber</p>
                     <p><strong>Receipt Number:</strong> @(Model.Payment.IsReverted ? "Cancelled" : Model.Payment.InvoiceNumber)</p>

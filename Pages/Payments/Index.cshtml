@@ -15,6 +15,48 @@
 <div class="card module-filter-card mb-3">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
+            <!-- System No./ID Search -->
+            <div class="col-md-2">
+                <label class="form-label">System No./ID</label>
+                <input type="text" name="searchSystemNo" class="form-control"
+                       placeholder="e.g. 1547" value="@Model.SearchSystemNo" />
+            </div>
+
+            <!-- Ref No. Search -->
+            <div class="col-md-2">
+                <label class="form-label">Ref No.</label>
+                <input type="text" name="searchRefNo" class="form-control"
+                       placeholder="e.g. 125" value="@Model.SearchRefNo" />
+            </div>
+
+            <!-- Invoice ID Search -->
+            <div class="col-md-2">
+                <label class="form-label">Invoice ID</label>
+                <input type="text" name="searchInvoice" class="form-control"
+                       placeholder="INV-..." value="@Model.SearchInvoice" />
+            </div>
+
+            <!-- Receipt No. Search -->
+            <div class="col-md-2">
+                <label class="form-label">Receipt No.</label>
+                <input type="text" name="searchReceipt" class="form-control"
+                       placeholder="260901..." value="@Model.SearchReceipt" />
+            </div>
+
+            <!-- Golis/Bill No. Search -->
+            <div class="col-md-2">
+                <label class="form-label">Golis/Bill No.</label>
+                <input type="text" name="searchGolis" class="form-control"
+                       placeholder="84739..." value="@Model.SearchGolis" />
+            </div>
+
+            <!-- Collector Search -->
+            <div class="col-md-2">
+                <label class="form-label">Collector</label>
+                <input type="text" name="searchCollector" class="form-control"
+                       placeholder="Name..." value="@Model.SearchCollector" />
+            </div>
+
             <!-- Plate Number Search -->
             <div class="col-md-3">
                 <label class="form-label">Plate Number</label>
@@ -95,16 +137,18 @@
             <table class="table table-hover table-bordered align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Payment ID</th>
+                        <th>System No./ID</th>
+                        <th>Ref No.</th>
                         <th>Invoice ID</th>
-                        <th>Golis Bill No</th>
-                        <th>Receipt #</th>
+                        <th>Receipt No.</th>
+                        <th>Golis/Bill No.</th>
                         <th>Plate Number</th>
                         <th>Owner Name</th>
+                        <th>Account</th>
                         <th>Movement Type</th>
                         <th class="text-end">Amount</th>
-                        <th>Paid Date</th>
                         <th>Collector</th>
+                        <th>Payment Date</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -112,7 +156,7 @@
                     @if (Model.Payments.Count == 0)
                     {
                         <tr>
-                            <td colspan="11" class="text-center text-muted py-4">No payment records found</td>
+                            <td colspan="13" class="text-center text-muted py-4">No payment records found</td>
                         </tr>
                     }
                     else
@@ -120,22 +164,24 @@
                         @foreach (var payment in Model.Payments)
                         {
                             <tr>
-                                <td>@payment.Id</td>
+                                <td class="fw-semibold">@payment.Id</td>
+                                <td>@(payment.ReferenceNo?.ToString() ?? "-")</td>
                                 <td>@payment.InvoiceId</td>
-                                <td>@(string.IsNullOrWhiteSpace(payment.GolisBillNo) ? "-" : payment.GolisBillNo)</td>
                                 <td>
                                     <span class="badge bg-info">@payment.ReceiptNumber</span>
                                 </td>
+                                <td>@(string.IsNullOrWhiteSpace(payment.GolisBillNo) ? "-" : payment.GolisBillNo)</td>
                                 <td>@payment.PlateNumber</td>
                                 <td>@payment.OwnerName</td>
+                                <td>@(payment.Account ?? "-")</td>
                                 <td>@payment.MovementType</td>
                                 <td class="text-end fw-bold">$@payment.Amount.ToString("N0")</td>
-                                <td>@payment.PaidAt.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>@payment.CollectorName</td>
+                                <td>@payment.PaidAt.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>
                                     @if (payment.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Cancelled</span>
+                                        <span class="badge bg-danger">@(payment.ReferenceNo != null ? "Cancelled" : "Cancelled")</span>
                                     }
                                     else if (payment.IsPaid)
                                     {
@@ -162,13 +208,13 @@
                     {
                         <li class="page-item">
                             <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                               href="@Url.Page(null, new { pageIndex = 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
                                 First
                             </a>
                         </li>
                         <li class="page-item">
                             <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = Model.PageIndex - 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                               href="@Url.Page(null, new { pageIndex = Model.PageIndex - 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
                                 Previous
                             </a>
                         </li>
@@ -186,7 +232,7 @@
                         {
                             <li class="page-item">
                                 <a class="page-link" 
-                                   href="@Url.Page(null, new { pageIndex = i, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                                   href="@Url.Page(null, new { pageIndex = i, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
                                     @i
                                 </a>
                             </li>
@@ -197,13 +243,13 @@
                     {
                         <li class="page-item">
                             <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = Model.PageIndex + 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                               href="@Url.Page(null, new { pageIndex = Model.PageIndex + 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
                                 Next
                             </a>
                         </li>
                         <li class="page-item">
                             <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = Model.TotalPages, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })">
+                               href="@Url.Page(null, new { pageIndex = Model.TotalPages, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
                                 Last
                             </a>
                         </li>
@@ -221,10 +267,11 @@ function changePageSize(pageSize) {
     const params = new URLSearchParams();
     params.append('pageIndex', 1);
     params.append('pageSize', pageSize);
-    params.append('searchPlate', document.querySelector('input[name="searchPlate"]').value);
-    params.append('paymentStatus', document.querySelector('select[name="paymentStatus"]').value);
-    params.append('dateFrom', document.querySelector('input[name="dateFrom"]').value);
-    params.append('dateTo', document.querySelector('input[name="dateTo"]').value);
+    const names = ['searchPlate','paymentStatus','dateFrom','dateTo','searchSystemNo','searchRefNo','searchInvoice','searchReceipt','searchGolis','searchCollector'];
+    names.forEach(function (n) {
+        const el = document.querySelector('[name="' + n + '"]');
+        if (el && el.value) params.append(n, el.value);
+    });
     window.location.href = `?${params.toString()}`;
 }
 </script>

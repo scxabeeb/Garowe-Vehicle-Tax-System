@@ -42,6 +42,22 @@ public class SummaryModel : PageModel
     public List<CheckpointSummary> CheckpointSummaries { get; set; } = new();
     public List<StatusSummary> StatusSummaries { get; set; } = new();
 
+    // Per-payment detail records (include the audit Reference No.)
+    public List<PaymentRecord> PaymentRecords { get; set; } = new();
+
+    public class PaymentRecord
+    {
+        public int? ReferenceNo { get; set; }
+        public int Id { get; set; }
+        public string InvoiceId { get; set; } = string.Empty;
+        public string PlateNumber { get; set; } = string.Empty;
+        public string MovementType { get; set; } = string.Empty;
+        public string CollectorName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public DateTime PaidAt { get; set; }
+        public bool IsReverted { get; set; }
+    }
+
     public class CollectorSummary
     {
         public string CollectorName { get; set; } = "";
@@ -182,6 +198,23 @@ public class SummaryModel : PageModel
             })
             .OrderByDescending(x => x.CompletedAmount)
             .ToList();
+// Per-payment detail records — include the audit Reference No. (or NULL for unrecorded)
+        PaymentRecords = data
+            .Select(p => new PaymentRecord
+            {
+                ReferenceNo = p.ReferenceNo,
+                Id = p.Id,
+                InvoiceId = p.InvoiceNumber,
+                PlateNumber = p.Vehicle != null ? p.Vehicle.PlateNumber : "N/A",
+                MovementType = p.MovementType,
+                CollectorName = p.Collector?.Username ?? "Unassigned",
+                Amount = p.Amount,
+                PaidAt = p.IsReverted ? (p.RevertedAt ?? p.PaidAt) : p.PaidAt,
+                IsReverted = p.IsReverted
+            })
+            .OrderByDescending(p => p.ReferenceNo.HasValue)
+            .ThenByDescending(p => p.Id)
+            .ToList();
     }
 
     public IActionResult OnGetExportCsv()
@@ -205,6 +238,18 @@ public class SummaryModel : PageModel
         foreach (var c in CollectorSummaries)
         {
             sb.AppendLine($"{c.CollectorName},{c.Completed},{c.CompletedAmount:N0},{c.Cancelled},{c.CancelledAmount:N0}");
+        }
+
+        // Per-payment detail — include the audit Reference No. (or blank/for unrecorded)
+        sb.AppendLine();
+        sb.AppendLine("Ref No,Payment ID,Invoice ID,Plate,Movement,Collector,Amount,Date,Status");
+
+        foreach (var p in PaymentRecords)
+        {
+            var refNo = p.ReferenceNo?.ToString() ?? "";
+            var status = p.IsReverted ? "Cancelled" : "Completed";
+            var date = p.PaidAt.ToString("yyyy-MM-dd HH:mm");
+            sb.AppendLine($"{refNo},{p.Id},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{p.Amount:N0},{date},{status}");
         }
 
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());

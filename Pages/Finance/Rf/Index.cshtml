@@ -1,0 +1,105 @@
+@page
+@model VehicleTax.Web.Pages.Finance.Rf.IndexModel
+@{
+    ViewData["Title"] = "RF History";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="mb-0">RF History</h2>
+        <a class="btn btn-outline-secondary" asp-page="/Finance/Index">← Finance Dashboard</a>
+    </div>
+
+    <form method="get" class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">RF Number</label>
+                    <input class="form-control" asp-for="RfNumber" placeholder="RF-000001" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">RF Date</label>
+                    <input type="date" class="form-control" asp-for="Date" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small mb-0">Account</label>
+                    <select class="form-select" asp-for="AccountId">
+                        <option value="">All accounts</option>
+                        @foreach (var a in Model.Accounts)
+                        {
+                            <option value="@a.Id">@a.AccountCode - @a.AccountName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">Status</label>
+                    <select class="form-select" asp-for="Status">
+                        <option value="">All</option>
+                        <option>Draft</option>
+                        <option>Prepared</option>
+                        <option>ReadyForFmis</option>
+                        <option>Transferred</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">FMIS Status</label>
+                    <select class="form-select" asp-for="FmisStatus">
+                        <option value="">All</option>
+                        <option>NotTransferred</option>
+                        <option>ReadyForFmis</option>
+                        <option>Failed</option>
+                        <option>Transferred</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-primary w-100" type="submit">Search</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr>
+                    <th>RF Number</th><th>Date</th><th>Account</th>
+                    <th class="text-end">Transactions</th><th class="text-end">Amount</th>
+                    <th>Prepared By</th><th>Status</th><th>FMIS</th>
+                </tr></thead>
+                <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td><a asp-page="/Finance/Rf/Details" asp-route-number="@r.RfNumber" class="fw-semibold">@r.RfNumber</a></td>
+                        <td>@AppTime.ToLocal(r.RfDate).ToString("dd MMM yyyy")</td>
+                        <td>@(r.Account ?? "-")</td>
+                        <td class="text-end">@r.TotalTransactions</td>
+                        <td class="text-end">$@r.TotalAmount.ToString("N2")</td>
+                        <td>@(r.PreparedBy ?? "-")</td>
+                        <td>
+                            <span class="badge @(r.Status == "Transferred" ? "bg-success" : r.Status == "Cancelled" ? "bg-danger" : r.Status == "ReadyForFmis" ? "bg-info text-dark" : "bg-warning text-dark")">
+                                @r.Status
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge @(r.FmisStatus == "Transferred" ? "bg-success" : r.FmisStatus == "Failed" ? "bg-danger" : "bg-secondary")">
+                                @r.FmisStatus
+                            </span>
+                            @if (!string.IsNullOrEmpty(r.FmisBatchNumber))
+                            {
+                                <div class="small text-muted">@r.FmisBatchNumber</div>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Rows.Any())
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">No RF documents found.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

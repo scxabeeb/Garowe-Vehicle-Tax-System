@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Payments;
 
@@ -11,10 +12,12 @@ namespace VehicleTax.Web.Pages.Payments;
 public class ReceiptModel : PageModel
 {
     private readonly AppDbContext _context;
+    private readonly IPaymentReferenceService _referenceService;
 
-    public ReceiptModel(AppDbContext context)
+    public ReceiptModel(AppDbContext context, IPaymentReferenceService referenceService)
     {
         _context = context;
+        _referenceService = referenceService;
     }
 
     public Payment? Payment { get; set; }
@@ -170,6 +173,10 @@ public class ReceiptModel : PageModel
         // "Unassigned" in checkpoint reports.
         payment.CheckpointId = adminUser.CheckpointId;
 
+        // ✅ Assign audit Reference No. only when the payment becomes Paid.
+        //    Pending/Failed/Cancelled payments keep ReferenceNo = NULL.
+        payment.ReferenceNo = _referenceService.GetNextReferenceNo();
+
         _context.SaveChanges();
 
         TempData["SuccessMessage"] = "Invoice collected successfully. Receipt is ready to print.";
@@ -230,7 +237,9 @@ public class ReceiptModel : PageModel
             // payments stay attributed to the original checkpoint.
             CheckpointId = adminUser.CheckpointId,
             IsPaid = true,
-            IsReverted = false
+            IsReverted = false,
+            // ✅ Assign audit Reference No. only for successfully recorded (Paid) payments.
+            ReferenceNo = _referenceService.GetNextReferenceNo()
         };
 
         _context.Payments.Add(payment);

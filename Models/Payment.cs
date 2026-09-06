@@ -34,8 +34,19 @@ namespace VehicleTax.Web.Models
         public int? CheckpointId { get; set; }
         public Checkpoint? Checkpoint { get; set; }
 
-        public int? ReceiptReferenceId { get; set; }
+                public int? ReceiptReferenceId { get; set; }
         public ReceiptReference? ReceiptReference { get; set; }
+
+        // ──────────────────────────────────────────────────────────
+        // Audit Reference Number
+        // ──────────────────────────────────────────────────────────
+        /// <summary>
+        /// Audit Reference No. — assigned only when the payment is successfully
+        /// recorded (becomes Paid). NULL for pending / failed / cancelled-before-payment.
+        /// Once assigned, the number is permanent and never reused, even if the
+        /// payment is later cancelled, so the auditor can trace the full history.
+        /// </summary>
+        public int? ReferenceNo { get; set; }
 
         // ──────────────────────────────────────────────────────────
         // Golis / Mobile-Money integration fields

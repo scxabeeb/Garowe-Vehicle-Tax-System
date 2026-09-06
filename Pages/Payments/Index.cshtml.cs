@@ -25,6 +25,14 @@ public class IndexModel : PageModel
     public DateTime? DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
 
+    // Additional auditor filters
+    public string? SearchSystemNo { get; set; }
+    public string? SearchRefNo { get; set; }
+    public string? SearchInvoice { get; set; }
+    public string? SearchReceipt { get; set; }
+    public string? SearchGolis { get; set; }
+    public string? SearchCollector { get; set; }
+
     public int TotalRecords { get; set; }
 
     public IndexModel(AppDbContext context)
@@ -32,7 +40,8 @@ public class IndexModel : PageModel
         _context = context;
     }
 
-    public async Task OnGetAsync(int pageIndex = 1, int pageSize = 10, string? searchPlate = null, string? paymentStatus = "all", DateTime? dateFrom = null, DateTime? dateTo = null)
+    public async Task OnGetAsync(int pageIndex = 1, int pageSize = 10, string? searchPlate = null, string? paymentStatus = "all", DateTime? dateFrom = null, DateTime? dateTo = null,
+        string? searchSystemNo = null, string? searchRefNo = null, string? searchInvoice = null, string? searchReceipt = null, string? searchGolis = null, string? searchCollector = null)
     {
         PageIndex = pageIndex;
         PageSize = pageSize;
@@ -40,18 +49,54 @@ public class IndexModel : PageModel
         PaymentStatus = paymentStatus ?? "all";
         DateFrom = dateFrom;
         DateTo = dateTo;
+        SearchSystemNo = searchSystemNo;
+        SearchRefNo = searchRefNo;
+        SearchInvoice = searchInvoice;
+        SearchReceipt = searchReceipt;
+        SearchGolis = searchGolis;
+        SearchCollector = searchCollector;
 
         // Build query
         var query = _context.Payments
             .Include(p => p.Vehicle)
             .Include(p => p.Collector)
-            .Include(p => p.Movement)
+            .Include(p => p.Movement).ThenInclude(m => m!.RevenueAccount)
             .AsQueryable();
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(SearchPlate))
         {
             query = query.Where(p => p.Vehicle != null && p.Vehicle.PlateNumber.Contains(SearchPlate));
+        }
+
+        // System No./ID — exact or partial numeric match
+        if (int.TryParse(SearchSystemNo, out var sysNo))
+        {
+            query = query.Where(p => p.Id == sysNo);
+        }
+
+        // Ref No. — exact numeric match (Ref is system-generated, never typed by users;
+        // this filter is for the auditor to look a reference up)
+        if (int.TryParse(SearchRefNo, out var refNo))
+        {
+            query = query.Where(p => p.ReferenceNo == refNo);
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchInvoice))
+        {
+            query = query.Where(p => p.InvoiceNumber.Contains(SearchInvoice));
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchGolis))
+        {
+            query = query.Where(p => p.TransactionId != null && p.TransactionId.Contains(SearchGolis));
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchCollector))
+        {
+            query = query.Where(p => p.Collector != null &&
+                ((p.Collector.Username != null && p.Collector.Username.Contains(SearchCollector)) ||
+                 (p.Collector.FullName != null && p.Collector.FullName.Contains(SearchCollector))));
         }
 
         if (PaymentStatus == "paid")
@@ -82,7 +127,9 @@ public class IndexModel : PageModel
 
         List<Payment> pagePayments;
 
-        if (PageSize == -1) // -1 means ALL
+        var filterByReceipt = !string.IsNullOrWhiteSpace(SearchReceipt);
+
+        if (PageSize == -1 || filterByReceipt) // -1 means ALL; receipt filter needs computed values before paging
         {
             TotalPages = 1;
             pagePayments = await query
@@ -104,13 +151,25 @@ public class IndexModel : PageModel
         foreach (var p in pagePayments)
         {
             var receiptNumber = await BuildReceiptNumberAsync(p.Id, p.PaidAt, p.IsPaid, p.IsReverted, p.ReceiptReferenceId);
+
+            // Receipt No. filter applies to the computed receipt string
+            if (filterByReceipt &&
+                !receiptNumber.Contains(SearchReceipt!, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             Payments.Add(new PaymentRecord
             {
                 Id = p.Id,
+                ReferenceNo = p.ReferenceNo,
                 InvoiceId = p.InvoiceNumber,
                 GolisBillNo = p.TransactionId,
                 PlateNumber = p.Vehicle?.PlateNumber ?? "N/A",
                 OwnerName = p.Vehicle?.OwnerName ?? "N/A",
+                Account = p.Movement?.RevenueAccount == null
+                    ? null
+                    : $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}",
                 Amount = p.Amount,
                 PaidAt = p.PaidAt,
                 MovementType = p.MovementType,
@@ -120,6 +179,13 @@ public class IndexModel : PageModel
                 IsReverted = p.IsReverted,
                 IsPaid = p.IsPaid
             });
+        }
+
+        // Recompute pagination when the receipt filter reduced the result set
+        if (filterByReceipt)
+        {
+            TotalRecords = Payments.Count;
+            TotalPages = 1;
         }
     }
 
@@ -150,10 +216,12 @@ public class IndexModel : PageModel
     public class PaymentRecord
     {
         public int Id { get; set; }
+        public int? ReferenceNo { get; set; }
         public string InvoiceId { get; set; } = string.Empty;
         public string? GolisBillNo { get; set; }
         public string PlateNumber { get; set; } = string.Empty;
         public string OwnerName { get; set; } = string.Empty;
+        public string? Account { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaidAt { get; set; }
         public string MovementType { get; set; } = string.Empty;

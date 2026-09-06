@@ -1,0 +1,228 @@
+@page
+@model VehicleTax.Web.Pages.Finance.Rf.DetailsModel
+@{
+    ViewData["Title"] = $"RF {Model.Rf?.RfNumber}";
+    Layout = "_Layout";
+    var rf = Model.Rf!;
+    var totalsMatch = Model.PaymentSum == rf.TotalAmount;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="mb-0">RF NUMBER: @rf.RfNumber</h2>
+            <div class="text-muted">@AppTime.ToLocal(rf.RfDate).ToString("dd MMMM yyyy")</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-page="/Finance/Rf/Index">← RF History</a>
+            <a class="btn btn-outline-primary" asp-page="/Finance/Index" asp-route-date="@AppTime.ToLocal(rf.RfDate).ToString("yyyy-MM-dd")">Finance Dashboard</a>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger"><strong>FMIS Error:</strong> @Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-success">@Model.Message</div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">RF DOCUMENT</div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-5 col-md-3">RF Number</dt>
+                        <dd class="col-7 col-md-9 fw-bold">@rf.RfNumber</dd>
+                        <dt class="col-5 col-md-3">RF Date</dt>
+                        <dd class="col-7 col-md-9">@AppTime.ToLocal(rf.RfDate).ToString("dd MMMM yyyy")</dd>
+                        <dt class="col-5 col-md-3">Prepared By</dt>
+                        <dd class="col-7 col-md-9">@(rf.PreparedBy?.FullName ?? rf.PreparedBy?.Username ?? "-")</dd>
+                        <dt class="col-5 col-md-3">Financial Account</dt>
+                        <dd class="col-7 col-md-9">@Model.AccountName</dd>
+                        <dt class="col-5 col-md-3">Payment Period</dt>
+                        <dd class="col-7 col-md-9">@AppTime.ToLocal(rf.PeriodFrom ?? AppTime.Today).ToString("dd MMM yyyy") – @AppTime.ToLocal(rf.PeriodTo ?? AppTime.Today).ToString("dd MMM yyyy")</dd>
+                        <dt class="col-5 col-md-3">Number of Transactions</dt>
+                        <dd class="col-7 col-md-9">@rf.TotalTransactions</dd>
+                        <dt class="col-5 col-md-3">Total Amount</dt>
+                        <dd class="col-7 col-md-9 fs-5 fw-bold">$@rf.TotalAmount.ToString("N2")</dd>
+                        <dt class="col-5 col-md-3">Status</dt>
+                        <dd class="col-7 col-md-9">
+                            <span class="badge @(rf.Status == RfStatus.Transferred ? "bg-success" : rf.Status == RfStatus.Cancelled ? "bg-danger" : rf.Status == RfStatus.ReadyForFmis ? "bg-info text-dark" : "bg-warning text-dark")">
+                                @rf.Status
+                            </span>
+                        </dd>
+                        <dt class="col-5 col-md-3">FMIS Status</dt>
+                        <dd class="col-7 col-md-9">
+                            <span class="badge @(rf.FmisStatus == FmisTransferStatus.Transferred ? "bg-success" : rf.FmisStatus == FmisTransferStatus.Failed ? "bg-danger" : "bg-secondary")">
+                                @rf.FmisStatus
+                            </span>
+                        </dd>
+                        @if (!string.IsNullOrEmpty(rf.FmisBatchNumber))
+                        {
+                            <dt class="col-5 col-md-3">FMIS Batch No.</dt>
+                            <dd class="col-7 col-md-9 fw-bold">@rf.FmisBatchNumber</dd>
+                        }
+                        @if (rf.TransferredAt.HasValue)
+                        {
+                            <dt class="col-5 col-md-3">Transferred At</dt>
+                            <dd class="col-7 col-md-9">@AppTime.ToLocal(rf.TransferredAt.Value).ToString("dd MMM yyyy HH:mm")</dd>
+                            <dt class="col-5 col-md-3">Transferred By</dt>
+                            <dd class="col-7 col-md-9">@(rf.TransferredBy?.FullName ?? rf.TransferredBy?.Username ?? "-")</dd>
+                        }
+                        @if (rf.Status == RfStatus.Cancelled)
+                        {
+                            <dt class="col-5 col-md-3">Cancelled At</dt>
+                            <dd class="col-7 col-md-9">@(rf.CancelledAt.HasValue ? AppTime.ToLocal(rf.CancelledAt.Value).ToString("dd MMM yyyy HH:mm") : "-")</dd>
+                            <dt class="col-5 col-md-3">Cancellation Reason</dt>
+                            <dd class="col-7 col-md-9 text-danger">@rf.CancellationReason</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">FMIS TRANSFER</div>
+                <div class="card-body">
+                    @if (rf.Status == RfStatus.Transferred)
+                    {
+                        <div class="alert alert-success py-2">
+                            <strong>Transferred.</strong><br />
+                            Batch No.: @rf.FmisBatchNumber<br />
+                            At: @(rf.TransferredAt.HasValue ? AppTime.ToLocal(rf.TransferredAt.Value).ToString("dd MMM yyyy HH:mm") : "-")<br />
+                            By: @(rf.TransferredBy?.FullName ?? rf.TransferredBy?.Username ?? "-")
+                        </div>
+                    }
+                    else if (rf.Status == RfStatus.Cancelled)
+                    {
+                        <div class="alert alert-danger py-2 mb-2">This RF is <strong>cancelled</strong>. The record is preserved for audit.</div>
+                    }
+                    else
+                    {
+                        @if (rf.FmisStatus == FmisTransferStatus.Failed)
+                        {
+                            <div class="alert alert-danger py-2">
+                                <strong>Previous transfer failed:</strong><br />@rf.FmisResponse
+                                <hr class="my-2" />
+                                You can retry below — no second RF will be created.
+                            </div>
+                        }
+                        <div class="d-grid gap-2">
+                            <a class="btn btn-outline-secondary" asp-page="/Finance/Rf/Details"
+                               asp-page-handler="Export" asp-route-number="@rf.RfNumber">
+                                ⬇ Download FMIS Export
+                            </a>
+                            <form method="post" asp-page-handler="ConfirmManual" asp-route-number="@rf.RfNumber"
+                                  onsubmit="return confirm('Confirm that this batch was manually posted to FMIS?');">
+                                <button type="submit" class="btn btn-success w-100">✔ Confirm Manual FMIS Post</button>
+                            </form>
+                            <form method="post" asp-page-handler="Transfer" asp-route-number="@rf.RfNumber"
+                                  onsubmit="return confirm('Send this RF batch to FMIS now?');">
+                                <button type="submit" class="btn btn-primary w-100">⟳ Transfer to FMIS (Live)</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        @if (!totalsMatch)
+        {
+            <div class="alert alert-warning">
+                <strong>Validation:</strong> Payment sum $@Model.PaymentSum.ToString("N2") does not match RF total $@rf.TotalAmount.ToString("N2") — FMIS transfer is blocked.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success py-2">
+                ✓ Validation passed: @rf.Payments.Count payment(s) totalling $@Model.PaymentSum.ToString("N2") exactly match the RF total.
+            </div>
+        }
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">RF PAYMENT DETAILS (@rf.Payments.Count)</div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light"><tr>
+                        <th>#</th><th>Ref No.</th><th>Payment ID</th><th>Invoice ID</th>
+                        <th class="text-end">Amount</th><th>Paid At</th><th>Collector</th>
+                    </tr></thead>
+                    <tbody>
+                    @{ var i = 1; }
+                    @foreach (var p in rf.Payments.OrderBy(p => p.ReferenceNo ?? p.Id))
+                    {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td>@(p.ReferenceNo?.ToString() ?? "-")</td>
+                            <td>@p.PaymentId</td>
+                            <td>@(p.InvoiceNumber ?? "-")</td>
+                            <td class="text-end">$@p.Amount.ToString("N2")</td>
+                            <td>@AppTime.ToLocal(p.PaidAt).ToString("dd MMM HH:mm")</td>
+                            <td>@(p.CollectBy ?? "-")</td>
+                        </tr>
+                    }
+                    </tbody>
+                    <tfoot class="table-light fw-bold"><tr>
+                        <td colspan="4">TOTAL (@rf.Payments.Count payments)</td>
+                        <td class="text-end">$@Model.PaymentSum.ToString("N2")</td>
+                        <td colspan="2"></td>
+                    </tr></tfoot>
+                </table>
+            </div>
+        </div>
+
+        @if (rf.Status != RfStatus.Transferred && rf.Status != RfStatus.Cancelled)
+        {
+            <div class="card shadow-sm mb-4 border-danger">
+                <div class="card-body">
+                    <form method="post" asp-page-handler="Cancel" asp-route-number="@rf.RfNumber" class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label class="form-label small mb-0">Cancellation reason</label>
+                            <input class="form-control" name="reason" placeholder="Reason for cancelling this RF" />
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-danger w-100"
+                                    onclick="return confirm('Cancel @rf.RfNumber? The RF record will be preserved for audit; its payments will be released for a future RF.');">
+                                Cancel RF
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold">AUDIT TRAIL</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light"><tr>
+                        <th>When</th><th>Action</th><th>Status Change</th><th>By</th><th>Details</th>
+                    </tr></thead>
+                    <tbody>
+                    @foreach (var log in rf.AuditLogs.OrderBy(l => l.ActionAt))
+                    {
+                        <tr>
+                            <td>@AppTime.ToLocal(log.ActionAt).ToString("dd MMM yyyy HH:mm")</td>
+                            <td class="fw-semibold">@log.Action</td>
+                            <td>
+                                @(log.FromStatus.HasValue ? $"{log.FromStatus} → {log.ToStatus}" : (log.ToStatus.HasValue ? log.ToStatus.ToString() : "-"))
+                            </td>
+                            <td>@(log.ByUser?.FullName ?? log.ByUser?.Username ?? "-")</td>
+                            <td>@log.Details</td>
+                        </tr>
+                    }
+                    @if (!rf.AuditLogs.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-3">No audit entries.</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+</div>
+

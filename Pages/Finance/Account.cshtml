@@ -1,0 +1,145 @@
+@page
+@model VehicleTax.Web.Pages.Finance.AccountModel
+@{
+    ViewData["Title"] = "Account Detail";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="mb-0">@Model.AccountName</h2>
+            <div class="text-muted">@Model.Date?.ToString("dd MMMM yyyy")</div>
+        </div>
+        <a class="btn btn-outline-secondary" asp-page="/Finance/Index" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")">← Back to Dashboard</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Transactions</div>
+                <div class="fs-3 fw-bold">@Model.Transactions</div>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Total</div>
+                <div class="fs-3 fw-bold">$@Model.Total.ToString("N2")</div>
+            </div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm"><div class="card-body">
+                <div class="text-muted small">Eligible for new RF</div>
+                <div class="fs-3 fw-bold text-success">@Model.Rows.Count(r => r.Eligible)</div>
+            </div></div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-success">@Model.Message</div>
+    }
+
+    <form method="post" asp-page-handler="GenerateRf"
+          asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+          asp-route-accountId="@Model.AccountId"
+          id="rfForm">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span>Payments — select for RF</span>
+                <span class="small text-muted" id="selInfo"></span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light"><tr>
+                        <th style="width:36px"><input type="checkbox" class="form-check-input" id="checkAll" /></th>
+                        <th>Ref No.</th><th>Payment ID</th><th>Receipt</th>
+                        <th class="text-end">Amount</th><th>Collector</th><th>Status</th>
+                    </tr></thead>
+                    <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr class="@(!r.Eligible ? "table-light" : "")">
+                            <td>
+                                @if (r.Eligible)
+                                {
+                                    <input type="checkbox" class="form-check-input sel-payment"
+                                           name="SelectedPayments" value="@r.PaymentId" />
+                                }
+                            </td>
+                            <td>@(r.ReferenceNo?.ToString() ?? "-")</td>
+                            <td>@r.PaymentId</td>
+                            <td>@(r.ReceiptNo ?? "-")</td>
+                            <td class="text-end">$@r.Amount.ToString("N2")</td>
+                            <td>@(r.Collector ?? "-")</td>
+                            <td>
+                                @if (r.Eligible)
+                                {
+                                    <span class="badge bg-success">Paid</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info text-dark">In @r.RfNumber</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">No paid payments for this account on this date.</td></tr>
+                    }
+                    </tbody>
+                    <tfoot class="table-light fw-bold"><tr>
+                        <td colspan="4">Selected total</td>
+                        <td class="text-end" id="selTotal">$0.00</td>
+                        <td colspan="2"></td>
+                    </tr></tfoot>
+                </table>
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-end gap-2">
+                <a class="btn btn-outline-secondary" asp-page="/Finance/Account"
+                   asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+                   asp-route-accountId="@Model.AccountId">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="btnGenerate"
+                        onclick="return confirm('Generate an RF for the selected payments? Totals will be recalculated from the payment records.');">
+                    Generate RF
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        var amounts = {};
+        @foreach (var r in Model.Rows)
+        {
+            @:amounts[@r.PaymentId] = @r.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        function refresh() {
+            var total = 0, count = 0;
+            document.querySelectorAll('.sel-payment:checked').forEach(function (cb) {
+                total += amounts[cb.value] || 0; count++;
+            });
+            document.getElementById('selTotal').textContent = '$' + total.toFixed(2);
+            document.getElementById('selInfo').textContent = count + ' selected';
+        }
+        document.querySelectorAll('.sel-payment').forEach(function (cb) {
+            cb.addEventListener('change', refresh);
+        });
+        var all = document.getElementById('checkAll');
+        if (all) all.addEventListener('change', function () {
+            document.querySelectorAll('.sel-payment').forEach(function (cb) {
+                if (!cb.disabled) cb.checked = all.checked;
+            });
+            refresh();
+        });
+        refresh();
+    })();
+</script>
+}

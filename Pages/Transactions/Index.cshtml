@@ -131,6 +131,7 @@
                 <table class="table table-bordered table-striped align-middle">
                     <thead class="table-dark">
                         <tr>
+                            <th>Ref No</th>
                             <th>Date</th>
                             <th>Plate</th>
                             <th>Car Type</th>
@@ -149,6 +150,7 @@
                         @foreach (var t in Model.Transactions)
                         {
                             <tr class="@(t.IsReverted ? "table-danger" : "")">
+                                <td>@(t.ReferenceNo?.ToString() ?? "-")</td>
                                 <td>@VehicleTax.Web.AppTime.ToLocal(t.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@t.Vehicle?.PlateNumber</td>
                                 <td>@t.Vehicle?.CarType?.Name</td>
