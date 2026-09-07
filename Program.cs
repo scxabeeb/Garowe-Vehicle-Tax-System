@@ -114,6 +114,10 @@ builder.Services.AddHttpClient("Fmis");
 builder.Services.AddScoped<VehicleTax.Web.Services.IRfNumberService, VehicleTax.Web.Services.RfNumberService>();
 builder.Services.AddScoped<VehicleTax.Web.Services.IFmisTransferService, VehicleTax.Web.Services.FmisTransferService>();
 
+// ── Permission management (RBAC) ──────────────────────────────────
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<VehicleTax.Web.Services.IPermissionService, VehicleTax.Web.Services.PermissionService>();
+
 // =========================
 // Session
 // =========================

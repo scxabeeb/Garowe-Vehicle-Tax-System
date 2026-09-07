@@ -1,0 +1,273 @@
+@page
+@model VehicleTax.Web.Pages.Account.ManagePermissionsModel
+@{
+    ViewData["Title"] = "Manage Permissions";
+    Layout = "_Layout";
+    var isUserScope = !Model.ByRole;
+}
+<style>
+    .pm-card { border-radius: .85rem; box-shadow: 0 .15rem .6rem rgba(15,23,42,.08); }
+    .pm-module { font-weight: 700; color: #0f2b73; }
+    .pm-badge { font-size: .7rem; font-weight: 600; }
+    .pm-badge.granted, .pm-badge.allow { background: #e7f6ec; color: #16803c; }
+    .pm-badge.inherit { background: #eef3ff; color: #1f4ed3; }
+    .pm-badge.deny { background: #fdeaea; color: #b3261e; }
+    .pm-critical { color: #b3261e; }
+    .pm-col-header { font-size: .72rem; color: #64748b; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="mb-0"><i class="bi bi-sliders me-2"></i>Manage Permissions</h2>
+            <div class="text-muted">Granular access control — Module · Page · Action</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-page="/Account/PermissionHistory">
+                <i class="bi bi-clock-history me-1"></i> Change History</a>
+            <a class="btn btn-outline-secondary" asp-page="/Account/Users">← Users</a>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>@Model.Message</div>
+    }
+
+    <!-- Scope switcher -->
+    <div class="card pm-card mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <span class="fw-semibold me-1">Manage by:</span>
+                <div class="btn-group btn-group-sm">
+                    <a asp-page="/Account/ManagePermissions" asp-route-role="@Model.ActiveRole"
+                       class="btn @(isUserScope ? "btn-outline-primary" : "btn-primary")">Role</a>
+                    <a asp-page="/Account/ManagePermissions" asp-route-userId="@Model.ActiveUser?.Id"
+                       class="btn @(isUserScope ? "btn-primary" : "btn-outline-primary")">User</a>
+                </div>
+            </div>
+            @if (isUserScope)
+            {
+                <form method="get" class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                    <label class="small mb-0 me-1">User:</label>
+                    <select class="form-select form-select-sm" name="userId">
+                        @foreach (var u in Model.Users)
+                        {
+                            <option value="@u.Id" selected="@(u.Id == Model.ActiveUser?.Id)">
+                                @u.Username · @u.Role</option>
+                        }
+                    </select>
+                    <input class="form-control form-control-sm" type="search" name="userSearch"
+                           placeholder="🔍 Search users…" style="width:180px" />
+                    <button class="btn btn-sm btn-primary" type="submit">Select</button>
+                </form>
+            }
+            else
+            {
+                <form method="get" class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                    <label class="small mb-0 me-1">Role:</label>
+                    <select class="form-select form-select-sm" name="role">
+                        @foreach (var r in Model.Roles)
+                        {
+                            <option value="@r" selected="@(r == Model.ActiveRole)">@r</option>
+                        }
+                    </select>
+                    <input class="form-control form-control-sm" type="search" name="roleSearch"
+                           placeholder="🔍 Search role…" style="width:160px" />
+                    <button class="btn btn-sm btn-primary" type="submit">Edit Role</button>
+                </form>
+            }
+        </div>
+<form method="post" id="permForm"
+          asp-page-handler="@Model.FormHandler"
+          asp-route-role="@Model.ActiveRole"
+          asp-route-userId="@Model.ActiveUserId"
+          onsubmit="return beforeSave()">
+<div class="card pm-card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2">
+            <span class="fw-semibold">@Model.ScopeTitle</span>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge pm-badge inherit">Inherited</span>
+                <span class="badge pm-badge granted">Granted</span>
+                @if (Model.IsUserScope)
+                {
+                    <span class="badge pm-badge allow">Allow</span>
+                    <span class="badge pm-badge deny">Deny</span>
+                }
+                <span id="unsaved" class="text-muted" style="font-size:.78rem">No changes</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetAll()">Reset</button>
+                <button type="submit" class="btn btn-primary btn-sm"
+                        onclick="return confirm('Save these permission changes? This takes effect immediately.')">
+                    <i class="bi bi-check2 me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <input type="search" class="form-control form-control-sm" id="matrixSearch"
+                       placeholder="Search pages and permissions" style="width:300px"
+                       oninput="applySearch(this.value)" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="expandAll(true)">Expand all</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="expandAll(false)">Collapse all</button>
+            </div>
+
+            <div class="row g-0 border-bottom small fw-semibold py-1 px-1 text-muted bg-light">
+                <div class="col-3 ps-2">Page</div>
+                <div class="col text-center">View</div>
+                <div class="col text-center">Create</div>
+                <div class="col text-center">Edit</div>
+                <div class="col text-center">Delete</div>
+                <div class="col text-center">Approve/Cancel</div>
+                <div class="col text-center">Export/Print</div>
+                <div class="col text-center">Manage</div>
+            </div>
+
+            @foreach (var m in Model.Modules)
+            {
+                <div class="pm-module-block mt-1 border rounded" data-module="@m.Name">
+                    <div class="d-flex align-items-center gap-2 py-1 px-2 bg-light border-bottom">
+                        <button type="button" class="btn btn-sm btn-link p-0" onclick="toggleBlock(this)">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <span class="pm-module"><i class="bi @m.Icon me-1"></i>@m.Name</span>
+                        @if (!Model.IsUserScope)
+                        {
+                            <span class="ms-auto small">
+                                <a href="javascript:void(0)" class="text-primary" onclick="moduleSet('@m.Name', true)">Select all</a>
+                                <span class="mx-1">|</span>
+                                <a href="javascript:void(0)" class="text-danger" onclick="moduleSet('@m.Name', false)">Clear all</a>
+                            </span>
+                        }
+                    </div>
+                    <div class="pm-block-body">
+                        @foreach (var p in m.Pages)
+                        {
+                            <div class="row g-0 border-bottom align-items-center py-1"
+                                 data-page="@m.Name - @p.Name">
+                                <div class="col-3 ps-2 small fw-semibold">@p.Name</div>
+                                @foreach (var a in p.Actions)
+                                {
+                                    <div class="col d-flex flex-column align-items-center gap-1"
+                                         data-key="@a.Key" data-critical="@(a.Critical ? 1 : 0)">
+                                        @{ var selInherit = a.Selected == "inherit" ? "selected" : ""; var selGrant = a.Selected == "grant" ? "selected" : ""; var selDeny = a.Selected == "deny" ? "selected" : ""; var lblInherit = Model.IsUserScope ? "Inherit" : "None"; var lblGrant = Model.IsUserScope ? "Allow" : "Grant"; var optInherit = $"<option value=\"inherit\"{selInherit}>{lblInherit}</option>"; var optGrant = $"<option value=\"grant\"{selGrant}>{lblGrant}</option>"; var optDeny = $"<option value=\"deny\"{selDeny}>Deny</option>"; }
+                                        <select class="form-select form-select-sm" style="max-width:112px"
+                                                data-key="@a.Key" data-user="@(Model.IsUserScope ? 1 : 0)"
+                                                onchange="ctlChanged(this)">
+                                            @Html.Raw(optInherit)
+                                            @Html.Raw(optGrant)
+                                            @if (Model.IsUserScope)
+                                            {
+                                                @Html.Raw(optDeny)
+                                            }
+                                        </select>
+                                        <span class="pm-badge badge @a.BadgeClass">@a.BadgeText</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+    function ctlChanged(sel) {
+        var key = sel.dataset.key;
+        var val = sel.value;
+        var cell = sel.parentElement;
+        var badge = cell.querySelector('.pm-badge');
+
+        var cls = val === 'grant' ? 'granted' : val === 'deny' ? 'deny' : 'inherit';
+        var txt = val === 'grant' ? (sel.dataset.user === '1' ? 'Allow' : 'Granted')
+                : val === 'deny' ? 'Deny' : 'Inherited';
+        badge.className = 'pm-badge badge ' + cls;
+        badge.textContent = txt;
+
+        markDirty(true);
+        if (val === 'inherit' && sel.dataset.critical === '1') {
+            alert('Warning: you are revoking a critical administrative permission.');
+        }
+    }
+
+    function markDirty(on) {
+        var el = document.getElementById('unsaved');
+        if (el) {
+            el.textContent = on ? '● Unsaved changes' : 'No changes';
+            el.style.fontWeight = on ? '700' : '400';
+            el.style.color = on ? '#b3261e' : '';
+        }
+    }
+
+    function beforeSave() {
+        var form = document.getElementById('permForm');
+        form.querySelectorAll('input[name="selected"], input[name^="overrideMap"]').forEach(function (n) { n.remove(); });
+        var isUser = (document.querySelector('.pm-module-block select')?.dataset.user === '1');
+        var submits = form.querySelectorAll('select[data-key]');
+        var count = 0;
+        submits.forEach(function (sel) {
+            var key = sel.dataset.key;
+            var val = sel.value;
+            if (val === 'inherit') return;
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            if (isUser) {
+                // user scope: only send the changed (non-inherit) ones
+                if (sel.dataset.original !== undefined && sel.dataset.original === val) return;
+                input.name = 'overrideMap[' + key + ']';
+                input.value = val === 'grant' ? '2' : '3';
+            } else {
+                input.name = 'selected';
+                input.value = key;
+                count++;
+            }
+            form.appendChild(input);
+        });
+        return isUser ? confirm('Apply these user permission overrides? This takes effect immediately.') : true;
+    }
+
+    function resetAll() { window.location.reload(); }
+
+    function toggleBlock(btn) {
+        var body = btn.closest('.pm-module-block').querySelector('.pm-block-body');
+        var hidden = body.style.display === 'none';
+        body.style.display = hidden ? '' : 'none';
+        btn.querySelector('i').className = hidden ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+    }
+    function expandAll(expand) {
+        document.querySelectorAll('.pm-module-block').forEach(function (b) {
+            var body = b.querySelector('.pm-block-body');
+            body.style.display = expand ? '' : 'none';
+            var icon = b.querySelector('button.btn-link i');
+            if (icon) icon.className = expand ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+        });
+    }
+    function applySearch(term) {
+        term = (term || '').toLowerCase();
+        document.querySelectorAll('.pm-module-block').forEach(function (b) {
+            var visible = 0;
+            b.querySelectorAll('.pm-block-body > .row[data-page]').forEach(function (row) {
+                var show = !term || row.dataset.page.toLowerCase().includes(term);
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            b.style.display = (visible > 0 || !term) ? '' : 'none';
+        });
+    }
+    function moduleSet(moduleName, on) {
+        document.querySelectorAll('.pm-module-block[data-module="' + moduleName + '"] select[data-key]').forEach(function (sel) {
+            sel.value = on ? 'grant' : 'inherit';
+            ctlChanged(sel);
+        });
+    }
+    // record original state for the unsaved-changes + on-submit handling
+    document.querySelectorAll('select[data-key]').forEach(function (sel) { sel.dataset.original = sel.value; });
+</script>
+}
+</div>

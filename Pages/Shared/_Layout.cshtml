@@ -213,6 +213,7 @@
                     var canReportsView = isAdmin || User.HasClaim("permission", "reports.view");
                     var canUserView = isAdmin || User.HasClaim("permission", "user.view");
                     var canUserCreate = isAdmin || User.HasClaim("permission", "user.create");
+                    var canManagePermissions = isAdmin || User.HasClaim("permission", "user.permissions");
                     var canRevenueAccountView = isAdmin || User.HasClaim("permission", "revenueaccount.view");
                     var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLowerInvariant();
 
@@ -355,6 +356,25 @@
                                            asp-page="/Account/UserSecurity">
                                             <i class="bi bi-shield-lock"></i>
                                             User Security
+                                        </a>
+                                    </li>
+                                }
+                                @if (canManagePermissions)
+                                {
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li class="menu-category">Roles &amp; Permissions</li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2"
+                                           asp-page="/Account/ManagePermissions">
+                                            <i class="bi bi-sliders"></i>
+                                            Manage Permissions
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2"
+                                           asp-page="/Account/PermissionHistory">
+                                            <i class="bi bi-clock-history"></i>
+                                            Permission Change History
                                         </a>
                                     </li>
                                 }

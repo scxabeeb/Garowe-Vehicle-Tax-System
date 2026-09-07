@@ -26,6 +26,9 @@ namespace VehicleTax.Web.Data
         public DbSet<RfPayment> RfPayments => Set<RfPayment>();
         public DbSet<RfAuditLog> RfAuditLogs => Set<RfAuditLog>();
         public DbSet<RfNumberSequence> RfNumberSequences => Set<RfNumberSequence>();
+        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+        public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
+        public DbSet<PermissionAuditLog> PermissionAuditLogs => Set<PermissionAuditLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -199,6 +202,30 @@ namespace VehicleTax.Web.Data
 
             // RfNumberSequence — single seed row (Id = 1) holds the running RF counter.
             // Seeded by migration + defensively by RfNumberService before each increment.
+
+            // ── Permission management (RBAC) ─────────────────────────
+            modelBuilder.Entity<RolePermission>()
+                .HasIndex(rp => new { rp.Role, rp.Permission })
+                .IsUnique();
+
+            modelBuilder.Entity<UserPermissionOverride>()
+                .HasIndex(uo => new { uo.UserId, uo.Permission })
+                .IsUnique();
+
+            modelBuilder.Entity<UserPermissionOverride>()
+                .HasOne(uo => uo.User)
+                .WithMany()
+                .HasForeignKey(uo => uo.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PermissionAuditLog>()
+                .HasOne(l => l.ByUser)
+                .WithMany()
+                .HasForeignKey(l => l.ByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<PermissionAuditLog>()
+                .HasIndex(l => new { l.TargetType, l.Target });
         }
     }
 }

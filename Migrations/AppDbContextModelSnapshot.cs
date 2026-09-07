@@ -356,6 +356,56 @@ namespace VehicleTax.Web.Migrations
                     b.ToTable("PaymentReferenceSequences");
                 });
 
+            modelBuilder.Entity("VehicleTax.Web.Models.PermissionAuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ActionAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("NewValue")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("OldValue")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Target")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ByUserId");
+
+                    b.HasIndex("TargetType", "Target");
+
+                    b.ToTable("PermissionAuditLogs");
+                });
+
             modelBuilder.Entity("VehicleTax.Web.Models.ReceiptReference", b =>
                 {
                     b.Property<int>("Id")
@@ -616,6 +666,30 @@ namespace VehicleTax.Web.Migrations
                     b.ToTable("RfPayments");
                 });
 
+            modelBuilder.Entity("VehicleTax.Web.Models.RolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Role", "Permission")
+                        .IsUnique();
+
+                    b.ToTable("RolePermissions");
+                });
+
             modelBuilder.Entity("VehicleTax.Web.Models.TaxAmount", b =>
                 {
                     b.Property<int>("Id")
@@ -684,6 +758,31 @@ namespace VehicleTax.Web.Migrations
                         .HasDatabaseName("IX_Users_Username");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.UserPermissionOverride", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("Effect")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Permission")
+                        .IsUnique();
+
+                    b.ToTable("UserPermissionOverrides");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.Vehicle", b =>
@@ -827,6 +926,16 @@ namespace VehicleTax.Web.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("VehicleTax.Web.Models.PermissionAuditLog", b =>
+                {
+                    b.HasOne("VehicleTax.Web.Models.User", "ByUser")
+                        .WithMany()
+                        .HasForeignKey("ByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ByUser");
+                });
+
             modelBuilder.Entity("VehicleTax.Web.Models.ReceiptReference", b =>
                 {
                     b.HasOne("VehicleTax.Web.Models.Vehicle", "Vehicle")
@@ -939,6 +1048,17 @@ namespace VehicleTax.Web.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Checkpoint");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.UserPermissionOverride", b =>
+                {
+                    b.HasOne("VehicleTax.Web.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.Vehicle", b =>
