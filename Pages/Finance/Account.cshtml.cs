@@ -128,7 +128,7 @@ public class AccountModel : PageModel
         Total = Rows.Sum(r => r.Amount);
     }
 
-    public async Task<IActionResult> OnPostGenerateRfAsync()
+    public async Task<IActionResult> OnPostGenerateRvAsync()
     {
         var denied = CheckFinance();
         if (denied != null) return denied;

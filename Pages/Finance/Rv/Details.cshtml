@@ -14,6 +14,9 @@
             <div class="text-muted">@AppTime.ToLocal(rv.RvDate).ToString("dd MMMM yyyy")</div>
         </div>
         <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print
+            </button>
             <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index">← RV History</a>
             <a class="btn btn-outline-primary" asp-page="/Finance/Index" asp-route-date="@AppTime.ToLocal(rv.RvDate).ToString("yyyy-MM-dd")">Finance Dashboard</a>
         </div>

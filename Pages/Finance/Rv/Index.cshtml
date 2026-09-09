@@ -8,7 +8,12 @@
 <div class="container-fluid py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <h2 class="mb-0">RV History</h2>
-        <a class="btn btn-outline-secondary" asp-page="/Finance/Index">← Finance Dashboard</a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print
+            </button>
+            <a class="btn btn-outline-secondary" asp-page="/Finance/Index">← Finance Dashboard</a>
+        </div>
     </div>
 
     <form method="get" class="card shadow-sm mb-4">
@@ -16,7 +21,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label small mb-0">RV Number</label>
-                    <input class="form-control" asp-for="RvNumber" placeholder="RF-000001" />
+                    <input class="form-control" asp-for="RvNumber" placeholder="RV-000001" />
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">RV Date</label>

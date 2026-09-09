@@ -11,14 +11,19 @@
             <h2 class="mb-0">Finance Dashboard</h2>
             <div class="text-muted">Today's Payments · Account Summary · RV Management · FMIS Transfers</div>
         </div>
-        <form method="get" class="d-flex gap-2 align-items-end">
-            <div>
-                <label class="form-label mb-0 small">Payment Date</label>
-                <input type="date" class="form-control" asp-for="Date" />
-            </div>
-            <button class="btn btn-primary" type="submit">Apply</button>
+        <div class="d-flex gap-2 align-items-end">
+            <form method="get" class="d-flex gap-2 align-items-end mb-0">
+                <div>
+                    <label class="form-label mb-0 small">Payment Date</label>
+                    <input type="date" class="form-control" asp-for="Date" />
+                </div>
+                <button class="btn btn-primary" type="submit">Apply</button>
+            </form>
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print
+            </button>
             <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index">RV History</a>
-        </form>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
@@ -37,7 +42,7 @@
         </div>
         <div class="col-md-6 col-xl-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">RFs (Prepared / Ready / Transferred)</div>
+                <div class="text-muted small">RVs (Prepared / Ready / Transferred)</div>
                 <div class="fs-3 fw-bold">@Model.RfPrepared / @Model.RfReadyForFmis / @Model.RfTransferred</div>
                 @if (Model.RfFailed > 0)
                 {
@@ -47,7 +52,7 @@
         </div>
         <div class="col-md-6 col-xl-3">
             <div class="card shadow-sm h-100 border-warning"><div class="card-body">
-                <div class="text-muted small">Not Yet Included in RF</div>
+                <div class="text-muted small">Not Yet Included in RV</div>
                 <div class="fs-3 fw-bold text-warning">@Model.NotYetInRf</div>
                 <div class="text-muted small">$@Model.NotYetInRfAmount.ToString("N2") remaining</div>
             </div></div>
@@ -104,9 +109,9 @@
                         <thead class="table-light"><tr><th>Stage</th><th class="text-end">Count</th><th class="text-end">Amount</th></tr></thead>
                         <tbody>
                             <tr><td>Paid Payments</td><td class="text-end">@Model.TotalPayments</td><td class="text-end">$@Model.TotalAmount.ToString("N2")</td></tr>
-                            <tr><td>Included in RF</td><td class="text-end">@Model.IncludedInRf</td><td class="text-end">$@Model.IncludedInRfAmount.ToString("N2")</td></tr>
+                            <tr><td>Included in RV</td><td class="text-end">@Model.IncludedInRf</td><td class="text-end">$@Model.IncludedInRfAmount.ToString("N2")</td></tr>
                             <tr><td>Transferred to FMIS</td><td class="text-end">@Model.TransferredTo_Fmis</td><td class="text-end">$@Model.TransferredTo_FmisAmount.ToString("N2")</td></tr>
-                            <tr class="table-warning fw-bold"><td>Remaining (needs RF)</td><td class="text-end">@Model.NotYetInRf</td><td class="text-end">$@Model.NotYetInRfAmount.ToString("N2")</td></tr>
+                            <tr class="table-warning fw-bold"><td>Remaining (needs RV)</td><td class="text-end">@Model.NotYetInRf</td><td class="text-end">$@Model.NotYetInRfAmount.ToString("N2")</td></tr>
                         </tbody>
                     </table>
                 </div>

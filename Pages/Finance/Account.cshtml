@@ -29,7 +29,7 @@
         </div>
         <div class="col-md-4">
             <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Eligible for new RF</div>
+                <div class="text-muted small">Eligible for new RV</div>
                 <div class="fs-3 fw-bold text-success">@Model.Rows.Count(r => r.Eligible)</div>
             </div></div>
         </div>
@@ -44,13 +44,13 @@
         <div class="alert alert-success">@Model.Message</div>
     }
 
-    <form method="post" asp-page-handler="GenerateRf"
+    <form method="post" asp-page-handler="GenerateRv"
           asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
           asp-route-accountId="@Model.AccountId"
-          id="rfForm">
+          id="rvForm">
         <div class="card shadow-sm">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-                <span>Payments — select for RF</span>
+                <span>Payments — select for RV</span>
                 <span class="small text-muted" id="selInfo"></span>
             </div>
             <div class="table-responsive">
@@ -106,7 +106,7 @@
                    asp-route-accountId="@Model.AccountId">Cancel</a>
                 <button type="submit" class="btn btn-primary" id="btnGenerate"
                         onclick="return confirm('Generate an RV for the selected payments? Totals will be recalculated from the payment records.');">
-                    Generate RF
+                    Generate RV
                 </button>
             </div>
         </div>
