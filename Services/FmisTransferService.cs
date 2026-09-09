@@ -29,9 +29,9 @@ namespace VehicleTax.Web.Services
     public interface IFmisTransferService
     {
         FmisTransferResult ManualNotConfigured();
-        string CreateFmisExport(RfDocument rf, string accountName, IReadOnlyList<string> lines);
-        Task<FmisTransferResult> PostToFmisAsync(RfDocument rf, string accountName, IReadOnlyList<string> lines, CancellationToken ct = default);
-        FmisTransferResult ConfirmManualTransfer(RfDocument rf, int? byUserId);
+        string CreateFmisExport(RvDocument rf, string accountName, IReadOnlyList<string> lines);
+        Task<FmisTransferResult> PostToFmisAsync(RvDocument rf, string accountName, IReadOnlyList<string> lines, CancellationToken ct = default);
+        FmisTransferResult ConfirmManualTransfer(RvDocument rf, int? byUserId);
     }
 
     public class FmisTransferService : IFmisTransferService
@@ -55,15 +55,15 @@ namespace VehicleTax.Web.Services
             };
         }
 
-        public string CreateFmisExport(RfDocument rf, string accountName, IReadOnlyList<string> lines)
+        public string CreateFmisExport(RvDocument rf, string accountName, IReadOnlyList<string> lines)
         {
             var sb = new StringBuilder();
             sb.AppendLine("FMIS_BATCH_UPLOAD");
-            sb.AppendLine($"RF_NUMBER,{rf.RfNumber}");
+            sb.AppendLine($"RF_NUMBER,{rf.RvNumber}");
             sb.AppendLine($"FMIS_BATCH_NUMBER,{(string.IsNullOrWhiteSpace(rf.FmisBatchNumber) ? "" : rf.FmisBatchNumber)}");
             sb.AppendLine($"ACCOUNT_CODE,{rf.RevenueAccount?.AccountCode ?? ""}");
             sb.AppendLine($"ACCOUNT_NAME,{accountName}");
-            sb.AppendLine($"BATCH_DATE,{AppTime.ToLocal(rf.RfDate).ToString(_options.DateFormat)}");
+            sb.AppendLine($"BATCH_DATE,{AppTime.ToLocal(rf.RvDate).ToString(_options.DateFormat)}");
             sb.AppendLine($"PERIOD_FROM,{(rf.PeriodFrom.HasValue ? AppTime.ToLocal(rf.PeriodFrom.Value).ToString(_options.DateFormat) : "")}");
             sb.AppendLine($"PERIOD_TO,{(rf.PeriodTo.HasValue ? AppTime.ToLocal(rf.PeriodTo.Value).ToString(_options.DateFormat) : "")}");
             sb.AppendLine($"TOTAL_TRANSACTIONS,{rf.TotalTransactions}");
@@ -77,7 +77,7 @@ namespace VehicleTax.Web.Services
             return sb.ToString();
         }
 
-        public async Task<FmisTransferResult> PostToFmisAsync(RfDocument rf, string accountName, IReadOnlyList<string> lines, CancellationToken ct = default)
+        public async Task<FmisTransferResult> PostToFmisAsync(RvDocument rf, string accountName, IReadOnlyList<string> lines, CancellationToken ct = default)
         {
             if (!_options.Enabled || string.IsNullOrWhiteSpace(_options.TransferEndpoint))
             {
@@ -87,11 +87,11 @@ namespace VehicleTax.Web.Services
             var fallbackBatch = $"FMIS-{AppTime.Now:yyyy}-{rf.Id:D6}";
             var payload = new Dictionary<string, object?>
             {
-                ["rfNumber"] = rf.RfNumber,
+                ["rfNumber"] = rf.RvNumber,
                 ["batchNumber"] = rf.FmisBatchNumber ?? fallbackBatch,
                 ["accountCode"] = rf.RevenueAccount?.AccountCode,
                 ["accountName"] = accountName,
-                ["batchDate"] = AppTime.ToLocal(rf.RfDate).ToString(_options.DateFormat),
+                ["batchDate"] = AppTime.ToLocal(rf.RvDate).ToString(_options.DateFormat),
                 ["periodFrom"] = rf.PeriodFrom.HasValue ? AppTime.ToLocal(rf.PeriodFrom.Value).ToString(_options.DateFormat) : null,
                 ["periodTo"] = rf.PeriodTo.HasValue ? AppTime.ToLocal(rf.PeriodTo.Value).ToString(_options.DateFormat) : null,
                 ["totalTransactions"] = rf.TotalTransactions,
@@ -131,7 +131,7 @@ namespace VehicleTax.Web.Services
         }
 
         /// <summary>Accountant has confirmed they manually posted the export to FMIS.</summary>
-        public FmisTransferResult ConfirmManualTransfer(RfDocument rf, int? byUserId)
+        public FmisTransferResult ConfirmManualTransfer(RvDocument rf, int? byUserId)
         {
             var batchNo = $"FMIS-{AppTime.Now:yyyy}-{rf.Id:D6}";
             return new FmisTransferResult

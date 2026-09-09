@@ -80,7 +80,9 @@ public class ManagePermissionsModel : PageModel
     public async Task<IActionResult> OnGetAsync(string? role = null, int? userId = null,
         string? message = null, string? error = null)
     {
-        ByRole = userId == null || userId! <= 0;
+        // User scope if userId >= 0 (specific user selected OR User toggle clicked).
+        // Role scope only when userId == null.
+        ByRole = !userId.HasValue; // true only when userId is null (Role scope)
         ActiveRole = ByRole ? (role ?? "Admin") : "";
         Message = message;
         ErrorMessage = error;
@@ -95,7 +97,10 @@ public class ManagePermissionsModel : PageModel
         }
         else
         {
-            ActiveUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var effectiveUserId = userId > 0 ? userId : (int?)null;
+            ActiveUser = effectiveUserId.HasValue
+                ? await _context.Users.FirstOrDefaultAsync(u => u.Id == effectiveUserId)
+                : Users.FirstOrDefault();
             if (ActiveUser == null)
             {
                 ByRole = true;
@@ -113,6 +118,7 @@ public class ManagePermissionsModel : PageModel
     private async Task BuildForRoleAsync(string role)
     {
         var grants = await _permissions.GetRoleGrantsAsync(role);
+        System.IO.File.AppendAllText("/tmp/vts_mp_debug.log", $"[{DateTime.UtcNow:O}] BuildForRole role={role} grants={string.Join(",", grants)}\n");
         foreach (var m in AppPermissions.Modules)
         {
             var mvm = new ModuleVM { Name = m.Name, Icon = m.Icon };
@@ -184,7 +190,7 @@ public class ManagePermissionsModel : PageModel
     public async Task<IActionResult> OnPostRoleSaveAsync(string role, List<string> selected)
     {
         await _permissions.SaveRolePermissionsAsync(role, selected ?? new List<string>(), User);
-        return RedirectToPage(new { role, userId = 0,
+        return RedirectToPage(new { role, userId = (int?)null,
             message = $"Permissions saved for role '{role}'." });
     }
 

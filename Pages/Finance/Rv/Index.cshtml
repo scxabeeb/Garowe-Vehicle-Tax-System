@@ -1,13 +1,13 @@
 @page
-@model VehicleTax.Web.Pages.Finance.Rf.IndexModel
+@model VehicleTax.Web.Pages.Finance.Rv.IndexModel
 @{
-    ViewData["Title"] = "RF History";
+    ViewData["Title"] = "RV History";
     Layout = "_Layout";
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h2 class="mb-0">RF History</h2>
+        <h2 class="mb-0">RV History</h2>
         <a class="btn btn-outline-secondary" asp-page="/Finance/Index">← Finance Dashboard</a>
     </div>
 
@@ -15,11 +15,11 @@
         <div class="card-body">
             <div class="row g-2 align-items-end">
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">RF Number</label>
-                    <input class="form-control" asp-for="RfNumber" placeholder="RF-000001" />
+                    <label class="form-label small mb-0">RV Number</label>
+                    <input class="form-control" asp-for="RvNumber" placeholder="RF-000001" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">RF Date</label>
+                    <label class="form-label small mb-0">RV Date</label>
                     <input type="date" class="form-control" asp-for="Date" />
                 </div>
                 <div class="col-md-3">
@@ -64,7 +64,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr>
-                    <th>RF Number</th><th>Date</th><th>Account</th>
+                    <th>RV Number</th><th>System ID</th><th>Date</th><th>Account</th>
                     <th class="text-end">Transactions</th><th class="text-end">Amount</th>
                     <th>Prepared By</th><th>Status</th><th>FMIS</th>
                 </tr></thead>
@@ -72,8 +72,9 @@
                 @foreach (var r in Model.Rows)
                 {
                     <tr>
-                        <td><a asp-page="/Finance/Rf/Details" asp-route-number="@r.RfNumber" class="fw-semibold">@r.RfNumber</a></td>
-                        <td>@AppTime.ToLocal(r.RfDate).ToString("dd MMM yyyy")</td>
+                        <td><a asp-page="/Finance/Rv/Details" asp-route-number="@r.RvNumber" class="fw-semibold">@r.RvNumber</a></td>
+                        <td><small class="text-muted font-monospace">@(r.SystemId?.Length > 12 ? r.SystemId[..12] + "…" : r.SystemId)</small></td>
+                        <td>@AppTime.ToLocal(r.RvDate).ToString("dd MMM yyyy")</td>
                         <td>@(r.Account ?? "-")</td>
                         <td class="text-end">@r.TotalTransactions</td>
                         <td class="text-end">$@r.TotalAmount.ToString("N2")</td>
@@ -96,7 +97,7 @@
                 }
                 @if (!Model.Rows.Any())
                 {
-                    <tr><td colspan="8" class="text-center text-muted py-4">No RF documents found.</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted py-4">No RV documents found.</td></tr>
                 }
                 </tbody>
             </table>

@@ -12,45 +12,45 @@ namespace VehicleTax.Web.Services
     /// Uses a dedicated single-row sequence table incremented atomically (row lock() so that
     /// concurrent accountants never receive duplicate or out-of-order numbers (no unsafe MAX+1(.
     /// </summary>
-    public interface IRfNumberService
+    public interface IRvNumberService
     {
-        string GetNextRfNumber();
+        string GetNextRvNumber();
     }
 
-    public class RfNumberService : IRfNumberService
+    public class RvNumberService : IRvNumberService
     {
         private readonly AppDbContext _context;
 
-        public RfNumberService(AppDbContext context)
+        public RvNumberService(AppDbContext context)
         {
             _context = context;
         }
 
-        public string GetNextRfNumber()
+        public string GetNextRvNumber()
         {
             using var tx = _context.Database.BeginTransaction(IsolationLevel.ReadCommitted);
 
             // Ensure the single seed row exists (idempotent)
             _context.Database.ExecuteSqlRaw(
-                @"INSERT IGNORE INTO RfNumberSequences (Id, LastRfNumber) VALUES (1, 0)");
+                @"INSERT IGNORE INTO RvNumberSequences (Id, LastRvNumber) VALUES (1, 0)");
 
             // Atomically increment under a row lock — concurrent callers serialize on this single row.
 
             _context.Database.ExecuteSqlRaw(
-                @"UPDATE RfNumberSequences
-                    SET LastRfNumber = LastRfNumber + 1,
+                @"UPDATE RvNumberSequences
+                    SET LastRvNumber = LastRvNumber + 1,
                         LastAssignedAt = NOW()
                   WHERE Id = 1");
 
-            var seq = _context.RfNumberSequences
-                .FromSqlRaw(@"SELECT Id, LastRfNumber, LastAssignedAt
-                              FROM RfNumberSequences WHERE Id = 1")
+            var seq = _context.RvNumberSequences
+                .FromSqlRaw(@"SELECT Id, LastRvNumber, LastAssignedAt
+                              FROM RvNumberSequences WHERE Id = 1")
                 .AsNoTracking()
                 .FirstOrDefault();
 
             tx.Commit();
 
-            return $"RF-{seq!.LastRfNumber:D6}";
+            return $"RF-{seq!.LastRvNumber:D6}";
         }
     }
 }

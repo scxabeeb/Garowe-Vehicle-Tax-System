@@ -7,7 +7,7 @@ using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using VehicleTax.Web.Services;
 
-namespace VehicleTax.Web.Pages.Finance.Rf;
+namespace VehicleTax.Web.Pages.Finance.Rv;
 
 /// <summary>
 /// RF document details — the Finance batch, its included payments, and the FMIS transfer
@@ -28,7 +28,7 @@ public class DetailsModel : PageModel
 
     public bool IsFinance { get; private set; }
 
-    public RfDocument? Rf { get; set; }
+    public RvDocument? Rv { get; set; }
     public string AccountName { get; set; } = "-";
     public decimal PaymentSum { get; set; }
     public string? Message { get; private set; }
@@ -54,7 +54,7 @@ public class DetailsModel : PageModel
 
     private async Task<bool> LoadAsync(string number)
     {
-        Rf = await _context.RfDocuments
+        Rv = await _context.RvDocuments
             .Include(r => r.RevenueAccount)
             .Include(r => r.PreparedBy)
             .Include(r => r.TransferredBy)
@@ -62,26 +62,26 @@ public class DetailsModel : PageModel
             .Include(r => r.CancelledBy)
             .Include(r => r.Payments).ThenInclude(rp => rp.Payment)
             .Include(r => r.AuditLogs).ThenInclude(l => l.ByUser)
-            .FirstOrDefaultAsync(r => r.RfNumber == number);
+            .FirstOrDefaultAsync(r => r.RvNumber == number);
 
-        if (Rf == null) return false;
+        if (Rv == null) return false;
 
-        AccountName = Rf.RevenueAccount == null
+        AccountName = Rv.RevenueAccount == null
             ? "-"
-            : $"{Rf.RevenueAccount.AccountCode} - {Rf.RevenueAccount.AccountName}";
+            : $"{Rv.RevenueAccount.AccountCode} - {Rv.RevenueAccount.AccountName}";
 
         // The RF total must exactly equal the sum of its included payments —
         // always verified from the actual payment records.
-        PaymentSum = Rf.Payments.Sum(p => p.Amount);
+        PaymentSum = Rv.Payments.Sum(p => p.Amount);
 
         return true;
     }
 
     private string FmisLine(string number) =>
-        Rf == null ? "" : _fmis.CreateFmisExport(Rf, AccountName, PaymentLines());
+        Rv == null ? "" : _fmis.CreateFmisExport(Rv, AccountName, PaymentLines());
 
     private List<string> PaymentLines() =>
-        Rf == null ? new List<string>() : Rf.Payments
+        Rv == null ? new List<string>() : Rv.Payments
             .OrderBy(p => p.ReferenceNo ?? p.Id)
             .Select(p => string.Join(',',
                 p.ReferenceNo?.ToString() ?? "-",
@@ -100,9 +100,9 @@ public class DetailsModel : PageModel
         var loaded = await LoadAsync(number);
         if (!loaded) return NotFound();
 
-        var content = _fmis.CreateFmisExport(Rf!, AccountName, PaymentLines());
+        var content = _fmis.CreateFmisExport(Rv!, AccountName, PaymentLines());
         return File(System.Text.Encoding.UTF8.GetBytes(content), "text/csv",
-            $"FMIS_{Rf!.RfNumber}.csv");
+            $"FMIS_{Rv!.RvNumber}.csv");
     }
 
     /// <summary>Advance RF status: Draft/Prepared → ReadyForFmis.</summary>
@@ -110,29 +110,29 @@ public class DetailsModel : PageModel
     {
         if (!CheckFinance()) return RedirectToPage("/Index");
         await LoadAsync(number);
-        if (Rf == null) return NotFound();
+        if (Rv == null) return NotFound();
 
-        if (Rf.Status is RfStatus.Transferred or RfStatus.Cancelled)
+        if (Rv.Status is RvStatus.Transferred or RvStatus.Cancelled)
         {
-            return RedirectToPage(new { number, error = $"RF {Rf.RfNumber} is {Rf.Status} and cannot be modified." });
+            return RedirectToPage(new { number, error = $"RF {Rv.RvNumber} is {Rv.Status} and cannot be modified." });
         }
 
         var user = await CurrentUserAsync();
-        Rf.Status = RfStatus.ReadyForFmis;
-        Rf.FmisStatus = FmisTransferStatus.ReadyForFmis;
-        Rf.UpdatedAt = DateTime.UtcNow;
-        Rf.UpdatedById = user?.Id;
-        Rf.AuditLogs.Add(new RfAuditLog
+        Rv.Status = RvStatus.ReadyForFmis;
+        Rv.FmisStatus = FmisTransferStatus.ReadyForFmis;
+        Rv.UpdatedAt = DateTime.UtcNow;
+        Rv.UpdatedById = user?.Id;
+        Rv.AuditLogs.Add(new RvAuditLog
         {
             Action = "Marked Ready for FMIS",
-            FromStatus = RfStatus.Prepared,
-            ToStatus = RfStatus.ReadyForFmis,
+            FromStatus = RvStatus.Prepared,
+            ToStatus = RvStatus.ReadyForFmis,
             ActionAt = DateTime.UtcNow,
             ByUserId = user?.Id
         });
         await _context.SaveChangesAsync();
 
-        return RedirectToPage(new { number, message = $"RF {Rf.RfNumber} is ready for FMIS transfer." });
+        return RedirectToPage(new { number, message = $"RF {Rv.RvNumber} is ready for FMIS transfer." });
     }
 
     /// <summary>
@@ -144,31 +144,31 @@ public class DetailsModel : PageModel
     {
         if (!CheckFinance()) return RedirectToPage("/Index");
         await LoadAsync(number);
-        if (Rf == null) return NotFound();
+        if (Rv == null) return NotFound();
 
         // Never transfer twice
-        if (Rf.Status == RfStatus.Transferred)
+        if (Rv.Status == RvStatus.Transferred)
         {
             return RedirectToPage(new { number, error = "This RF has already been transferred to FMIS. It cannot be transferred twice." });
         }
-        if (Rf.Status == RfStatus.Cancelled)
+        if (Rv.Status == RvStatus.Cancelled)
         {
             return RedirectToPage(new { number, error = "This RF is cancelled and cannot be transferred." });
         }
 
         // Validate before transfer
-        if (PaymentSum != Rf.TotalAmount || Rf.Payments.Count != Rf.TotalTransactions)
+        if (PaymentSum != Rv.TotalAmount || Rv.Payments.Count != Rv.TotalTransactions)
         {
             return RedirectToPage(new { number, error = "Amount totals do not match the included payments — transfer blocked." });
         }
 
         var user = await CurrentUserAsync();
-        Rf.Status = RfStatus.ReadyForFmis;
-        Rf.FmisStatus = FmisTransferStatus.ReadyForFmis;
+        Rv.Status = RvStatus.ReadyForFmis;
+        Rv.FmisStatus = FmisTransferStatus.ReadyForFmis;
 
-        var result = await _fmis.PostToFmisAsync(Rf, AccountName, PaymentLines());
+        var result = await _fmis.PostToFmisAsync(Rv, AccountName, PaymentLines());
 
-        Rf.AuditLogs.Add(new RfAuditLog
+        Rv.AuditLogs.Add(new RvAuditLog
         {
             Action = "FMIS Transfer Attempted",
             Details = result.Success ? "FMIS accepted the batch." : result.Message,
@@ -178,16 +178,16 @@ public class DetailsModel : PageModel
 
         if (result.Success)
         {
-            Rf.Status = RfStatus.Transferred;
-            Rf.FmisStatus = FmisTransferStatus.Transferred;
-            Rf.FmisBatchNumber = result.BatchNumber;
-            Rf.FmisResponse = result.Message;
-            Rf.TransferredAt = DateTime.UtcNow;
-            Rf.TransferredById = user?.Id;
-            Rf.AuditLogs.Add(new RfAuditLog
+            Rv.Status = RvStatus.Transferred;
+            Rv.FmisStatus = FmisTransferStatus.Transferred;
+            Rv.FmisBatchNumber = result.BatchNumber;
+            Rv.FmisResponse = result.Message;
+            Rv.TransferredAt = DateTime.UtcNow;
+            Rv.TransferredById = user?.Id;
+            Rv.AuditLogs.Add(new RvAuditLog
             {
                 Action = "FMIS Transferred",
-                ToStatus = RfStatus.Transferred,
+                ToStatus = RvStatus.Transferred,
                 Details = $"FMIS Batch No.: {result.BatchNumber}",
                 ActionAt = DateTime.UtcNow,
                 ByUserId = user?.Id
@@ -198,9 +198,9 @@ public class DetailsModel : PageModel
 
         if (!result.ManualMode)
         {
-            Rf.FmisStatus = FmisTransferStatus.Failed;
-            Rf.FmisResponse = result.Message;
-            Rf.AuditLogs.Add(new RfAuditLog
+            Rv.FmisStatus = FmisTransferStatus.Failed;
+            Rv.FmisResponse = result.Message;
+            Rv.AuditLogs.Add(new RvAuditLog
             {
                 Action = "FMIS Failed",
                 Details = result.Message,
@@ -211,7 +211,7 @@ public class DetailsModel : PageModel
             return RedirectToPage(new { number, error = $"FMIS transfer failed: {result.Message} You can retry — no second RF is created." });
         }
 
-        Rf.AuditLogs.Add(new RfAuditLog
+        Rv.AuditLogs.Add(new RvAuditLog
         {
             Action = "FMIS Manual Mode",
             Details = result.Message,
@@ -231,29 +231,29 @@ public class DetailsModel : PageModel
     {
         if (!CheckFinance()) return RedirectToPage("/Index");
         await LoadAsync(number);
-        if (Rf == null) return NotFound();
+        if (Rv == null) return NotFound();
 
-        if (Rf.Status == RfStatus.Transferred)
+        if (Rv.Status == RvStatus.Transferred)
         {
             return RedirectToPage(new { number, error = "This RF has already been transferred to FMIS." });
         }
-        if (Rf.Status == RfStatus.Cancelled)
+        if (Rv.Status == RvStatus.Cancelled)
         {
             return RedirectToPage(new { number, error = "This RF is cancelled and cannot be transferred." });
         }
 
         var user = await CurrentUserAsync();
-        var result = _fmis.ConfirmManualTransfer(Rf, user?.Id);
+        var result = _fmis.ConfirmManualTransfer(Rv, user?.Id);
 
-        Rf.Status = RfStatus.Transferred;
-        Rf.FmisStatus = FmisTransferStatus.Transferred;
-        Rf.FmisBatchNumber = result.BatchNumber;
-        Rf.TransferredAt = DateTime.UtcNow;
-        Rf.TransferredById = user?.Id;
-        Rf.AuditLogs.Add(new RfAuditLog
+        Rv.Status = RvStatus.Transferred;
+        Rv.FmisStatus = FmisTransferStatus.Transferred;
+        Rv.FmisBatchNumber = result.BatchNumber;
+        Rv.TransferredAt = DateTime.UtcNow;
+        Rv.TransferredById = user?.Id;
+        Rv.AuditLogs.Add(new RvAuditLog
         {
             Action = "FMIS Transferred (Manual Confirmation)",
-            ToStatus = RfStatus.Transferred,
+            ToStatus = RvStatus.Transferred,
             Details = $"Manually posted to FMIS by {user?.Username}. FMIS Batch No.: {result.BatchNumber}",
             ActionAt = DateTime.UtcNow,
             ByUserId = user?.Id
@@ -272,41 +272,41 @@ public class DetailsModel : PageModel
     {
         if (!CheckFinance()) return RedirectToPage("/Index");
         await LoadAsync(number);
-        if (Rf == null) return NotFound();
+        if (Rv == null) return NotFound();
 
-        if (Rf.Status == RfStatus.Transferred)
+        if (Rv.Status == RvStatus.Transferred)
         {
             return RedirectToPage(new { number, error = "A transferred RF cannot be cancelled." });
         }
-        if (Rf.Status == RfStatus.Cancelled)
+        if (Rv.Status == RvStatus.Cancelled)
         {
             return RedirectToPage(new { number, error = "This RF is already cancelled." });
         }
 
         var user = await CurrentUserAsync();
-        var fromStatus = Rf.Status;
-        Rf.Status = RfStatus.Cancelled;
-        Rf.CancelledAt = DateTime.UtcNow;
-        Rf.CancelledById = user?.Id;
-        Rf.CancellationReason = string.IsNullOrWhiteSpace(reason) ? "Cancelled by Finance" : reason;
-        Rf.UpdatedAt = DateTime.UtcNow;
-        Rf.UpdatedById = user?.Id;
+        var fromStatus = Rv.Status;
+        Rv.Status = RvStatus.Cancelled;
+        Rv.CancelledAt = DateTime.UtcNow;
+        Rv.CancelledById = user?.Id;
+        Rv.CancellationReason = string.IsNullOrWhiteSpace(reason) ? "Cancelled by Finance" : reason;
+        Rv.UpdatedAt = DateTime.UtcNow;
+        Rv.UpdatedById = user?.Id;
 
         // Release the payments so they can be included in a future RF
-        _context.RfPayments.RemoveRange(Rf.Payments);
+        _context.RvPayments.RemoveRange(Rv.Payments);
 
-        Rf.AuditLogs.Add(new RfAuditLog
+        Rv.AuditLogs.Add(new RvAuditLog
         {
             Action = "Cancelled",
             FromStatus = fromStatus,
-            ToStatus = RfStatus.Cancelled,
-            Details = $"{Rf.CancellationReason}. Payments released for future RF inclusion. RF record preserved.",
+            ToStatus = RvStatus.Cancelled,
+            Details = $"{Rv.CancellationReason}. Payments released for future RF inclusion. RF record preserved.",
             ActionAt = DateTime.UtcNow,
             ByUserId = user?.Id
         });
         await _context.SaveChangesAsync();
 
-        return RedirectToPage(new { number, message = $"RF {Rf.RfNumber} cancelled. The RF record is preserved; its payments are available for a new RF." });
+        return RedirectToPage(new { number, message = $"RF {Rv.RvNumber} cancelled. The RF record is preserved; its payments are available for a new RF." });
     }
 
     private async Task<User?> CurrentUserAsync()

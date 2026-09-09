@@ -56,7 +56,7 @@ public class IndexModel : PageModel
         public DateTime PaidAt { get; set; }
         public string Status { get; set; } = "Paid";
         public string FmisStatus { get; set; } = "Not Included";
-        public string? RfNumber { get; set; }
+        public string? RvNumber { get; set; }
     }
 
     public class AccountGroup
@@ -103,10 +103,10 @@ public class IndexModel : PageModel
 
         // Which payments are already included in an RF / transferred to FMIS?
         var paymentIds = payments.Select(p => p.Id).ToList();
-        var rfLinks = await _context.RfPayments
-            .Include(rp => rp.RfDocument)
+        var rfLinks = await _context.RvPayments
+            .Include(rp => rp.RvDocument)
             .Where(rp => paymentIds.Contains(rp.PaymentId))
-            .ToDictionaryAsync(rp => rp.PaymentId, rp => rp.RfDocument!);
+            .ToDictionaryAsync(rp => rp.PaymentId, rp => rp.RvDocument!);
 
         foreach (var p in payments)
         {
@@ -128,10 +128,10 @@ public class IndexModel : PageModel
                 Status = "Paid"
             };
 
-            if (rfLinks.TryGetValue(p.Id, out var rf) && rf.Status != RfStatus.Cancelled)
+            if (rfLinks.TryGetValue(p.Id, out var rf) && rf.Status != RvStatus.Cancelled)
             {
-                row.RfNumber = rf.RfNumber;
-                row.FmisStatus = rf.Status == RfStatus.Transferred
+                row.RvNumber = rf.RvNumber;
+                row.FmisStatus = rf.Status == RvStatus.Transferred
                     ? "Transferred"
                     : rf.FmisStatus == FmisTransferStatus.Failed
                         ? "FMIS Failed"
@@ -158,17 +158,17 @@ public class IndexModel : PageModel
             .ToList();
 
         // RF status counters for the selected date
-        var rfs = await _context.RfDocuments
-            .Where(r => r.RfDate >= dayStart && r.RfDate < dayEnd)
+        var rfs = await _context.RvDocuments
+            .Where(r => r.RvDate >= dayStart && r.RvDate < dayEnd)
             .ToListAsync();
-        RfPrepared = rfs.Count(r => r.Status == RfStatus.Prepared);
-        RfReadyForFmis = rfs.Count(r => r.Status == RfStatus.ReadyForFmis);
-        RfTransferred = rfs.Count(r => r.Status == RfStatus.Transferred);
+        RfPrepared = rfs.Count(r => r.Status == RvStatus.Prepared);
+        RfReadyForFmis = rfs.Count(r => r.Status == RvStatus.ReadyForFmis);
+        RfTransferred = rfs.Count(r => r.Status == RvStatus.Transferred);
         RfFailed = rfs.Count(r => r.FmisStatus == FmisTransferStatus.Failed);
 
         // Reconciliation — Paid → Included in RF → Transferred to FMIS
-        IncludedInRf = Payments.Count(x => x.RfNumber != null);
-        IncludedInRfAmount = Payments.Where(x => x.RfNumber != null).Sum(x => x.Amount);
+        IncludedInRf = Payments.Count(x => x.RvNumber != null);
+        IncludedInRfAmount = Payments.Where(x => x.RvNumber != null).Sum(x => x.Amount);
         TransferredTo_Fmis = Payments.Count(x => x.FmisStatus == "Transferred");
         TransferredTo_FmisAmount = Payments.Where(x => x.FmisStatus == "Transferred").Sum(x => x.Amount);
         NotYetInRf = TotalPayments - IncludedInRf;

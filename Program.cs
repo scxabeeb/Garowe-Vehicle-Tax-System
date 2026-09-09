@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using MySqlConnector;
 using VehicleTax.Web;
+using VehicleTax.Web.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -49,6 +51,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 // =========================
 builder.Services.AddAuthorization(options =>
 {
+    // Default "perm:*" policy — dynamically resolves any permission key
+    // from HasPermissionAttribute (which sets Policy = "perm:<key>").
+    options.AddPolicy("PermissionPolicy", policy =>
+        policy.AddRequirements(new PermissionRequirement("")));
+
+    // Backward-compatible named policies
     options.AddPolicy("CanViewDashboard", policy =>
         policy.RequireAssertion(context =>
             context.User.IsInRole("Admin") ||
@@ -57,6 +65,11 @@ builder.Services.AddAuthorization(options =>
         )
     );
 });
+
+// Register the permission authorization handler (scoped so it gets IPermissionService).
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+// Register the custom policy provider for "perm:*" policies.
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
 // =========================
 // Razor Pages secured by default
@@ -111,7 +124,7 @@ builder.Services.AddScoped<VehicleTax.Web.Services.IPaymentReferenceService, Veh
 // ── RF / FMIS (Finance) services ──────────────────────────────────
 builder.Services.Configure<VehicleTax.Web.Services.FmisOptions>(builder.Configuration.GetSection("Fmis"));
 builder.Services.AddHttpClient("Fmis");
-builder.Services.AddScoped<VehicleTax.Web.Services.IRfNumberService, VehicleTax.Web.Services.RfNumberService>();
+builder.Services.AddScoped<VehicleTax.Web.Services.IRvNumberService, VehicleTax.Web.Services.RvNumberService>();
 builder.Services.AddScoped<VehicleTax.Web.Services.IFmisTransferService, VehicleTax.Web.Services.FmisTransferService>();
 
 // ── Permission management (RBAC) ──────────────────────────────────

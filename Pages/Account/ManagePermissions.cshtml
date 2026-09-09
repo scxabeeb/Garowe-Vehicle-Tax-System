@@ -43,10 +43,14 @@
         <div class="card-body py-2">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                 <span class="fw-semibold me-1">Manage by:</span>
-                <div class="btn-group btn-group-sm">
-                    <a asp-page="/Account/ManagePermissions" asp-route-role="@Model.ActiveRole"
+                                <div class="btn-group btn-group-sm">
+                    <a asp-page="/Account/ManagePermissions"
+                       asp-route-role="@(isUserScope ? "" : Model.ActiveRole)"
+                       asp-route-userId="@((int?)null)"
                        class="btn @(isUserScope ? "btn-outline-primary" : "btn-primary")">Role</a>
-                    <a asp-page="/Account/ManagePermissions" asp-route-userId="@Model.ActiveUser?.Id"
+                    <a asp-page="/Account/ManagePermissions"
+                       asp-route-role=""
+                       asp-route-userId="@(Model.ActiveUser?.Id ?? Model.Users.FirstOrDefault()?.Id ?? 0)"
                        class="btn @(isUserScope ? "btn-primary" : "btn-outline-primary")">User</a>
                 </div>
             </div>
@@ -54,11 +58,12 @@
             {
                 <form method="get" class="d-flex flex-wrap align-items-center gap-2 mt-1">
                     <label class="small mb-0 me-1">User:</label>
-                    <select class="form-select form-select-sm" name="userId">
-                        @foreach (var u in Model.Users)
+                    <select class="form-select form-select-sm" name="userId" onchange="this.form.submit()">
+                        @for (int i = 0; i < Model.Users.Count; i++)
                         {
-                            <option value="@u.Id" selected="@(u.Id == Model.ActiveUser?.Id)">
-                                @u.Username · @u.Role</option>
+                            var u = Model.Users[i];
+                            var selU = u.Id == Model.ActiveUser?.Id ? "selected" : "";
+                            @:<option value="@u.Id" @selU>@u.Username · @u.Role</option>
                         }
                     </select>
                     <input class="form-control form-control-sm" type="search" name="userSearch"
@@ -70,10 +75,16 @@
             {
                 <form method="get" class="d-flex flex-wrap align-items-center gap-2 mt-1">
                     <label class="small mb-0 me-1">Role:</label>
-                    <select class="form-select form-select-sm" name="role">
-                        @foreach (var r in Model.Roles)
+                    <select class="form-select form-select-sm" name="role" onchange="this.form.submit()">
+                        @for (int i = 0; i < Model.Roles.Count; i++)
                         {
-                            <option value="@r" selected="@(r == Model.ActiveRole)">@r</option>
+                            var r = Model.Roles[i];
+                            var selR = r == Model.ActiveRole ? "selected" : "";
+                            @:<option value="@r" @selR>@r</option>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.ActiveRole) && !Model.Roles.Contains(Model.ActiveRole, StringComparer.OrdinalIgnoreCase))
+                        {
+                            @:<option value="@Model.ActiveRole" selected>@Model.ActiveRole</option>
                         }
                     </select>
                     <input class="form-control form-control-sm" type="search" name="roleSearch"

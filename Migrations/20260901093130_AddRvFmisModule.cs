@@ -7,20 +7,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VehicleTax.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class AddRfFmisModule : Migration
+    public partial class AddRvFmisModule : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "RfDocuments",
+                name: "RvDocuments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RfNumber = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    RvNumber = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    RfDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    RvDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     RevenueAccountId = table.Column<int>(type: "int", nullable: true),
                     PeriodFrom = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     PeriodTo = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -48,34 +48,34 @@ namespace VehicleTax.Web.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RfDocuments", x => x.Id);
+                    table.PrimaryKey("PK_RvDocuments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RfDocuments_RevenueAccounts_RevenueAccountId",
+                        name: "FK_RvDocuments_RevenueAccounts_RevenueAccountId",
                         column: x => x.RevenueAccountId,
                         principalTable: "RevenueAccounts",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_RfDocuments_Users_CancelledById",
+                        name: "FK_RvDocuments_Users_CancelledById",
                         column: x => x.CancelledById,
                         principalTable: "Users",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_RfDocuments_Users_CreatedById",
+                        name: "FK_RvDocuments_Users_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "Users",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_RfDocuments_Users_PreparedById",
+                        name: "FK_RvDocuments_Users_PreparedById",
                         column: x => x.PreparedById,
                         principalTable: "Users",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_RfDocuments_Users_TransferredById",
+                        name: "FK_RvDocuments_Users_TransferredById",
                         column: x => x.TransferredById,
                         principalTable: "Users",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_RfDocuments_Users_UpdatedById",
+                        name: "FK_RvDocuments_Users_UpdatedById",
                         column: x => x.UpdatedById,
                         principalTable: "Users",
                         principalColumn: "Id");
@@ -83,27 +83,27 @@ namespace VehicleTax.Web.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "RfNumberSequences",
+                name: "RvNumberSequences",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    LastRfNumber = table.Column<int>(type: "int", nullable: false),
+                    LastRvNumber = table.Column<int>(type: "int", nullable: false),
                     LastAssignedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RfNumberSequences", x => x.Id);
+                    table.PrimaryKey("PK_RvNumberSequences", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "RfAuditLogs",
+                name: "RvAuditLogs",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RfDocumentId = table.Column<int>(type: "int", nullable: false),
+                    RvDocumentId = table.Column<int>(type: "int", nullable: false),
                     Action = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     FromStatus = table.Column<int>(type: "int", nullable: true),
@@ -115,15 +115,15 @@ namespace VehicleTax.Web.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RfAuditLogs", x => x.Id);
+                    table.PrimaryKey("PK_RvAuditLogs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RfAuditLogs_RfDocuments_RfDocumentId",
-                        column: x => x.RfDocumentId,
-                        principalTable: "RfDocuments",
+                        name: "FK_RvAuditLogs_RvDocuments_RvDocumentId",
+                        column: x => x.RvDocumentId,
+                        principalTable: "RvDocuments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RfAuditLogs_Users_ByUserId",
+                        name: "FK_RvAuditLogs_Users_ByUserId",
                         column: x => x.ByUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -132,12 +132,12 @@ namespace VehicleTax.Web.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "RfPayments",
+                name: "RvPayments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RfDocumentId = table.Column<int>(type: "int", nullable: false),
+                    RvDocumentId = table.Column<int>(type: "int", nullable: false),
                     PaymentId = table.Column<int>(type: "int", nullable: false),
                     ReferenceNo = table.Column<int>(type: "int", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
@@ -149,98 +149,98 @@ namespace VehicleTax.Web.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RfPayments", x => x.Id);
+                    table.PrimaryKey("PK_RvPayments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RfPayments_Payments_PaymentId",
+                        name: "FK_RvPayments_Payments_PaymentId",
                         column: x => x.PaymentId,
                         principalTable: "Payments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RfPayments_RfDocuments_RfDocumentId",
-                        column: x => x.RfDocumentId,
-                        principalTable: "RfDocuments",
+                        name: "FK_RvPayments_RvDocuments_RvDocumentId",
+                        column: x => x.RvDocumentId,
+                        principalTable: "RvDocuments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfAuditLogs_ByUserId",
-                table: "RfAuditLogs",
+                name: "IX_RvAuditLogs_ByUserId",
+                table: "RvAuditLogs",
                 column: "ByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfAuditLogs_RfDocumentId",
-                table: "RfAuditLogs",
-                column: "RfDocumentId");
+                name: "IX_RvAuditLogs_RvDocumentId",
+                table: "RvAuditLogs",
+                column: "RvDocumentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_CancelledById",
-                table: "RfDocuments",
+                name: "IX_RvDocuments_CancelledById",
+                table: "RvDocuments",
                 column: "CancelledById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_CreatedById",
-                table: "RfDocuments",
+                name: "IX_RvDocuments_CreatedById",
+                table: "RvDocuments",
                 column: "CreatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_PreparedById",
-                table: "RfDocuments",
+                name: "IX_RvDocuments_PreparedById",
+                table: "RvDocuments",
                 column: "PreparedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_RevenueAccountId",
-                table: "RfDocuments",
+                name: "IX_RvDocuments_RevenueAccountId",
+                table: "RvDocuments",
                 column: "RevenueAccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_RfNumber",
-                table: "RfDocuments",
-                column: "RfNumber",
+                name: "IX_RvDocuments_RvNumber",
+                table: "RvDocuments",
+                column: "RvNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_TransferredById",
-                table: "RfDocuments",
+                name: "IX_RvDocuments_TransferredById",
+                table: "RvDocuments",
                 column: "TransferredById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfDocuments_UpdatedById",
-                table: "RfDocuments",
+                name: "IX_RvDocuments_UpdatedById",
+                table: "RvDocuments",
                 column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfPayments_PaymentId",
-                table: "RfPayments",
+                name: "IX_RvPayments_PaymentId",
+                table: "RvPayments",
                 column: "PaymentId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RfPayments_RfDocumentId",
-                table: "RfPayments",
-                column: "RfDocumentId");
+                name: "IX_RvPayments_RvDocumentId",
+                table: "RvPayments",
+                column: "RvDocumentId");
 
             // Seed the single RF counter row (starts at 0 → first RF is RF-000001)
             migrationBuilder.Sql(
-                @"INSERT IGNORE INTO RfNumberSequences (Id, LastRfNumber) VALUES (1, 0)");
+                @"INSERT IGNORE INTO RvNumberSequences (Id, LastRvNumber) VALUES (1, 0)");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "RfAuditLogs");
+                name: "RvAuditLogs");
 
             migrationBuilder.DropTable(
-                name: "RfNumberSequences");
+                name: "RvNumberSequences");
 
             migrationBuilder.DropTable(
-                name: "RfPayments");
+                name: "RvPayments");
 
             migrationBuilder.DropTable(
-                name: "RfDocuments");
+                name: "RvDocuments");
         }
     }
 }

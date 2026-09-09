@@ -6,18 +6,18 @@ namespace VehicleTax.Web.Models
     /// Who created the RF? When? Which payments were included? What was the total? Was it
     /// transferred to FMIS? When/By whom? What FMIS reference/batch number was returned?
     /// </summary>
-    public class RfAuditLog
+    public class RvAuditLog
     {
         public int Id { get; set; }
 
-        public int RfDocumentId { get; set; }
-        public RfDocument? RfDocument { get; set; }
+        public int RvDocumentId { get; set; }
+        public RvDocument? RvDocument { get; set; }
 
         /// <summary>Human-readable action, e.g. "RF Created", "Prepared", "FMIS Transfer Attempted", "FMIS Transferred", "FMIS Failed", "Cancelled".</summary>
         public string Action { get; set; } = string.Empty;
 
-        public RfStatus? FromStatus { get; set; }
-        public RfStatus? ToStatus { get; set; }
+        public RvStatus? FromStatus { get; set; }
+        public RvStatus? ToStatus { get; set; }
 
         public string? Details { get; set; }
 

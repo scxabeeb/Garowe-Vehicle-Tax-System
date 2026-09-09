@@ -480,7 +480,31 @@ namespace VehicleTax.Web.Migrations
                     b.ToTable("RevenueAccounts");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfAuditLog", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Role", "Permission")
+                        .IsUnique();
+
+                    b.ToTable("RolePermissions");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.RvAuditLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -502,7 +526,7 @@ namespace VehicleTax.Web.Migrations
                     b.Property<int?>("FromStatus")
                         .HasColumnType("int");
 
-                    b.Property<int>("RfDocumentId")
+                    b.Property<int>("RvDocumentId")
                         .HasColumnType("int");
 
                     b.Property<int?>("ToStatus")
@@ -512,12 +536,12 @@ namespace VehicleTax.Web.Migrations
 
                     b.HasIndex("ByUserId");
 
-                    b.HasIndex("RfDocumentId");
+                    b.HasIndex("RvDocumentId");
 
-                    b.ToTable("RfAuditLogs");
+                    b.ToTable("RvAuditLogs");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfDocument", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvDocument", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -563,16 +587,20 @@ namespace VehicleTax.Web.Migrations
                     b.Property<int?>("RevenueAccountId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("RfDate")
+                    b.Property<DateTime>("RvDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("RfNumber")
+                    b.Property<string>("RvNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("SystemId")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(65,30)");
@@ -602,17 +630,17 @@ namespace VehicleTax.Web.Migrations
 
                     b.HasIndex("RevenueAccountId");
 
-                    b.HasIndex("RfNumber")
+                    b.HasIndex("RvNumber")
                         .IsUnique();
 
                     b.HasIndex("TransferredById");
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("RfDocuments");
+                    b.ToTable("RvDocuments");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfNumberSequence", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvNumberSequence", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -621,15 +649,15 @@ namespace VehicleTax.Web.Migrations
                     b.Property<DateTime?>("LastAssignedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("LastRfNumber")
+                    b.Property<int>("LastRvNumber")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("RfNumberSequences");
+                    b.ToTable("RvNumberSequences");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfPayment", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvPayment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -653,7 +681,7 @@ namespace VehicleTax.Web.Migrations
                     b.Property<int?>("ReferenceNo")
                         .HasColumnType("int");
 
-                    b.Property<int>("RfDocumentId")
+                    b.Property<int>("RvDocumentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -661,33 +689,9 @@ namespace VehicleTax.Web.Migrations
                     b.HasIndex("PaymentId")
                         .IsUnique();
 
-                    b.HasIndex("RfDocumentId");
+                    b.HasIndex("RvDocumentId");
 
-                    b.ToTable("RfPayments");
-                });
-
-            modelBuilder.Entity("VehicleTax.Web.Models.RolePermission", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Permission")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Role", "Permission")
-                        .IsUnique();
-
-                    b.ToTable("RolePermissions");
+                    b.ToTable("RvPayments");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.TaxAmount", b =>
@@ -945,25 +949,25 @@ namespace VehicleTax.Web.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfAuditLog", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvAuditLog", b =>
                 {
                     b.HasOne("VehicleTax.Web.Models.User", "ByUser")
                         .WithMany()
                         .HasForeignKey("ByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("VehicleTax.Web.Models.RfDocument", "RfDocument")
+                    b.HasOne("VehicleTax.Web.Models.RvDocument", "RvDocument")
                         .WithMany("AuditLogs")
-                        .HasForeignKey("RfDocumentId")
+                        .HasForeignKey("RvDocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ByUser");
 
-                    b.Navigation("RfDocument");
+                    b.Navigation("RvDocument");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfDocument", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvDocument", b =>
                 {
                     b.HasOne("VehicleTax.Web.Models.User", "CancelledBy")
                         .WithMany()
@@ -1002,7 +1006,7 @@ namespace VehicleTax.Web.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfPayment", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvPayment", b =>
                 {
                     b.HasOne("VehicleTax.Web.Models.Payment", "Payment")
                         .WithMany()
@@ -1010,15 +1014,15 @@ namespace VehicleTax.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("VehicleTax.Web.Models.RfDocument", "RfDocument")
+                    b.HasOne("VehicleTax.Web.Models.RvDocument", "RvDocument")
                         .WithMany("Payments")
-                        .HasForeignKey("RfDocumentId")
+                        .HasForeignKey("RvDocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Payment");
 
-                    b.Navigation("RfDocument");
+                    b.Navigation("RvDocument");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.TaxAmount", b =>
@@ -1087,7 +1091,7 @@ namespace VehicleTax.Web.Migrations
                     b.Navigation("Movements");
                 });
 
-            modelBuilder.Entity("VehicleTax.Web.Models.RfDocument", b =>
+            modelBuilder.Entity("VehicleTax.Web.Models.RvDocument", b =>
                 {
                     b.Navigation("AuditLogs");
 

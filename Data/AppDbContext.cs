@@ -22,10 +22,10 @@ namespace VehicleTax.Web.Data
         public DbSet<GolisAudit> GolisAudits => Set<GolisAudit>();
         public DbSet<GolisTransaction> GolisTransactions => Set<GolisTransaction>();
         public DbSet<PaymentReferenceSequence> PaymentReferenceSequences => Set<PaymentReferenceSequence>();
-        public DbSet<RfDocument> RfDocuments => Set<RfDocument>();
-        public DbSet<RfPayment> RfPayments => Set<RfPayment>();
-        public DbSet<RfAuditLog> RfAuditLogs => Set<RfAuditLog>();
-        public DbSet<RfNumberSequence> RfNumberSequences => Set<RfNumberSequence>();
+        public DbSet<RvDocument> RvDocuments => Set<RvDocument>();
+        public DbSet<RvPayment> RvPayments => Set<RvPayment>();
+        public DbSet<RvAuditLog> RvAuditLogs => Set<RvAuditLog>();
+        public DbSet<RvNumberSequence> RvNumberSequences => Set<RvNumberSequence>();
         public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
         public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
         public DbSet<PermissionAuditLog> PermissionAuditLogs => Set<PermissionAuditLog>();
@@ -168,40 +168,40 @@ namespace VehicleTax.Web.Data
 
             // ── RF / FMIS module ──────────────────────────────────────
             // RF number is unique — never duplicated.
-            modelBuilder.Entity<RfDocument>()
-                .HasIndex(r => r.RfNumber)
+            modelBuilder.Entity<RvDocument>()
+                .HasIndex(r => r.RvNumber)
                 .IsUnique();
 
-            modelBuilder.Entity<RfPayment>()
+            modelBuilder.Entity<RvPayment>()
                 .HasIndex(rp => rp.PaymentId)
                 .IsUnique();
 
-            modelBuilder.Entity<RfPayment>()
+            modelBuilder.Entity<RvPayment>()
                 .HasOne(rp => rp.Payment)
                 .WithMany()
                 .HasForeignKey(rp => rp.PaymentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<RfPayment>()
-                .HasOne(rp => rp.RfDocument)
+            modelBuilder.Entity<RvPayment>()
+                .HasOne(rp => rp.RvDocument)
                 .WithMany(r => r.Payments)
-                .HasForeignKey(rp => rp.RfDocumentId)
+                .HasForeignKey(rp => rp.RvDocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<RfAuditLog>()
-                .HasOne(l => l.RfDocument)
+            modelBuilder.Entity<RvAuditLog>()
+                .HasOne(l => l.RvDocument)
                 .WithMany(r => r.AuditLogs)
-                .HasForeignKey(l => l.RfDocumentId)
+                .HasForeignKey(l => l.RvDocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<RfAuditLog>()
+            modelBuilder.Entity<RvAuditLog>()
                 .HasOne(l => l.ByUser)
                 .WithMany()
                 .HasForeignKey(l => l.ByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // RfNumberSequence — single seed row (Id = 1) holds the running RF counter.
-            // Seeded by migration + defensively by RfNumberService before each increment.
+            // RvNumberSequence — single seed row (Id = 1) holds the running RF counter.
+            // Seeded by migration + defensively by RvNumberService before each increment.
 
             // ── Permission management (RBAC) ─────────────────────────
             modelBuilder.Entity<RolePermission>()

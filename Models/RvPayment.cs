@@ -3,14 +3,14 @@ namespace VehicleTax.Web.Models
     /// <summary>
     /// A single payment included in an RF document.  Each payment can belong to at
     /// most ONE RF document (enforced by a unique index on PaymentId).  The per-payment
-    /// FMIS state is derived from the parent RfDocument status..
+    /// FMIS state is derived from the parent RvDocument status..
     /// </summary>
-    public class RfPayment
+    public class RvPayment
     {
         public int Id { get; set; }
 
-        public int RfDocumentId { get; set; }
-        public RfDocument? RfDocument { get; set; }
+        public int RvDocumentId { get; set; }
+        public RvDocument? RvDocument { get; set; }
 
         public int PaymentId { get; set; }
         public Payment? Payment { get; set; }

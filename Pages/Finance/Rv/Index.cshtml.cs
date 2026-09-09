@@ -5,7 +5,7 @@ using VehicleTax.Web;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 
-namespace VehicleTax.Web.Pages.Finance.Rf;
+namespace VehicleTax.Web.Pages.Finance.Rv;
 
 /// <summary>
 /// RF History — searchable list of all RF documents (Finance batches) with status,
@@ -19,20 +19,21 @@ public class IndexModel : PageModel
 
     public bool IsFinance { get; private set; }
 
-    [BindProperty(SupportsGet = true)] public string? RfNumber { get; set; }
+    [BindProperty(SupportsGet = true)] public string? RvNumber { get; set; }
     [BindProperty(SupportsGet = true)] public DateTime? Date { get; set; }
     [BindProperty(SupportsGet = true)] public int? AccountId { get; set; }
     [BindProperty(SupportsGet = true)] public string? Status { get; set; }
     [BindProperty(SupportsGet = true)] public string? FmisStatus { get; set; }
 
-    public List<RfRow> Rows { get; set; } = new();
+    public List<RvRow> Rows { get; set; } = new();
     public List<RevenueAccount> Accounts { get; set; } = new();
 
-    public class RfRow
+    public class RvRow
     {
         public int Id { get; set; }
-        public string RfNumber { get; set; } = "";
-        public DateTime RfDate { get; set; }
+        public string RvNumber { get; set; } = "";
+        public string? SystemId { get; set; }
+        public DateTime RvDate { get; set; }
         public string? Account { get; set; }
         public int TotalTransactions { get; set; }
         public decimal TotalAmount { get; set; }
@@ -53,32 +54,33 @@ public class IndexModel : PageModel
             .OrderBy(a => a.AccountName)
             .ToListAsync();
 
-        var query = _context.RfDocuments
+        var query = _context.RvDocuments
             .Include(r => r.RevenueAccount)
             .Include(r => r.PreparedBy)
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(RfNumber))
-            query = query.Where(r => r.RfNumber.Contains(RfNumber.Trim()));
+        if (!string.IsNullOrWhiteSpace(RvNumber))
+            query = query.Where(r => r.RvNumber.Contains(RvNumber.Trim()));
         if (Date.HasValue)
         {
             var d = Date.Value.Date;
-            query = query.Where(r => r.RfDate >= d && r.RfDate < d.AddDays(1));
+            query = query.Where(r => r.RvDate >= d && r.RvDate < d.AddDays(1));
         }
         if (AccountId.HasValue && AccountId.Value > 0)
             query = query.Where(r => r.RevenueAccountId == AccountId.Value);
-        if (!string.IsNullOrWhiteSpace(Status) && Enum.TryParse<RfStatus>(Status, out var st))
+        if (!string.IsNullOrWhiteSpace(Status) && Enum.TryParse<RvStatus>(Status, out var st))
             query = query.Where(r => r.Status == st);
         if (!string.IsNullOrWhiteSpace(FmisStatus) && Enum.TryParse<FmisTransferStatus>(FmisStatus, out var fs))
             query = query.Where(r => r.FmisStatus == fs);
 
         Rows = await query
             .OrderByDescending(r => r.Id)
-            .Select(r => new RfRow
+            .Select(r => new RvRow
             {
                 Id = r.Id,
-                RfNumber = r.RfNumber,
-                RfDate = r.RfDate,
+                RvNumber = r.RvNumber,
+                SystemId = r.SystemId,
+                RvDate = r.RvDate,
                 Account = r.RevenueAccount == null
                     ? null
                     : r.RevenueAccount.AccountCode + " - " + r.RevenueAccount.AccountName,

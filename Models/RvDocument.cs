@@ -10,17 +10,21 @@ namespace VehicleTax.Web.Models
     /// This is a FINANCE document number and is entirely separate from the per-payment
     /// Payment Reference No. (identifies an individual payment). RF numbers identify batches.
     /// </summary>
-    public class RfDocument
+    public class RvDocument
     {
         public int Id { get; set; }
 
         /// <summary>Unique RF number, e.g. RF-000001. Generated ONLY by the backend.</summary>
         [Required]
         [StringLength(50)]
-        public string RfNumber { get; set; } = string.Empty;
+        public string RvNumber { get; set; } = string.Empty;
 
         /// <summary>Local (system timezone) date the RF cannot be posted.</summary>
-        public DateTime RfDate { get; set; } = DateTime.UtcNow;
+        public DateTime RvDate { get; set; } = DateTime.UtcNow;
+
+        /// <summary>System-generated unique identifier (UUID) for external reference.</summary>
+        [StringLength(50)]
+        public string? SystemId { get; set; }
 
         // ── Financial account grouping ──────────────────────────────
         public int? RevenueAccountId { get; set; }
@@ -30,7 +34,7 @@ namespace VehicleTax.Web.Models
         public DateTime? PeriodFrom { get; set; }
         public DateTime? PeriodTo { get; set; }
 
-        // ── Totals (must exactly equal the sum of the included RfPayments) ──
+        // ── Totals (must exactly equal the sum of the included RvPayments) ──
         public int TotalTransactions { get; set; }
         public decimal TotalAmount { get; set; }
 
@@ -39,13 +43,13 @@ namespace VehicleTax.Web.Models
         public User? PreparedBy { get; set; }
 
         // ── Status ───────────────────────────────────────────────────
-        public RfStatus Status { get; set; } = RfStatus.Draft;
+        public RvStatus Status { get; set; } = RvStatus.Draft;
         public FmisTransferStatus FmisStatus { get; set; } = FmisTransferStatus.NotTransferred;
 
 
 
         // ── FMIS transfer fields ───────────────────────────────────────
-        /// <summary>FMIS-returned batch/reference number (kept separate from RfNumber).</summary>
+        /// <summary>FMIS-returned batch/reference number (kept separate from RvNumber).</summary>
         [StringLength(100)]
         public string? FmisBatchNumber { get; set; }
 
@@ -73,9 +77,9 @@ namespace VehicleTax.Web.Models
         public string? CancelledResponse { get; set; }
 
         // ── Included payments ──────────────────────────────────────
-        public ICollection<RfPayment> Payments { get; set; } = new List<RfPayment>();
+        public ICollection<RvPayment> Payments { get; set; } = new List<RvPayment>();
 
         // ── Audit log (status changes / FMIS activity) ─────────────
-        public ICollection<RfAuditLog> AuditLogs { get; set; } = new List<RfAuditLog>();
+        public ICollection<RvAuditLog> AuditLogs { get; set; } = new List<RvAuditLog>();
     }
 }

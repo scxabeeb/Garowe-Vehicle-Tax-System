@@ -5,7 +5,7 @@ namespace VehicleTax.Web.Models
     /// batch document that groups one or more successfully paid payments for transfer to FMIS.
     /// It is completely distinct from the Payment Reference No. (which identifies an individual payment).
     /// </summary>
-    public enum RfStatus
+    public enum RvStatus
     {
         Draft,
         Prepared,
