@@ -6,11 +6,11 @@ using VehicleTax.Web.Models;
 namespace VehicleTax.Web.Services
 {
     /// <summary>
-    /// Generates unique, sequential RF document numbers (e.g. RF-000001, RF-000002 —).
-    /// RF numbers identify Finance batches/documents, NOT individual payments, and are ONLY generated
+    /// Generates unique, sequential RV document numbers (e.g. RV-000001, RV-000002).
+    /// RV numbers identify Revenue/FMIS batch documents, NOT individual payments, and are ONLY generated
     /// by an authorized Accountant/Finance Officer via the backend — never by a collector/user client.
-    /// Uses a dedicated single-row sequence table incremented atomically (row lock() so that
-    /// concurrent accountants never receive duplicate or out-of-order numbers (no unsafe MAX+1(.
+    /// Uses a dedicated single-row sequence table incremented atomically (row lock) so that
+    /// concurrent accountants never receive duplicate or out-of-order numbers (no unsafe MAX+1).
     /// </summary>
     public interface IRvNumberService
     {
@@ -50,7 +50,7 @@ namespace VehicleTax.Web.Services
 
             tx.Commit();
 
-            return $"RF-{seq!.LastRvNumber:D6}";
+            return $"RV-{seq!.LastRvNumber:D6}";
         }
     }
 }
