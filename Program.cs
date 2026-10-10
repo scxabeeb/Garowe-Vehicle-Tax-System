@@ -90,7 +90,8 @@ builder.Services.AddControllers();
 // =========================
 // CORS (allow browser apps, e.g. Flutter web / admin frontends)
 // =========================
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+const string CorsPolicy = "AppCors";
+builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p =>
     p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 // =========================
@@ -187,7 +188,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors();
+// Answer CORS preflight (OPTIONS) before routing/authorization reject it.
+app.UseCors(CorsPolicy);
 
 app.UseSession();
 app.UseAuthentication();
@@ -204,9 +206,9 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 
 // =========================
-// Map API Controllers
+// Map API Controllers (require CORS so preflight succeeds)
 // =========================
-app.MapControllers();
+app.MapControllers().RequireCors(CorsPolicy);
 
 // =========================
 // Razor Pages
