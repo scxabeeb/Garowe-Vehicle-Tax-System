@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using VehicleTax.Web.Data;
+using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Controllers
 {
@@ -14,13 +16,16 @@ namespace VehicleTax.Web.Controllers
     {
         private readonly AppDbContext _context;
         private readonly JwtSettings _jwtSettings;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
         public AuthController(
             AppDbContext context,
-            IOptions<JwtSettings> jwtOptions)
+            IOptions<JwtSettings> jwtOptions,
+            IPasswordHasher<User> passwordHasher)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
+            _passwordHasher = passwordHasher;
         }
 
         // ================= LOGIN =================
@@ -51,12 +56,37 @@ namespace VehicleTax.Web.Controllers
                 });
             }
 
-            if (!string.Equals(user.Password.Trim(), password, StringComparison.Ordinal))
+            PasswordVerificationResult verifyResult;
+            try
             {
-                return Unauthorized(new
+                verifyResult = _passwordHasher.VerifyHashedPassword(
+                    user, user.Password, password);
+            }
+            catch (FormatException)
+            {
+                // Stored value is not a valid Identity hash (legacy plain text).
+                verifyResult = PasswordVerificationResult.Failed;
+            }
+
+            if (verifyResult == PasswordVerificationResult.Failed)
+            {
+                // Backward compatibility for legacy plain-text passwords.
+                if (!string.Equals(user.Password.Trim(), password, StringComparison.Ordinal))
                 {
-                    message = "Invalid password"
-                });
+                    return Unauthorized(new
+                    {
+                        message = "Invalid password"
+                    });
+                }
+
+                // Migrate to hashed password on successful legacy login.
+                user.Password = _passwordHasher.HashPassword(user, password);
+                _context.SaveChanges();
+            }
+            else if (verifyResult == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.Password = _passwordHasher.HashPassword(user, password);
+                _context.SaveChanges();
             }
 
             var claims = new[]
@@ -120,7 +150,21 @@ namespace VehicleTax.Web.Controllers
                 });
             }
 
-            if (!string.Equals(user.Password.Trim(), dto.OldPassword.Trim(), StringComparison.Ordinal))
+            PasswordVerificationResult oldResult;
+            try
+            {
+                oldResult = _passwordHasher.VerifyHashedPassword(
+                    user, user.Password, dto.OldPassword.Trim());
+            }
+            catch (FormatException)
+            {
+                oldResult = PasswordVerificationResult.Failed;
+            }
+
+            var oldPasswordOk = oldResult != PasswordVerificationResult.Failed
+                || string.Equals(user.Password.Trim(), dto.OldPassword.Trim(), StringComparison.Ordinal);
+
+            if (!oldPasswordOk)
             {
                 return BadRequest(new
                 {
@@ -128,7 +172,7 @@ namespace VehicleTax.Web.Controllers
                 });
             }
 
-            user.Password = dto.NewPassword.Trim();
+            user.Password = _passwordHasher.HashPassword(user, dto.NewPassword.Trim());
             _context.SaveChanges();
 
             return Ok(new

@@ -23,7 +23,7 @@ builder.Services.Configure<JwtSettings>(
 // =========================
 // Database
 // =========================
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = ResolveConnectionString(builder.Configuration);
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -86,6 +86,12 @@ builder.Services.AddRazorPages(options =>
 // API Controllers
 // =========================
 builder.Services.AddControllers();
+
+// =========================
+// CORS (allow browser apps, e.g. Flutter web / admin frontends)
+// =========================
+builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+    p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 // =========================
 // Golis Mobile Money API
@@ -181,6 +187,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors();
+
 app.UseSession();
 app.UseAuthentication();
 
@@ -206,6 +214,38 @@ app.MapControllers();
 app.MapRazorPages();
 
 app.Run();
+
+// Builds the connection string from Railway's MySQL environment variables
+// (MYSQL_URL / MYSQLHOST / MYSQLPORT / ...) so credential rotation on
+// Railway never breaks the deployed app. Falls back to the configured
+// ConnectionStrings:DefaultConnection for local development.
+static string ResolveConnectionString(IConfiguration config)
+{
+    var mysqlUrl = config["MYSQL_URL"] ?? config["MYSQLURL"] ?? config["DATABASE_URL"];
+    if (!string.IsNullOrWhiteSpace(mysqlUrl) &&
+        Uri.TryCreate(mysqlUrl, UriKind.Absolute, out var uri) &&
+        !string.IsNullOrWhiteSpace(uri.Host))
+    {
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var user = Uri.UnescapeDataString(userInfo[0]);
+        var pass = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+        var database = uri.AbsolutePath.Trim('/');
+        return $"Server={uri.Host};Port={uri.Port};Database={database};User={user};Password={pass};SslMode=Preferred;";
+    }
+
+    var host = config["MYSQLHOST"];
+    if (!string.IsNullOrWhiteSpace(host))
+    {
+        var port = config["MYSQLPORT"] ?? "3306";
+        var database = config["MYSQLDATABASE"] ?? config["MYSQL_DATABASE"] ?? "railway";
+        var user = config["MYSQLUSER"] ?? "root";
+        var pass = config["MYSQLPASSWORD"] ?? "";
+        return $"Server={host};Port={port};Database={database};User={user};Password={pass};SslMode=Preferred;";
+    }
+
+    return config.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("No database connection string configured.");
+}
 
 static bool IsMeaningfulCredential(string? value)
 {
