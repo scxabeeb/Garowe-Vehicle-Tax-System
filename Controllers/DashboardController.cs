@@ -55,6 +55,17 @@ namespace VehicleTax.Web.Controllers
                 .AsEnumerable()
                 .Select(p => new
                 {
+                    // IDs for the payment detail sheet, so the app doesn't
+                    // need a per-payment receipt request.
+                    paymentId = p.Id,
+                    invoiceId = p.InvoiceNumber,
+                    invoiceNumber = p.InvoiceNumber,
+                    shortCode = p.ShortCode,
+                    golisBillNo = p.TransactionId,
+                    referenceNo = p.ReferenceNo,
+                    referenceNumber = p.ReceiptReference != null ? p.ReceiptReference.ReferenceNumber : null,
+                    ownerName = p.Vehicle != null ? p.Vehicle.OwnerName : null,
+                    isPaid = p.IsPaid,
                     plateNumber = p.Vehicle != null ? p.Vehicle.PlateNumber : "Unknown",
                     movementType = p.MovementType,
                     amount = p.Amount,
