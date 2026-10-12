@@ -89,6 +89,91 @@ namespace VehicleTax.Web.Controllers
             });
         }
 
+        // =========================================
+        // 📊 DASHBOARD SUMMARY CARDS
+        // =========================================
+        // Aggregated figures for the mobile dashboard cards. With collectorId
+        // the figures cover that collector only; without it, all collectors.
+        [HttpGet("summary")]
+        public IActionResult GetSummary([FromQuery] int? collectorId = null)
+        {
+            var today = AppTime.Today;
+            var todayRange = AppTime.GetUtcDayRange(today);
+            var yesterdayRange = AppTime.GetUtcDayRange(today.AddDays(-1));
+            var weekStartUtc = AppTime.GetUtcDayRange(today.AddDays(-6)).StartUtc;
+            var monthStartUtc = AppTime.GetUtcDayRange(new DateTime(today.Year, today.Month, 1)).StartUtc;
+
+            var payments = _context.Payments.Where(p => !p.IsReverted);
+            if (collectorId.HasValue)
+                payments = payments.Where(p => p.CollectorId == collectorId.Value);
+            var paid = payments.Where(p => p.IsPaid);
+
+            object Totals(DateTime fromUtc, DateTime toUtc)
+            {
+                var q = paid.Where(p => p.PaidAt >= fromUtc && p.PaidAt < toUtc);
+                return new
+                {
+                    amount = q.Sum(p => (decimal?)p.Amount) ?? 0,
+                    count = q.Count()
+                };
+            }
+
+            // Today's rows are few, so group them in memory.
+            var todayRows = paid
+                .Where(p => p.PaidAt >= todayRange.StartUtc && p.PaidAt < todayRange.EndUtc)
+                .Select(p => new
+                {
+                    p.Amount,
+                    p.VehicleId,
+                    p.CollectorId,
+                    Movement = p.Movement != null ? p.Movement.Name : p.MovementType,
+                    Collector = p.Collector != null ? p.Collector.Username : null
+                })
+                .ToList();
+
+            var pendingToday = payments
+                .Where(p => !p.IsPaid &&
+                            p.PaidAt >= todayRange.StartUtc && p.PaidAt < todayRange.EndUtc);
+
+            return Ok(new
+            {
+                scope = collectorId.HasValue ? "collector" : "all",
+                collectorId,
+                today = new
+                {
+                    amount = todayRows.Sum(r => r.Amount),
+                    count = todayRows.Count,
+                    vehicles = todayRows.Select(r => r.VehicleId).Distinct().Count()
+                },
+                yesterday = Totals(yesterdayRange.StartUtc, yesterdayRange.EndUtc),
+                week = Totals(weekStartUtc, todayRange.EndUtc),
+                month = Totals(monthStartUtc, todayRange.EndUtc),
+                pendingToday = new
+                {
+                    amount = pendingToday.Sum(p => (decimal?)p.Amount) ?? 0,
+                    count = pendingToday.Count()
+                },
+                activeCollectors = todayRows
+                    .Where(r => r.CollectorId.HasValue)
+                    .Select(r => r.CollectorId)
+                    .Distinct()
+                    .Count(),
+                registeredVehicles = _context.Vehicles.Count(),
+                byMovement = todayRows
+                    .GroupBy(r => string.IsNullOrWhiteSpace(r.Movement) ? "Other" : r.Movement)
+                    .Select(g => new { name = g.Key, count = g.Count(), amount = g.Sum(r => r.Amount) })
+                    .OrderByDescending(g => g.amount)
+                    .Take(5)
+                    .ToList(),
+                topCollectors = todayRows
+                    .GroupBy(r => r.Collector ?? "Unassigned")
+                    .Select(g => new { name = g.Key, count = g.Count(), amount = g.Sum(r => r.Amount) })
+                    .OrderByDescending(g => g.amount)
+                    .Take(5)
+                    .ToList()
+            });
+        }
+
         [HttpGet("top-checkpoints")]
         public IActionResult GetTopCheckpoints(
             [FromQuery] DateTime? fromDate = null,
