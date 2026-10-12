@@ -406,28 +406,33 @@ namespace VehicleTax.Web.Controllers
         {
             var payments = _context.Payments
                 .Include(p => p.Vehicle)
+                .Include(p => p.Collector)
                 .Include(p => p.ReceiptReference)
                 .Where(p => p.CollectorId == collectorId && !p.IsReverted)
                 .OrderByDescending(p => p.PaidAt)
+                .AsEnumerable()
                 .Select(p => new
                 {
                     p.Id,
+                    paymentId = p.Id,
                     invoiceId = p.InvoiceNumber,
+                    invoiceNumber = p.InvoiceNumber,
+                    shortCode = p.ShortCode,
+                    receiptNumber = p.IsPaid ? p.InvoiceNumber : null,
                     referenceNo = p.ReferenceNo,
+                    paymentMethod = p.PaymentMethod,
+                    paidBy = p.PaidBy,
                     p.Amount,
                     p.PaidAt,
                     p.MovementType,
                     p.IsReverted,
                     p.IsPaid,
                     golisBillNo = p.TransactionId,
-                    plate = p.Vehicle!.PlateNumber,
-                    owner = p.Vehicle.OwnerName,
-                    receipt = p.ReceiptReference != null
-                        ? p.ReceiptReference.ReferenceNumber
-                        : null,
-                    collector = p.ReceiptReference != null
-                        ? p.ReceiptReference.UsedBy
-                        : null
+                    plate = p.Vehicle?.PlateNumber,
+                    owner = p.Vehicle?.OwnerName,
+                    referenceNumber = p.ReceiptReference?.ReferenceNumber,
+                    collectorId = p.CollectorId,
+                    collector = p.Collector?.Username ?? p.ReceiptReference?.UsedBy
                 })
                 .ToList();
 
@@ -647,7 +652,12 @@ namespace VehicleTax.Web.Controllers
                 invoiceNumber = payment.InvoiceNumber,
                 shortCode = payment.ShortCode,
                 golisBillNo = payment.TransactionId,
-                paidAt = payment.PaidAt,
+                receiptNumber = payment.IsPaid && !payment.IsReverted ? payment.InvoiceNumber : null,
+                paymentMethod = payment.PaymentMethod,
+                paidBy = payment.PaidBy,
+                remarks = payment.Remarks,
+                collectorId = payment.CollectorId,
+                paidAt = DateTime.SpecifyKind(payment.PaidAt, DateTimeKind.Utc),
                 plateNumber = payment.Vehicle?.PlateNumber,
                 ownerName = payment.Vehicle?.OwnerName,
                 movement = payment.Movement?.Name ?? payment.MovementType,

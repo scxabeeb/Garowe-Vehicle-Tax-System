@@ -62,7 +62,12 @@ namespace VehicleTax.Web.Controllers
                     invoiceNumber = p.InvoiceNumber,
                     shortCode = p.ShortCode,
                     golisBillNo = p.TransactionId,
+                    // The web receipt uses the invoice number as the receipt number.
+                    receiptNumber = p.IsReverted ? null : p.InvoiceNumber,
                     referenceNo = p.ReferenceNo,
+                    paymentMethod = p.PaymentMethod,
+                    paidBy = p.PaidBy,
+                    collectorId = p.CollectorId,
                     referenceNumber = p.ReceiptReference != null ? p.ReceiptReference.ReferenceNumber : null,
                     ownerName = p.Vehicle != null ? p.Vehicle.OwnerName : null,
                     isPaid = p.IsPaid,
