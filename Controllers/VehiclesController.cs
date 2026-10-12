@@ -65,6 +65,14 @@ public class VehiclesController : ControllerBase
         if (vehicle == null)
             return NotFound(new { message = "Vehicle not found" });
 
+        // Latest collected (paid, not reverted) payment so the plate checker
+        // can show paid / not-paid status.
+        var lastPayment = await _context.Payments
+            .Include(p => p.Movement)
+            .Where(p => p.VehicleId == vehicle.Id && p.IsPaid && !p.IsReverted)
+            .OrderByDescending(p => p.PaidAt)
+            .FirstOrDefaultAsync();
+
         return Ok(new
         {
             id = vehicle.Id,
@@ -76,7 +84,17 @@ public class VehiclesController : ControllerBase
             {
                 id = vehicle.CarType!.Id,
                 name = vehicle.CarType.Name
-            }
+            },
+            isPaid = lastPayment != null,
+            paymentId = lastPayment?.Id,
+            // Stored as UTC; mark the kind so it serializes with a trailing "Z".
+            paidAt = lastPayment == null
+                ? (DateTime?)null
+                : DateTime.SpecifyKind(lastPayment.PaidAt, DateTimeKind.Utc),
+            amount = lastPayment?.Amount,
+            movement = lastPayment?.Movement?.Name ?? lastPayment?.MovementType,
+            invoiceNumber = lastPayment?.InvoiceNumber,
+            golisBillNo = lastPayment?.TransactionId
         });
     }
 
