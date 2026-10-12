@@ -444,6 +444,94 @@ namespace VehicleTax.Web.Controllers
         }
 
         // =======================
+        // GET PAYMENTS BY DATE (ADMIN)
+        // =======================
+        // All non-reverted payments (paid and pending) for one day (EAT),
+        // optionally narrowed to a collector and/or checkpoint.
+        // =======================
+        [HttpGet("by-date")]
+        public IActionResult GetByDate(
+            [FromQuery] DateTime? date = null,
+            [FromQuery] int? collectorId = null,
+            [FromQuery] int? checkpointId = null)
+        {
+            var range = AppTime.GetUtcDayRange(date?.Date ?? AppTime.Today);
+
+            var query = _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                    .ThenInclude(c => c!.Checkpoint)
+                .Include(p => p.Checkpoint)
+                .Include(p => p.ReceiptReference)
+                .Where(p => !p.IsReverted &&
+                            p.PaidAt >= range.StartUtc && p.PaidAt < range.EndUtc);
+
+            if (collectorId.HasValue)
+                query = query.Where(p => p.CollectorId == collectorId.Value);
+            if (checkpointId.HasValue)
+                query = query.Where(p => (p.CheckpointId ?? p.Collector!.CheckpointId) == checkpointId.Value);
+
+            var payments = query
+                .OrderByDescending(p => p.PaidAt)
+                .AsEnumerable()
+                .Select(p => new
+                {
+                    id = p.Id,
+                    paymentId = p.Id,
+                    invoiceId = p.InvoiceNumber,
+                    invoiceNumber = p.InvoiceNumber,
+                    shortCode = p.ShortCode,
+                    receiptNumber = p.IsPaid ? p.InvoiceNumber : null,
+                    referenceNo = p.ReferenceNo,
+                    referenceNumber = p.ReceiptReference?.ReferenceNumber,
+                    golisBillNo = p.TransactionId,
+                    paymentMethod = p.PaymentMethod,
+                    paidBy = p.PaidBy,
+                    amount = p.Amount,
+                    // Same local (EAT) format as the /Dashboard payment list.
+                    paidAt = AppTime.ToLocal(p.PaidAt),
+                    movementType = p.Movement?.Name ?? p.MovementType,
+                    plateNumber = p.Vehicle?.PlateNumber,
+                    ownerName = p.Vehicle?.OwnerName,
+                    collectorId = p.CollectorId,
+                    collector = p.Collector?.Username ?? p.ReceiptReference?.UsedBy,
+                    checkpointId = p.CheckpointId ?? p.Collector?.CheckpointId,
+                    checkpointName = p.Checkpoint?.Name ?? p.Collector?.Checkpoint?.Name,
+                    isPaid = p.IsPaid,
+                    isReverted = p.IsReverted,
+                    status = p.IsPaid ? "paid" : "pending"
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                status = "success",
+                items = payments
+            });
+        }
+
+        // =======================
+        // PAYMENT FILTER OPTIONS (ADMIN)
+        // =======================
+        // Collectors and checkpoints for the mobile admin filters.
+        // =======================
+        [HttpGet("filters")]
+        public IActionResult GetFilters()
+        {
+            var collectors = _context.Users
+                .OrderBy(u => u.Username)
+                .Select(u => new { id = u.Id, name = u.Username, role = u.Role, checkpointId = u.CheckpointId })
+                .ToList();
+            var checkpoints = _context.Checkpoints
+                .OrderBy(c => c.Name)
+                .Select(c => new { id = c.Id, name = c.Name })
+                .ToList();
+
+            return Ok(new { status = "success", collectors, checkpoints });
+        }
+
+        // =======================
         // GET PENDING (UNPAID) INVOICES
         // =======================
         // All collectors' generated-but-unpaid invoices for one day (EAT),
