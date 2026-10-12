@@ -418,6 +418,7 @@ namespace VehicleTax.Web.Controllers
                     p.PaidAt,
                     p.MovementType,
                     p.IsReverted,
+                    p.IsPaid,
                     golisBillNo = p.TransactionId,
                     plate = p.Vehicle!.PlateNumber,
                     owner = p.Vehicle.OwnerName,
@@ -427,6 +428,53 @@ namespace VehicleTax.Web.Controllers
                     collector = p.ReceiptReference != null
                         ? p.ReceiptReference.UsedBy
                         : null
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                status = "success",
+                items = payments
+            });
+        }
+
+        // =======================
+        // GET PENDING (UNPAID) INVOICES
+        // =======================
+        // All collectors' generated-but-unpaid invoices for one day (EAT),
+        // so an admin can collect them manually.
+        // =======================
+        [HttpGet("pending")]
+        public IActionResult GetPending([FromQuery] DateTime? date = null)
+        {
+            var range = AppTime.GetUtcDayRange(date?.Date ?? AppTime.Today);
+
+            var payments = _context.Payments
+                .Include(p => p.Vehicle)
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                .Where(p => !p.IsPaid && !p.IsReverted &&
+                            p.PaidAt >= range.StartUtc && p.PaidAt < range.EndUtc)
+                .OrderByDescending(p => p.PaidAt)
+                .AsEnumerable()
+                .Select(p => new
+                {
+                    paymentId = p.Id,
+                    invoiceId = p.InvoiceNumber,
+                    invoiceNumber = p.InvoiceNumber,
+                    shortCode = p.ShortCode,
+                    golisBillNo = p.TransactionId,
+                    amount = p.Amount,
+                    // Same local (EAT) format as the /Dashboard payment list.
+                    paidAt = AppTime.ToLocal(p.PaidAt),
+                    movementType = p.Movement?.Name ?? p.MovementType,
+                    plateNumber = p.Vehicle?.PlateNumber,
+                    ownerName = p.Vehicle?.OwnerName,
+                    collectorId = p.CollectorId,
+                    collector = p.Collector?.Username,
+                    isPaid = false,
+                    isReverted = false,
+                    status = "pending"
                 })
                 .ToList();
 
