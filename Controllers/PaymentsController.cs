@@ -446,16 +446,25 @@ namespace VehicleTax.Web.Controllers
         // =======================
         // GET PAYMENTS BY DATE (ADMIN)
         // =======================
-        // All non-reverted payments (paid and pending) for one day (EAT),
-        // optionally narrowed to a collector and/or checkpoint.
+        // All non-reverted payments (paid and pending) for one day or a date
+        // range (EAT), optionally narrowed to a collector and/or checkpoint.
         // =======================
         [HttpGet("by-date")]
         public IActionResult GetByDate(
             [FromQuery] DateTime? date = null,
             [FromQuery] int? collectorId = null,
-            [FromQuery] int? checkpointId = null)
+            [FromQuery] int? checkpointId = null,
+            [FromQuery] DateTime? from = null,
+            [FromQuery] DateTime? to = null)
         {
-            var range = AppTime.GetUtcDayRange(date?.Date ?? AppTime.Today);
+            // One day (date) or an inclusive range (from..to), capped at 92 days.
+            var startDay = (from ?? date)?.Date ?? AppTime.Today;
+            var endDay = (to ?? from ?? date)?.Date ?? startDay;
+            if (endDay < startDay) (startDay, endDay) = (endDay, startDay);
+            if ((endDay - startDay).TotalDays > 92) startDay = endDay.AddDays(-92);
+            var range = (
+                StartUtc: AppTime.GetUtcDayRange(startDay).StartUtc,
+                EndUtc: AppTime.GetUtcDayRange(endDay).EndUtc);
 
             var query = _context.Payments
                 .Include(p => p.Vehicle)
