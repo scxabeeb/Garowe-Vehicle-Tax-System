@@ -52,6 +52,14 @@ namespace VehicleTax.Web.Services
 
         public bool IsCritical(string key) => AppPermissions.IsCritical(key);
 
+        /// <summary>Permissions an Admin can never lose.</summary>
+        public static readonly string[] AdminFloor =
+        {
+            AppPermissions.Keys.DashboardView,
+            AppPermissions.Keys.UsersView, AppPermissions.Keys.UsersEdit,
+            AppPermissions.Keys.RolesView, AppPermissions.Keys.RolesManagePermissions,
+        };
+
         private static bool IsSuperAdmin(ClaimsPrincipal user) =>
             user.IsInRole(AppPermissions.SuperAdminRole);
 
@@ -95,9 +103,8 @@ namespace VehicleTax.Web.Services
             foreach (var raw in (user.Permissions ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
                 if (AppPermissions.LegacyMap.TryGetValue(raw.Trim(), out var mapped))
                     foreach (var k in mapped) legacy.Add(k);
-            foreach (var claim in principal.Claims.Where(c => c.Type == "permission"))
-                if (AppPermissions.LegacyMap.TryGetValue(claim.Value, out var mapped))
-                    foreach (var k in mapped) legacy.Add(k);
+            // Legacy keys come from the database only: the copy in the login
+            // cookie would keep a revoked permission alive until logout.
 
             var overrides = await GetUserOverridesAsync(user.Id);
 
@@ -118,13 +125,10 @@ namespace VehicleTax.Web.Services
                             result.Add(action.Key);
                 }
 
-            // Finance legacy claim keeps working without a DB row.
-            if (principal.HasClaim("permission", "finance.manage") ||
-                roleGrants.Contains(AppPermissions.Keys.FinanceView) || legacy.Contains(AppPermissions.Keys.FinanceView))
-            {
-                result.Add(AppPermissions.Keys.FinanceView);
-                result.Add(AppPermissions.Keys.FinanceManage);
-            }
+            // Lock-out guard: Admins always keep user and permission management,
+            // so access can never be removed from everyone.
+            if (string.Equals(user.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+                foreach (var k in AdminFloor) result.Add(k);
 
             return result;
         }
@@ -232,8 +236,11 @@ namespace VehicleTax.Web.Services
             var oldState = existing.ToDictionary(uo => uo.Permission, uo => uo.Effect,
                 StringComparer.OrdinalIgnoreCase);
 
+            // `clean` is the user's complete set of overrides: remove the ones no
+            // longer wanted, update changed ones, add new ones. (Unchanged rows
+            // must be kept - removing them silently dropped existing Allow/Deny.)
             foreach (var uo in existing)
-                if (!clean.TryGetValue(uo.Permission, out var effect) || effect == uo.Effect)
+                if (!clean.ContainsKey(uo.Permission))
                     _context.UserPermissionOverrides.Remove(uo);
 
             foreach (var kv in clean)
@@ -241,14 +248,18 @@ namespace VehicleTax.Web.Services
                 var row = existing.FirstOrDefault(uo =>
                     uo.Permission.Equals(kv.Key, StringComparison.OrdinalIgnoreCase));
                 if (row != null)
-                    row.Effect = kv.Value;
+                {
+                    if (row.Effect != kv.Value) row.Effect = kv.Value;
+                }
                 else
+                {
                     _context.UserPermissionOverrides.Add(new UserPermissionOverride
                     {
                         UserId = user.Id,
                         Permission = kv.Key,
                         Effect = kv.Value
                     });
+                }
             }
 
             // Keep the legacy User.Permissions claim string in sync with explicit Allow keys.

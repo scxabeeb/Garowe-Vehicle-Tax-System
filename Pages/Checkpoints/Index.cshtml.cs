@@ -7,7 +7,7 @@ using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Pages.Checkpoints;
 
-[Authorize(Roles = "Admin")]
+[Authorize] // access by permission (Security/PagePermissionFilter)
 public class IndexModel : PageModel
 {
     private readonly AppDbContext _context;

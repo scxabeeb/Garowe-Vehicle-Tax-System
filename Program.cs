@@ -80,7 +80,9 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Account/Logout");
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
-});
+})
+// Every page checks the user's live permissions (Security/PagePermissionFilter).
+.AddMvcOptions(o => o.Filters.Add<VehicleTax.Web.Security.PagePermissionFilter>());
 
 // =========================
 // API Controllers

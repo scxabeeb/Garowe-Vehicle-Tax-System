@@ -6,7 +6,7 @@ using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Pages.Account;
 
-[Authorize(Roles = "Admin")]
+[Authorize] // access by permission (Security/PagePermissionFilter)
 public class PermissionsModel : PageModel
 {
     private readonly AppDbContext _context;

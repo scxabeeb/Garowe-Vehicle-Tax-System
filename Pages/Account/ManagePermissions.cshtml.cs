@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using VehicleTax.Web;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using VehicleTax.Web.Security;
@@ -10,12 +9,10 @@ using VehicleTax.Web.Services;
 namespace VehicleTax.Web.Pages.Account;
 
 /// <summary>
-/// Professional, granular RBAC permission manager. Admins control access at three
-/// levels — Module (main menu), Page (sub-menu) and Action (operation) — either by
-/// Role or for a specific User (with per-user Allow/Deny overrides).
-///
-/// Every permission is enforced server-side via PermissionService: this page is
-/// only the administrative front-end.
+/// Permission manager. Grants permissions to a Role (switch per permission),
+/// or overrides them for one User (Inherit / Allow / Deny per permission).
+/// Every permission is listed once per module. Changes are enforced on the
+/// next request by PagePermissionFilter and the menu.
 /// </summary>
 [HasPermission(AppPermissions.Keys.RolesManagePermissions)]
 public class ManagePermissionsModel : PageModel
@@ -29,194 +26,177 @@ public class ManagePermissionsModel : PageModel
         _permissions = permissions;
     }
 
+    /// <summary>Roles offered even before any user has them.</summary>
+    public static readonly string[] StandardRoles = { "Admin", "Collector", "Viewer", "Auditor", "Accountant", "Manager" };
+
+    /// <summary>Plain-language label for every permission key.</summary>
+    public static readonly Dictionary<string, string> Labels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [AppPermissions.Keys.DashboardView] = "Open the dashboard",
+        [AppPermissions.Keys.UsersView] = "View users",
+        [AppPermissions.Keys.UsersCreate] = "Create users",
+        [AppPermissions.Keys.UsersEdit] = "Edit users & reset passwords",
+        [AppPermissions.Keys.UsersDelete] = "Delete, lock & unlock users",
+        [AppPermissions.Keys.RolesView] = "View permission history",
+        [AppPermissions.Keys.RolesEdit] = "Assign roles",
+        [AppPermissions.Keys.RolesManagePermissions] = "Manage permissions",
+        [AppPermissions.Keys.VehiclesView] = "View vehicles",
+        [AppPermissions.Keys.VehiclesCreate] = "Register vehicles",
+        [AppPermissions.Keys.VehiclesEdit] = "Edit vehicles",
+        [AppPermissions.Keys.VehiclesDelete] = "Delete vehicles",
+        [AppPermissions.Keys.PaymentsView] = "View payments, receipts & verify plates",
+        [AppPermissions.Keys.PaymentsCreate] = "Generate invoices",
+        [AppPermissions.Keys.PaymentsEdit] = "Edit payments",
+        [AppPermissions.Keys.PaymentsCancel] = "Cancel payments",
+        [AppPermissions.Keys.PaymentsApprove] = "Collect / approve invoices",
+        [AppPermissions.Keys.PaymentsPrint] = "Print receipts",
+        [AppPermissions.Keys.ReportsView] = "View reports",
+        [AppPermissions.Keys.ReportsExport] = "Export reports (CSV / Excel)",
+        [AppPermissions.Keys.ReportsPrint] = "Print reports",
+        [AppPermissions.Keys.ReportsDownload] = "Download reports",
+        [AppPermissions.Keys.SettingsView] = "View setup (car types, traffida, tax, checkpoints)",
+        [AppPermissions.Keys.SettingsEdit] = "Change setup",
+        [AppPermissions.Keys.FinanceView] = "View finance & RV",
+        [AppPermissions.Keys.FinanceManage] = "Manage RV, FMIS & Golis audits",
+    };
+
     public bool ByRole { get; private set; } = true;
     public string ActiveRole { get; private set; } = "";
     public User? ActiveUser { get; private set; }
-
-    public string FormHandler => ByRole ? "RoleSave" : "UserSave";
-    public bool IsUserScope => !ByRole;
-    public string ScopeTitle => ByRole
-        ? $"Role Permission Matrix — {ActiveRole}"
-        : $"User Permission Matrix — {ActiveUser?.FullName ?? "User"}";
-    public int ActiveUserId => ActiveUser?.Id ?? 0;
-
     public List<string> Roles { get; private set; } = new();
     public List<User> Users { get; private set; } = new();
-    public List<ModuleVM> Modules { get; private set; } = new();
-
-    [BindProperty] public List<string> Selected { get; set; } = new();
+    public List<ModuleRow> Modules { get; private set; } = new();
+    public bool ActiveIsAdmin => string.Equals(ByRole ? ActiveRole : ActiveUser?.Role, "Admin", StringComparison.OrdinalIgnoreCase);
 
     public string? Message { get; private set; }
     public string? ErrorMessage { get; private set; }
 
-    public class ModuleVM
+    public class ModuleRow
     {
         public string Name { get; set; } = "";
         public string Icon { get; set; } = "";
-        public List<PageVM> Pages { get; set; } = new();
+        public List<PermissionRow> Permissions { get; set; } = new();
     }
 
-    public class PageVM
-    {
-        public string Name { get; set; } = "";
-        public string ViewKey { get; set; } = "";
-        public List<ActionVM> Actions { get; set; } = new();
-    }
-
-    public class ActionVM
+    public class PermissionRow
     {
         public string Key { get; set; } = "";
         public string Label { get; set; } = "";
+        /// <summary>The View key this permission depends on (null for View keys).</summary>
+        public string? RequiresKey { get; set; }
         public bool Critical { get; set; }
-        /// <summary>granted / inherit / allow / deny ("" = none).</summary>
-        public string State { get; set; } = "";
-        /// <summary>Fixed matrix column this action maps to.</summary>
-        public string Column { get; set; } = "col_manage";
-        public string BadgeClass { get; set; } = "";
-        public string BadgeText { get; set; } = "—";
-        public string Selected { get; set; } = ""; // "inherit"/"grant"/"deny"
+        /// <summary>Role scope: granted to the role. User scope: the role gives it.</summary>
+        public bool RoleHas { get; set; }
+        /// <summary>User scope: "inherit", "allow" or "deny".</summary>
+        public string Override { get; set; } = "inherit";
+        /// <summary>Always granted to Admins (lock-out protection).</summary>
+        public bool Locked { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync(string? role = null, int? userId = null,
         string? message = null, string? error = null)
     {
-        // User scope if userId >= 0 (specific user selected OR User toggle clicked).
-        // Role scope only when userId == null.
-        ByRole = !userId.HasValue; // true only when userId is null (Role scope)
-        ActiveRole = ByRole ? (role ?? "Admin") : "";
         Message = message;
         ErrorMessage = error;
+        ByRole = !userId.HasValue;
 
-        Roles = await _context.Users.Select(u => u.Role).Distinct().OrderBy(r => r).ToListAsync();
+        var usedRoles = await _context.Users.Select(u => u.Role).Distinct().ToListAsync();
+        var grantedRoles = await _context.RolePermissions.Select(r => r.Role).Distinct().ToListAsync();
+        Roles = StandardRoles.Concat(usedRoles).Concat(grantedRoles)
+            .Where(r => !string.IsNullOrWhiteSpace(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => Array.IndexOf(StandardRoles, r) is var i && i >= 0 ? i : 100)
+            .ThenBy(r => r)
+            .ToList();
         Users = await _context.Users.OrderBy(u => u.Username).ToListAsync();
+
+        if (!ByRole)
+        {
+            ActiveUser = userId > 0
+                ? await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+                : Users.FirstOrDefault();
+            if (ActiveUser == null) ByRole = true;
+        }
 
         if (ByRole)
         {
-            ActiveRole = string.IsNullOrWhiteSpace(role) ? (Roles.FirstOrDefault() ?? "Admin") : role;
-            await BuildForRoleAsync(ActiveRole);
+            ActiveRole = Roles.FirstOrDefault(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase))
+                         ?? Roles.FirstOrDefault() ?? "Admin";
+            var grants = await _permissions.GetRoleGrantsAsync(ActiveRole);
+            Modules = BuildModules(key => grants.Contains(key), _ => "inherit",
+                string.Equals(ActiveRole, "Admin", StringComparison.OrdinalIgnoreCase));
         }
         else
         {
-            var effectiveUserId = userId > 0 ? userId : (int?)null;
-            ActiveUser = effectiveUserId.HasValue
-                ? await _context.Users.FirstOrDefaultAsync(u => u.Id == effectiveUserId)
-                : Users.FirstOrDefault();
-            if (ActiveUser == null)
-            {
-                ByRole = true;
-                ActiveRole = Roles.FirstOrDefault() ?? "Admin";
-                await BuildForRoleAsync(ActiveRole);
-            }
-            else
-            {
-                await BuildForUserAsync(ActiveUser);
-            }
+            var inherited = await _permissions.GetRoleGrantsAsync(ActiveUser!.Role ?? "");
+            var overrides = await _permissions.GetUserOverridesAsync(ActiveUser.Id);
+            Modules = BuildModules(
+                key => inherited.Contains(key),
+                key => overrides.TryGetValue(key, out var e) ? (e == PermissionEffect.Allow ? "allow" : "deny") : "inherit",
+                string.Equals(ActiveUser.Role, "Admin", StringComparison.OrdinalIgnoreCase));
         }
         return Page();
     }
 
-    private async Task BuildForRoleAsync(string role)
+    private static List<ModuleRow> BuildModules(Func<string, bool> roleHas, Func<string, string> overrideOf, bool isAdmin)
     {
-        var grants = await _permissions.GetRoleGrantsAsync(role);
-        System.IO.File.AppendAllText("/tmp/vts_mp_debug.log", $"[{DateTime.UtcNow:O}] BuildForRole role={role} grants={string.Join(",", grants)}\n");
+        var modules = new List<ModuleRow>();
         foreach (var m in AppPermissions.Modules)
         {
-            var mvm = new ModuleVM { Name = m.Name, Icon = m.Icon };
+            var row = new ModuleRow { Name = m.Name, Icon = m.Icon };
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var p in m.Pages)
             {
-                var pvm = new PageVM { Name = p.Name, ViewKey = p.ViewKey };
-                pvm.Actions.Add(MakeAction(p.ViewKey, "View", false,
-                    grants.Contains(p.ViewKey) ? "granted" : ""));
-                foreach (var a in p.Actions)
-                    pvm.Actions.Add(MakeAction(a.Key, a.Label, a.Critical,
-                        grants.Contains(a.Key) ? "granted" : ""));
-                mvm.Pages.Add(pvm);
+                void Add(string key, string? requires, bool critical)
+                {
+                    if (!seen.Add(key)) return;
+                    row.Permissions.Add(new PermissionRow
+                    {
+                        Key = key,
+                        Label = Labels.TryGetValue(key, out var l) ? l : key,
+                        RequiresKey = requires,
+                        Critical = critical,
+                        RoleHas = roleHas(key),
+                        Override = overrideOf(key),
+                        Locked = isAdmin && PermissionService.AdminFloor.Contains(key, StringComparer.OrdinalIgnoreCase),
+                    });
+                }
+                Add(p.ViewKey, null, false);
+                foreach (var a in p.Actions) Add(a.Key, p.ViewKey, a.Critical);
             }
-            Modules.Add(mvm);
+            modules.Add(row);
         }
+        return modules;
     }
 
-    private async Task BuildForUserAsync(User user)
-    {
-        var overrides = await _permissions.GetUserOverridesAsync(user.Id);
-        var inherited = await _permissions.GetInheritedFromRoleAsync(user);
-
-        foreach (var m in AppPermissions.Modules)
-        {
-            var mvm = new ModuleVM { Name = m.Name, Icon = m.Icon };
-            foreach (var p in m.Pages)
-            {
-                var pvm = new PageVM { Name = p.Name, ViewKey = p.ViewKey };
-                pvm.Actions.Add(MakeAction(p.ViewKey, "View", false,
-                    ColumnState(p.ViewKey, overrides, inherited)));
-                foreach (var a in p.Actions)
-                    pvm.Actions.Add(MakeAction(a.Key, a.Label, a.Critical,
-                        ColumnState(a.Key, overrides, inherited)));
-                mvm.Pages.Add(pvm);
-            }
-            Modules.Add(mvm);
-        }
-    }
-
-    private static ActionVM MakeAction(string key, string label, bool critical, string state)
-    {
-        var a = new ActionVM { Key = key, Label = label, Critical = critical, State = state };
-        a.Column = ColumnOf(label);
-        a.BadgeClass = state == "allow" ? "allow" : state == "granted" ? "granted"
-                     : state == "inherit" ? "inherit" : state == "deny" ? "deny" : "";
-        a.BadgeText = state == "allow" ? "Allow" : state == "granted" ? "Granted"
-                    : state == "inherit" ? "Inherited" : state == "deny" ? "Deny" : "—";
-        a.Selected = (state == "allow" || state == "granted") ? "grant" : state == "deny" ? "deny" : "inherit";
-        return a;
-    }
-
-    private static string ColumnOf(string label) =>
-        label == "View" ? "col_view" :
-        label == "Create" ? "col_create" :
-        label == "Edit" ? "col_edit" :
-        label == "Delete" ? "col_delete" :
-        (label == "Cancel" || label == "Approve") ? "col_approve" :
-        (label == "Export" || label == "Print" || label == "Download") ? "col_export" : "col_manage";
-
-    private static string ColumnState(string key, Dictionary<string, PermissionEffect> o,
-        HashSet<string> inherited)
-    {
-        if (o.TryGetValue(key, out var eff))
-            return eff == PermissionEffect.Allow ? "allow" : "deny";
-        return inherited.Contains(key) ? "inherit" : "";
-    }
-
-    // ── Save: Role scope ──────────────────────────────────────────
+    // ── Save: Role scope (selected = every granted key) ───────────
     public async Task<IActionResult> OnPostRoleSaveAsync(string role, List<string> selected)
     {
+        if (string.IsNullOrWhiteSpace(role))
+            return RedirectToPage(new { error = "Choose a role." });
+
         await _permissions.SaveRolePermissionsAsync(role, selected ?? new List<string>(), User);
-        return RedirectToPage(new { role, userId = (int?)null,
-            message = $"Permissions saved for role '{role}'." });
+        return RedirectToPage(new { role, message = $"Permissions saved for role '{role}'." });
     }
 
-    // ── Save: User scope ──────────────────────────────────────────
-    public async Task<IActionResult> OnPostUserSaveAsync(int userId,
-        Dictionary<string, int> overrideMap, List<string> selected)
+    // ── Save: User scope (overrideMap = every Allow/Deny choice) ──
+    public async Task<IActionResult> OnPostUserSaveAsync(int userId, Dictionary<string, int> overrideMap)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
             return RedirectToPage(new { userId, error = "User not found." });
 
+        // The form always sends the complete set of Allow (2) / Deny (3)
+        // choices; anything not sent goes back to inheriting from the role.
         var desired = new Dictionary<string, PermissionEffect>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in overrideMap)
+        foreach (var kv in overrideMap ?? new Dictionary<string, int>())
         {
             if (string.IsNullOrWhiteSpace(kv.Key) || !AppPermissions.AllKeys.Contains(kv.Key)) continue;
-            // 1 = clear→inherit, 2 = Allow, 3 = Deny
             if (kv.Value == 2) desired[kv.Key] = PermissionEffect.Allow;
             else if (kv.Value == 3) desired[kv.Key] = PermissionEffect.Deny;
         }
-        // keep any explicitly selected Allow keys in sync (defensive)
-        foreach (var k in selected ?? new List<string>())
-            if (AppPermissions.AllKeys.Contains(k) && !desired.TryGetValue(k, out var e) || false)
-                desired[k] = PermissionEffect.Allow;
 
         await _permissions.SaveUserOverridesAsync(user, desired, User);
-        return RedirectToPage(new { userId,
-            message = $"Permission overrides saved for '{user.Username}'." });
+        return RedirectToPage(new { userId, message = $"Permissions saved for '{user.Username}'." });
     }
 }

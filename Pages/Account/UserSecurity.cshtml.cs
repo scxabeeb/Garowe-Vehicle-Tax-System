@@ -5,7 +5,7 @@ using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
 using Microsoft.AspNetCore.Identity;
 
-[Authorize(Roles = "Admin")]
+[Authorize] // access by permission (Security/PagePermissionFilter)
 public class UserSecurityModel : PageModel
 {
     private readonly AppDbContext _context;

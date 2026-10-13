@@ -1,4 +1,5 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject VehicleTax.Web.Services.IPermissionService Perms
 <!DOCTYPE html>
 <html lang="@L.Code">
 <head>
@@ -206,15 +207,19 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    var isAdmin = User.IsInRole("Admin");
-                    var canVehicleView = isAdmin || User.HasClaim("permission", "vehicle.view");
-                    var canPaymentView = isAdmin || User.HasClaim("permission", "payment.view");
-                    var canPaymentCreate = isAdmin || User.HasClaim("permission", "payment.create");
-                    var canReportsView = isAdmin || User.HasClaim("permission", "reports.view");
-                    var canUserView = isAdmin || User.HasClaim("permission", "user.view");
-                    var canUserCreate = isAdmin || User.HasClaim("permission", "user.create");
-                    var canManagePermissions = isAdmin || User.HasClaim("permission", "user.permissions");
-                    var canRevenueAccountView = isAdmin || User.HasClaim("permission", "revenueaccount.view");
+                    // Menus follow the user's live permissions (same rules the pages enforce).
+                    var perms = await Perms.GetEffectiveAsync(User);
+                    Func<string, bool> can = key => perms.Contains(key);
+                    var canVehicleView = can("Vehicles.View");
+                    var canSettingsView = can("Settings.View");
+                    var canPaymentView = can("Payments.View");
+                    var canPaymentCreate = can("Payments.Create");
+                    var canReportsView = can("Reports.View");
+                    var canFinanceView = can("Finance.View");
+                    var canUserView = can("Users.View");
+                    var canUserCreate = can("Users.Create");
+                    var canManagePermissions = can("Roles.ManagePermissions");
+                    var canRolesView = can("Roles.View");
                     var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLowerInvariant();
 
                     var isDataSetup = currentPath.StartsWith("/vehicles") ||
@@ -232,7 +237,7 @@
                                            currentPath.StartsWith("/account/register") ||
                                            currentPath.StartsWith("/account/usersecurity");
 
-                    @if (canVehicleView)
+                    @if (canVehicleView || canSettingsView)
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-1 @(isDataSetup ? "active" : "")"
@@ -243,11 +248,16 @@
                             </a>
                             <ul class="dropdown-menu shadow border-0">
                                 <li class="menu-category">@L["Registry"]</li>
+                                @if (canVehicleView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Vehicles/Index">
                                         <i class="bi bi-truck"></i> @L["Vehicles"]
                                     </a>
                                 </li>
+                                }
+                                @if (canSettingsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/CarTypes/Index">
                                         <i class="bi bi-diagram-3"></i> @L["Car Types"]
@@ -265,16 +275,11 @@
                                         <i class="bi bi-currency-dollar"></i> @L["Tax Amounts"]
                                     </a>
                                 </li>
-                                @if (isAdmin)
-                                {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Checkpoints/Index">
                                             <i class="bi bi-geo-alt"></i> @L["Checkpoints"]
                                         </a>
                                     </li>
-                                }
-                                @if (canRevenueAccountView)
-                                {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/RevenueAccounts/Index">
                                             <i class="bi bi-wallet2"></i> @L["Revenue Accounts"]
@@ -383,14 +388,17 @@
                         </li>
                     }
 
+                    @if (canPaymentView)
+                    {
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center gap-1 @(currentPath.StartsWith("/verify") ? "active" : "")"
                            asp-page="/Verify/Index">
                             <i class="bi bi-patch-check"></i> @L["Verify Plate"]
                         </a>
                     </li>
+                    }
 
-                    @if (canReportsView)
+                    @if (canReportsView || canFinanceView)
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-1 @(isReports ? "active" : "")"
@@ -402,102 +410,156 @@
 
                             <ul class="dropdown-menu shadow border-0" style="max-height: 75vh; overflow-y: auto;">
                                 <li class="menu-category">@L["Collections"]</li>
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Index">
                                         <i class="bi bi-speedometer2"></i> @L["Collections Dashboard"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Summary">
                                         <i class="bi bi-file-earmark-bar-graph"></i> @L["Summary Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/CheckpointReport">
                                         <i class="bi bi-geo-alt"></i> @L["Checkpoint Collection Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/PaymentSummary">
                                         <i class="bi bi-bar-chart-line"></i> @L["Payment Summary Report"]
                                     </a>
                                 </li>
+                                }
                                 <li><hr class="dropdown-divider" /></li>
                                 <li class="menu-category">@L["Finance & Accounts"]</li>
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/RevenueAccountReport">
                                         <i class="bi bi-wallet2"></i> @L["Revenue Account Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canFinanceView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Index">
                                         <i class="bi bi-cash-stack"></i> @L["Finance Dashboard"]
                                     </a>
                                 </li>
+                                }
+                                @if (canFinanceView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Rv/Index">
                                         <i class="bi bi-file-earmark-text"></i> @L["RV History"]
                                     </a>
                                 </li>
+                                }
                                 <li><hr class="dropdown-divider" /></li>
                                 <li class="menu-category">@L["Audit"]</li>
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/GolisAudit">
                                         <i class="bi bi-shield-check"></i> @L["Golis Audit"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/GolisAuditHistory">
                                         <i class="bi bi-clock-history"></i> @L["Golis Audit History"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Logs">
                                         <i class="bi bi-journal-text"></i> @L["Logs & Audit Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Transactions/Index">
                                         <i class="bi bi-arrow-left-right"></i> @L["Transactions Audit Log"]
                                     </a>
                                 </li>
+                                }
                                 <li><hr class="dropdown-divider" /></li>
                                 <li class="menu-category">@L["Registry & Setup"]</li>
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Vehicles">
                                         <i class="bi bi-truck"></i> @L["Vehicle Registry Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Movements">
                                         <i class="bi bi-signpost-split"></i> @L["Traffida Catalog Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxMovement">
                                         <i class="bi bi-bar-chart"></i> @L["Tax by Traffida Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxMovementCarType">
                                         <i class="bi bi-diagram-3"></i> @L["Tax Amount by Traffida & Car Type"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxAmountReport">
                                         <i class="bi bi-currency-dollar"></i> @L["Tax Amount Schedule"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/ReceiptReferences">
                                         <i class="bi bi-receipt"></i> @L["Receipt References Report"]
                                     </a>
                                 </li>
+                                }
+                                @if (canReportsView)
+                                {
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/UsersReport">
                                         <i class="bi bi-people"></i> @L["User Activity Report"]
                                     </a>
                                 </li>
+                                }
                              </ul>
                         </li>
                     }

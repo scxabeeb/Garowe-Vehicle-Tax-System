@@ -1,0 +1,145 @@
+@model VehicleTax.Web.Pages.Account.UserFormModel
+@* Shared create / edit user form (Register.cshtml, EditUser.cshtml). *@
+<style>
+    .uf-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 22px 24px; }
+    .uf-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; }
+    .uf-card .uf-head { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
+    .uf-card .uf-head i { color: #0b57d0; }
+    .uf-card .uf-body { padding: 18px; }
+    .uf-role { display: block; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; cursor: pointer; height: 100%; transition: all .15s; }
+    .uf-role:hover { border-color: #93b4f5; }
+    .uf-role input { display: none; }
+    .uf-role.sel { border-color: #0b57d0; background: #eef4ff; }
+    .uf-role .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #eef4ff; color: #0b57d0; }
+    .uf-role.sel .ic { background: #0b57d0; color: #fff; }
+    .uf-role .d { font-size: 12px; color: #64748b; }
+</style>
+
+<div class="container py-4" style="max-width: 1040px;">
+    <div class="uf-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi @(Model.IsEdit ? "bi-pencil-square" : "bi-person-plus") me-2"></i>@L[Model.IsEdit ? "Edit User" : "Create User"]
+            </h3>
+            <div style="opacity:.8">
+                @if (Model.IsEdit)
+                {
+                    <span>@@@Model.Username · System ID @Model.Id · @L[Model.IsLocked ? "Inactive" : "Active"]</span>
+                }
+                else
+                {
+                    @L["Create a new account and assign the initial role."]
+                }
+            </div>
+        </div>
+        <a class="btn btn-outline-light" asp-page="/Account/Users"><i class="bi bi-arrow-left me-1"></i>@L["Back to Users"]</a>
+    </div>
+
+    @if (Model.Errors.Any())
+    {
+        <div class="alert alert-danger">
+            <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>@L["Please fix the following:"]</div>
+            <ul class="mb-0">@foreach (var e in Model.Errors) { <li>@L[e]</li> }</ul>
+        </div>
+    }
+
+    <form method="post" autocomplete="off" novalidate>
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <div class="row g-3">
+            <div class="col-lg-5">
+                <div class="uf-card h-100">
+                    <div class="uf-head"><i class="bi bi-person-vcard"></i>@L["Account"]</div>
+                    <div class="uf-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">@L["Full Name"]</label>
+                            <input name="FullName" value="@Model.FullName" class="form-control" placeholder="@L["Enter full name"]" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">@L["Username"] <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">@@</span>
+                                <input name="Username" value="@Model.Username" class="form-control" placeholder="@L["Enter username"]" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">@L["Phone"]</label>
+                            <input name="Phone" value="@Model.Phone" class="form-control" placeholder="@L["Enter phone number"]" inputmode="tel" />
+                        </div>
+                        <div>
+                            <label class="form-label fw-semibold">
+                                @L["Password"] @if (!Model.IsEdit) { <span class="text-danger">*</span> }
+                            </label>
+                            <div class="input-group">
+                                <input name="Password" id="ufPassword" type="password" class="form-control" autocomplete="new-password"
+                                       placeholder="@L[Model.IsEdit ? "Leave blank to keep current password" : "Enter password"]" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="var p=document.getElementById('ufPassword');p.type=p.type==='password'?'text':'password';this.firstElementChild.className=p.type==='password'?'bi bi-eye':'bi bi-eye-slash';">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">@L["At least 6 characters."]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="uf-card h-100">
+                    <div class="uf-head"><i class="bi bi-shield-lock"></i>@L["Access"]</div>
+                    <div class="uf-body">
+                        <label class="form-label fw-semibold">@L["Role"] <span class="text-danger">*</span></label>
+                        <div class="row g-2 mb-3" id="ufRoles">
+                            @foreach (var r in Model.Roles)
+                            {
+                                var sel = string.Equals(r.Name, Model.Role, StringComparison.OrdinalIgnoreCase);
+                                <div class="col-sm-6">
+                                    <label class="uf-role @(sel ? "sel" : "")">
+                                        <input type="radio" name="Role" value="@r.Name" checked="@sel" />
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="ic"><i class="bi @r.Icon"></i></span>
+                                            <span class="fw-bold flex-grow-1">@L[r.Name]</span>
+                                            <span class="badge bg-light text-secondary border">@r.PermissionCount @L["permissions"]</span>
+                                        </div>
+                                        <div class="d">@L[r.Description]</div>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+
+                        <label class="form-label fw-semibold">@L["Checkpoint"]</label>
+                        <select name="CheckpointId" class="form-select">
+                            <option value="">@L["No checkpoint"]</option>
+                            @foreach (var c in Model.Checkpoints)
+                            {
+                                <option value="@c.Value" selected="@(c.Selected ? "selected" : null)">@c.Text</option>
+                            }
+                        </select>
+                        <div class="form-text">@L["Collectors are attributed to this checkpoint on their payments."]</div>
+
+                        @if (Model.IsEdit)
+                        {
+                            <a class="btn btn-sm btn-outline-primary mt-3" asp-page="/Account/ManagePermissions" asp-route-userId="@Model.Id">
+                                <i class="bi bi-sliders me-1"></i>@L["Fine-tune this user's permissions"]
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <a class="btn btn-outline-secondary px-4" asp-page="/Account/Users">@L["Cancel"]</a>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check2-circle me-1"></i>@L[Model.IsEdit ? "Save Changes" : "Create User"]
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.querySelectorAll('#ufRoles input[name=Role]').forEach(function (r) {
+        r.addEventListener('change', function () {
+            document.querySelectorAll('#ufRoles .uf-role').forEach(function (l) { l.classList.remove('sel'); });
+            r.closest('.uf-role').classList.add('sel');
+        });
+    });
+</script>

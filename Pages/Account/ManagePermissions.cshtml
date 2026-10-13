@@ -2,283 +2,282 @@
 @model VehicleTax.Web.Pages.Account.ManagePermissionsModel
 @{
     ViewData["Title"] = L["Manage Permissions"];
-    Layout = "_Layout";
-    var isUserScope = !Model.ByRole;
+    var isUser = !Model.ByRole;
+    var u = Model.ActiveUser;
 }
+
 <style>
-    .pm-card { border-radius: .85rem; box-shadow: 0 .15rem .6rem rgba(15,23,42,.08); }
-    .pm-module { font-weight: 700; color: #0f2b73; }
-    .pm-badge { font-size: .7rem; font-weight: 600; }
-    .pm-badge.granted, .pm-badge.allow { background: #e7f6ec; color: #16803c; }
-    .pm-badge.inherit { background: #eef3ff; color: #1f4ed3; }
-    .pm-badge.deny { background: #fdeaea; color: #b3261e; }
-    .pm-critical { color: #b3261e; }
-    .pm-col-header { font-size: .72rem; color: #64748b; }
+    .pm-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 22px 24px; }
+    .pm-hero .text-white-50 { color: rgba(255,255,255,.75) !important; }
+    .pm-scope { display: inline-flex; background: rgba(255,255,255,.15); border-radius: 12px; padding: 4px; gap: 4px; }
+    .pm-scope a { color: #fff; text-decoration: none; padding: 7px 16px; border-radius: 9px; font-weight: 700; font-size: 14px; }
+    .pm-scope a.active { background: #fff; color: #0b57d0; }
+    .pm-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pm-pill { border: 1px solid #e2e8f0; background: #fff; border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 14px;
+               color: #334155; text-decoration: none; }
+    .pm-pill.active { background: #0b57d0; border-color: #0b57d0; color: #fff; }
+    .pm-module { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .pm-module-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #f1f5f9; }
+    .pm-module-head .pm-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #eef4ff; color: #0b57d0; }
+    .pm-count { font-size: 12px; font-weight: 700; color: #64748b; background: #f1f5f9; border-radius: 999px; padding: 3px 10px; }
+    .pm-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid #f8fafc; }
+    .pm-row:last-child { border-bottom: 0; }
+    .pm-row.sub { padding-left: 34px; }
+    .pm-row .pm-label { flex: 1; min-width: 0; }
+    .pm-row .pm-key { font-family: ui-monospace, monospace; font-size: 11px; color: #94a3b8; }
+    .pm-seg { display: inline-flex; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+    .pm-seg input { display: none; }
+    .pm-seg label { padding: 5px 11px; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; border-right: 1px solid #e2e8f0; margin: 0; }
+    .pm-seg label:last-of-type { border-right: 0; }
+    .pm-seg input:checked + label.inherit { background: #f1f5f9; color: #0f172a; }
+    .pm-seg input:checked + label.allow { background: #16a34a; color: #fff; }
+    .pm-seg input:checked + label.deny { background: #dc2626; color: #fff; }
+    .pm-result { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; flex-shrink: 0; min-width: 104px; text-align: center; }
+    .pm-result.yes { background: #dcfce7; color: #15803d; }
+    .pm-result.no { background: #f1f5f9; color: #94a3b8; }
+    .pm-role-has { font-size: 11px; color: #64748b; white-space: nowrap; }
+    .pm-switch .form-check-input { width: 2.6em; height: 1.35em; cursor: pointer; }
+    .pm-savebar { position: sticky; bottom: 0; z-index: 10; background: rgba(255,255,255,.96); backdrop-filter: blur(6px);
+                  border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; box-shadow: 0 -4px 20px rgba(15,23,42,.08); }
+    @@media (max-width: 576px) {
+        .pm-row { flex-wrap: wrap; }
+        .pm-row .pm-label { flex-basis: 100%; }
+    }
 </style>
 
-<div class="container-fluid py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <div>
-            <h2 class="mb-0"><i class="bi bi-sliders me-2"></i>@L["Manage Permissions"]</h2>
-            <div class="text-muted">@L["Granular access control — Module · Page · Action"]</div>
+<div class="container py-4">
+    <div class="pm-hero mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>@L["Manage Permissions"]</h3>
+                <div class="text-white-50">@L["Give or take access by role, or override it for one user."]</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-light btn-sm" asp-page="/Account/PermissionHistory"><i class="bi bi-clock-history me-1"></i>@L["Change History"]</a>
+                <a class="btn btn-outline-light btn-sm" asp-page="/Account/Users"><i class="bi bi-people me-1"></i>@L["Users"]</a>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" asp-page="/Account/PermissionHistory">
-                <i class="bi bi-clock-history me-1"></i> @L["Change History"]</a>
-            <a class="btn btn-outline-secondary" asp-page="/Account/Users">← Users</a>
+        <div class="pm-scope mt-3">
+            <a class="@(isUser ? "" : "active")" asp-page="/Account/ManagePermissions" asp-route-role="@Model.ActiveRole"><i class="bi bi-diagram-3 me-1"></i>@L["By Role"]</a>
+            <a class="@(isUser ? "active" : "")" asp-page="/Account/ManagePermissions" asp-route-userId="@(u?.Id ?? Model.Users.FirstOrDefault()?.Id ?? 0)"><i class="bi bi-person me-1"></i>@L["By User"]</a>
         </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger">@Model.ErrorMessage</div>
-    }
     @if (!string.IsNullOrEmpty(Model.Message))
     {
-        <div class="alert alert-success"><i class="bi bi-check-circle me-1"></i>@Model.Message</div>
+        <div class="alert alert-success d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill"></i>@Model.Message</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i>@Model.ErrorMessage</div>
     }
 
-    <!-- Scope switcher -->
-    <div class="card pm-card mb-3">
-        <div class="card-body py-2">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                <span class="fw-semibold me-1">@L["Manage by:"]</span>
-                                <div class="btn-group btn-group-sm">
-                    <a asp-page="/Account/ManagePermissions"
-                       asp-route-role="@(isUserScope ? "" : Model.ActiveRole)"
-                       asp-route-userId="@((int?)null)"
-                       class="btn @(isUserScope ? "btn-outline-primary" : "btn-primary")">@L["Role"]</a>
-                    <a asp-page="/Account/ManagePermissions"
-                       asp-route-role=""
-                       asp-route-userId="@(Model.ActiveUser?.Id ?? Model.Users.FirstOrDefault()?.Id ?? 0)"
-                       class="btn @(isUserScope ? "btn-primary" : "btn-outline-primary")">@L["User"]</a>
-                </div>
-            </div>
-            @if (isUserScope)
+    <!-- Who is being edited -->
+    <div class="card border-0 shadow-sm mb-3" style="border-radius:16px;">
+        <div class="card-body">
+            @if (isUser)
             {
-                <form method="get" class="d-flex flex-wrap align-items-center gap-2 mt-1">
-                    <label class="small mb-0 me-1">@L["User:"]</label>
-                    <select class="form-select form-select-sm" name="userId" onchange="this.form.submit()">
-                        @for (int i = 0; i < Model.Users.Count; i++)
-                        {
-                            var u = Model.Users[i];
-                            var selU = u.Id == Model.ActiveUser?.Id ? "selected" : "";
-                            @:<option value="@u.Id" @selU>@u.Username · @u.Role</option>
-                        }
-                    </select>
-                    <input class="form-control form-control-sm" type="search" name="userSearch"
-                           placeholder="@L["🔍 Search users…"]" style="width:180px" />
-                    <button class="btn btn-sm btn-primary" type="submit">@L["Select"]</button>
+                <form method="get" class="row g-2 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">@L["User"]</label>
+                        <select class="form-select" name="userId" onchange="this.form.submit()">
+                            @foreach (var x in Model.Users)
+                            {
+                                <option value="@x.Id" selected="@(x.Id == u?.Id ? "selected" : null)">
+                                    @x.Username@(string.IsNullOrWhiteSpace(x.FullName) ? "" : " · " + x.FullName) (@L[x.Role])
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 small text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        @L["Inherit uses the role's setting. Allow or Deny overrides it for this user only."]
+                        <a asp-page="/Account/ManagePermissions" asp-route-role="@u?.Role">@L["Edit the role"] (@L[u?.Role ?? ""])</a>
+                    </div>
                 </form>
             }
             else
             {
-                <form method="get" class="d-flex flex-wrap align-items-center gap-2 mt-1">
-                    <label class="small mb-0 me-1">@L["Role:"]</label>
-                    <select class="form-select form-select-sm" name="role" onchange="this.form.submit()">
-                        @for (int i = 0; i < Model.Roles.Count; i++)
-                        {
-                            var r = Model.Roles[i];
-                            var selR = r == Model.ActiveRole ? "selected" : "";
-                            @:<option value="@r" @selR>@r</option>
-                        }
-                        @if (!string.IsNullOrEmpty(Model.ActiveRole) && !Model.Roles.Contains(Model.ActiveRole, StringComparer.OrdinalIgnoreCase))
-                        {
-                            @:<option value="@Model.ActiveRole" selected>@Model.ActiveRole</option>
-                        }
-                    </select>
-                    <input class="form-control form-control-sm" type="search" name="roleSearch"
-                           placeholder="@L["🔍 Search role…"]" style="width:160px" />
-                    <button class="btn btn-sm btn-primary" type="submit">@L["Edit Role"]</button>
-                </form>
+                <div class="small fw-semibold text-muted mb-2">@L["Role"]</div>
+                <div class="pm-pills">
+                    @foreach (var r in Model.Roles)
+                    {
+                        <a class="pm-pill @(r == Model.ActiveRole ? "active" : "")" asp-page="/Account/ManagePermissions" asp-route-role="@r">@L[r]</a>
+                    }
+                </div>
             }
         </div>
-<form method="post" id="permForm"
-          asp-page-handler="@Model.FormHandler"
-          asp-route-role="@Model.ActiveRole"
-          asp-route-userId="@Model.ActiveUserId"
-          onsubmit="return beforeSave()">
-<div class="card pm-card">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2">
-            <span class="fw-semibold">@Model.ScopeTitle</span>
-            <div class="d-flex gap-2 align-items-center">
-                <span class="badge pm-badge inherit">@L["Inherited"]</span>
-                <span class="badge pm-badge granted">@L["Granted"]</span>
-                @if (Model.IsUserScope)
+    </div>
+
+    <form method="post" id="permForm" asp-page-handler="@(isUser ? "UserSave" : "RoleSave")"
+          asp-route-role="@Model.ActiveRole" asp-route-userId="@(u?.Id ?? 0)">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h5 class="fw-bold mb-0">
+                @if (isUser)
                 {
-                    <span class="badge pm-badge allow">@L["Allow"]</span>
-                    <span class="badge pm-badge deny">@L["Deny"]</span>
+                    <span><i class="bi bi-person-circle me-1 text-primary"></i>@(string.IsNullOrWhiteSpace(u!.FullName) ? u.Username : u.FullName)</span>
+                    <span class="badge bg-primary-subtle text-primary ms-1">@L[u.Role]</span>
                 }
-                <span id="unsaved" class="text-muted" style="font-size:.78rem">@L["No changes"]</span>
-                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetAll()">@L["Reset"]</button>
-                <button type="submit" class="btn btn-primary btn-sm"
-                        onclick="return confirm('Save these permission changes? This takes effect immediately.')">
-                    <i class="bi bi-check2 me-1"></i>@L["Save Changes"]
-                </button>
+                else
+                {
+                    <span><i class="bi bi-diagram-3 me-1 text-primary"></i>@L["Role"]: @L[Model.ActiveRole]</span>
+                }
+            </h5>
+            <div class="d-flex gap-2 align-items-center">
+                <input id="pmSearch" class="form-control form-control-sm" style="width:220px" placeholder="@L["Search permissions…"]" />
+                <span class="pm-count" id="pmTotal"></span>
             </div>
         </div>
-        <div class="card-body p-3">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <input type="search" class="form-control form-control-sm" id="matrixSearch"
-                       placeholder="@L["Search pages and permissions"]" style="width:300px"
-                       oninput="applySearch(this.value)" />
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="expandAll(true)">@L["Expand all"]</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="expandAll(false)">@L["Collapse all"]</button>
-            </div>
 
-            <div class="row g-0 border-bottom small fw-semibold py-1 px-1 text-muted bg-light">
-                <div class="col-3 ps-2">@L["Page"]</div>
-                <div class="col text-center">@L["View"]</div>
-                <div class="col text-center">@L["Create"]</div>
-                <div class="col text-center">@L["Edit"]</div>
-                <div class="col text-center">@L["Delete"]</div>
-                <div class="col text-center">@L["Approve/Cancel"]</div>
-                <div class="col text-center">@L["Export/Print"]</div>
-                <div class="col text-center">@L["Manage"]</div>
-            </div>
+        @if (Model.ActiveIsAdmin)
+        {
+            <div class="alert alert-info py-2 small"><i class="bi bi-lock-fill me-1"></i>@L["Admins always keep dashboard, user and permission management, so access can never be lost."]</div>
+        }
 
+        <div class="row g-3 mb-3">
             @foreach (var m in Model.Modules)
             {
-                <div class="pm-module-block mt-1 border rounded" data-module="@m.Name">
-                    <div class="d-flex align-items-center gap-2 py-1 px-2 bg-light border-bottom">
-                        <button type="button" class="btn btn-sm btn-link p-0" onclick="toggleBlock(this)">
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
-                        <span class="pm-module"><i class="bi @m.Icon me-1"></i>@m.Name</span>
-                        @if (!Model.IsUserScope)
+                <div class="col-lg-6">
+                    <div class="pm-module h-100" data-module>
+                        <div class="pm-module-head">
+                            <span class="pm-icon"><i class="bi @m.Icon"></i></span>
+                            <span class="fw-bold flex-grow-1">@L[m.Name]</span>
+                            <span class="pm-count" data-module-count></span>
+                        </div>
+                        @foreach (var p in m.Permissions)
                         {
-                            <span class="ms-auto small">
-                                <a href="javascript:void(0)" class="text-primary" onclick="moduleSet('@m.Name', true)">@L["Select all"]</a>
-                                <span class="mx-1">|</span>
-                                <a href="javascript:void(0)" class="text-danger" onclick="moduleSet('@m.Name', false)">@L["Clear all"]</a>
-                            </span>
-                        }
-                    </div>
-                    <div class="pm-block-body">
-                        @foreach (var p in m.Pages)
-                        {
-                            <div class="row g-0 border-bottom align-items-center py-1"
-                                 data-page="@m.Name - @p.Name">
-                                <div class="col-3 ps-2 small fw-semibold">@p.Name</div>
-                                @foreach (var a in p.Actions)
+                            <div class="pm-row @(p.RequiresKey != null ? "sub" : "")" data-row data-key="@p.Key"
+                                 data-requires="@p.RequiresKey" data-role-has="@(p.RoleHas ? "1" : "0")" data-locked="@(p.Locked ? "1" : "0")"
+                                 data-search="@(L[p.Label] + " " + p.Key + " " + L[m.Name]).ToLowerInvariant()">
+                                <div class="pm-label">
+                                    <div class="fw-semibold">
+                                        @if (p.RequiresKey != null) { <i class="bi bi-arrow-return-right text-muted me-1"></i> }
+                                        @L[p.Label]
+                                        @if (p.Critical) { <i class="bi bi-exclamation-octagon text-danger ms-1" title="@L["Sensitive permission"]"></i> }
+                                        @if (p.Locked) { <i class="bi bi-lock-fill text-primary ms-1" title="@L["Always granted for Admins"]"></i> }
+                                    </div>
+                                    <div class="pm-key">@p.Key</div>
+                                </div>
+                                @if (isUser)
                                 {
-                                    <div class="col d-flex flex-column align-items-center gap-1"
-                                         data-key="@a.Key" data-critical="@(a.Critical ? 1 : 0)">
-                                        @{ var selInherit = a.Selected == "inherit" ? "selected" : ""; var selGrant = a.Selected == "grant" ? "selected" : ""; var selDeny = a.Selected == "deny" ? "selected" : ""; var lblInherit = L[Model.IsUserScope ? "Inherit" : "None"]; var lblGrant = L[Model.IsUserScope ? "Allow" : "Grant"]; var optInherit = $"<option value=\"inherit\"{selInherit}>{lblInherit}</option>"; var optGrant = $"<option value=\"grant\"{selGrant}>{lblGrant}</option>"; var optDeny = $"<option value=\"deny\"{selDeny}>{L["Deny"]}</option>"; }
-                                        <select class="form-select form-select-sm" style="max-width:112px"
-                                                data-key="@a.Key" data-user="@(Model.IsUserScope ? 1 : 0)"
-                                                onchange="ctlChanged(this)">
-                                            @Html.Raw(optInherit)
-                                            @Html.Raw(optGrant)
-                                            @if (Model.IsUserScope)
-                                            {
-                                                @Html.Raw(optDeny)
-                                            }
-                                        </select>
-                                        <span class="pm-badge badge @a.BadgeClass">@a.BadgeText</span>
+                                    <span class="pm-role-has d-none d-md-inline">@L["Role"]: @(p.RoleHas ? "✓" : "—")</span>
+                                    <div class="pm-seg" role="radiogroup">
+                                        @foreach (var (val, label) in new[] { ("inherit", L["Inherit"]), ("allow", L["Allow"]), ("deny", L["Deny"]) })
+                                        {
+                                            var id = $"o_{p.Key.Replace('.', '_')}_{val}";
+                                            <input type="radio" id="@id" name="choice_@p.Key" value="@val" checked="@(p.Override == val)"
+                                                   data-original="@(p.Override == val ? "1" : "0")" disabled="@p.Locked" />
+                                            <label for="@id" class="@val">@label</label>
+                                        }
                                     </div>
                                 }
+                                else
+                                {
+                                    <div class="form-check form-switch pm-switch m-0">
+                                        <input class="form-check-input" type="checkbox" role="switch" name="selected" value="@p.Key"
+                                               checked="@(p.RoleHas || p.Locked)" disabled="@p.Locked"
+                                               data-original="@((p.RoleHas || p.Locked) ? "1" : "0")" />
+                                    </div>
+                                }
+                                <span class="pm-result" data-result></span>
                             </div>
                         }
                     </div>
                 </div>
             }
         </div>
-    </div>
-</form>
 
-@section Scripts {
-<script>
-    function ctlChanged(sel) {
-        var key = sel.dataset.key;
-        var val = sel.value;
-        var cell = sel.parentElement;
-        var badge = cell.querySelector('.pm-badge');
-
-        var cls = val === 'grant' ? 'granted' : val === 'deny' ? 'deny' : 'inherit';
-        var txt = val === 'grant' ? (sel.dataset.user === '1' ? 'Allow' : 'Granted')
-                : val === 'deny' ? 'Deny' : 'Inherited';
-        badge.className = 'pm-badge badge ' + cls;
-        badge.textContent = txt;
-
-        markDirty(true);
-        if (val === 'inherit' && sel.dataset.critical === '1') {
-            alert('Warning: you are revoking a critical administrative permission.');
-        }
-    }
-
-    function markDirty(on) {
-        var el = document.getElementById('unsaved');
-        if (el) {
-            el.textContent = on ? '● Unsaved changes' : 'No changes';
-            el.style.fontWeight = on ? '700' : '400';
-            el.style.color = on ? '#b3261e' : '';
-        }
-    }
-
-    function beforeSave() {
-        var form = document.getElementById('permForm');
-        form.querySelectorAll('input[name="selected"], input[name^="overrideMap"]').forEach(function (n) { n.remove(); });
-        var isUser = (document.querySelector('.pm-module-block select')?.dataset.user === '1');
-        var submits = form.querySelectorAll('select[data-key]');
-        var count = 0;
-        submits.forEach(function (sel) {
-            var key = sel.dataset.key;
-            var val = sel.value;
-            if (val === 'inherit') return;
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            if (isUser) {
-                // user scope: only send the changed (non-inherit) ones
-                if (sel.dataset.original !== undefined && sel.dataset.original === val) return;
-                input.name = 'overrideMap[' + key + ']';
-                input.value = val === 'grant' ? '2' : '3';
-            } else {
-                input.name = 'selected';
-                input.value = key;
-                count++;
-            }
-            form.appendChild(input);
-        });
-        return isUser ? confirm('Apply these user permission overrides? This takes effect immediately.') : true;
-    }
-
-    function resetAll() { window.location.reload(); }
-
-    function toggleBlock(btn) {
-        var body = btn.closest('.pm-module-block').querySelector('.pm-block-body');
-        var hidden = body.style.display === 'none';
-        body.style.display = hidden ? '' : 'none';
-        btn.querySelector('i').className = hidden ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
-    }
-    function expandAll(expand) {
-        document.querySelectorAll('.pm-module-block').forEach(function (b) {
-            var body = b.querySelector('.pm-block-body');
-            body.style.display = expand ? '' : 'none';
-            var icon = b.querySelector('button.btn-link i');
-            if (icon) icon.className = expand ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
-        });
-    }
-    function applySearch(term) {
-        term = (term || '').toLowerCase();
-        document.querySelectorAll('.pm-module-block').forEach(function (b) {
-            var visible = 0;
-            b.querySelectorAll('.pm-block-body > .row[data-page]').forEach(function (row) {
-                var show = !term || row.dataset.page.toLowerCase().includes(term);
-                row.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
-            b.style.display = (visible > 0 || !term) ? '' : 'none';
-        });
-    }
-    function moduleSet(moduleName, on) {
-        document.querySelectorAll('.pm-module-block[data-module="' + moduleName + '"] select[data-key]').forEach(function (sel) {
-            sel.value = on ? 'grant' : 'inherit';
-            ctlChanged(sel);
-        });
-    }
-    // record original state for the unsaved-changes + on-submit handling
-    document.querySelectorAll('select[data-key]').forEach(function (sel) { sel.dataset.original = sel.value; });
-</script>
-}
+        <div class="pm-savebar d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span id="pmDirty" class="text-muted small">@L["No changes"]</span>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()"><i class="bi bi-arrow-counterclockwise me-1"></i>@L["Reset"]</button>
+                <button type="submit" class="btn btn-primary px-4" id="pmSave" disabled><i class="bi bi-check2-circle me-1"></i>@L["Save Changes"]</button>
+            </div>
+        </div>
+    </form>
 </div>
+
+<script>
+(function () {
+    var isUser = @(isUser ? "true" : "false");
+    var T = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
+    {
+        ["has"] = L["Has access"], ["no"] = L["No access"], ["needsView"] = L["Needs View"],
+        ["changes"] = L["unsaved changes"], ["none"] = L["No changes"], ["of"] = L["of"],
+        ["confirm"] = L["Save these permission changes? They take effect immediately."],
+    }));
+    var form = document.getElementById('permForm');
+    var rows = Array.from(form.querySelectorAll('[data-row]'));
+    var byKey = {};
+    rows.forEach(function (r) { byKey[r.dataset.key] = r; });
+
+    // Does the user/role hold this key, ignoring the View dependency?
+    function own(r) {
+        if (r.dataset.locked === '1') return true;
+        if (!isUser) return r.querySelector('input[type=checkbox]').checked;
+        var v = r.querySelector('input[type=radio]:checked').value;
+        return v === 'allow' ? true : v === 'deny' ? false : r.dataset.roleHas === '1';
+    }
+    // Effective: actions also need the page's View permission (same rule as the server).
+    function effective(r) {
+        if (!own(r)) return false;
+        var req = r.dataset.requires;
+        return !req || !byKey[req] || own(byKey[req]);
+    }
+
+    function refresh() {
+        var dirty = 0, granted = 0;
+        rows.forEach(function (r) {
+            var eff = effective(r), badge = r.querySelector('[data-result]');
+            if (eff) granted++;
+            badge.className = 'pm-result ' + (eff ? 'yes' : 'no');
+            badge.textContent = eff ? '✓ ' + T.has : (own(r) ? T.needsView : T.no);
+            r.querySelectorAll('input').forEach(function (i) {
+                if ((i.type === 'checkbox' && (i.checked ? '1' : '0') !== i.dataset.original) ||
+                    (i.type === 'radio' && i.checked && i.dataset.original !== '1')) dirty++;
+            });
+        });
+        document.querySelectorAll('[data-module]').forEach(function (m) {
+            var mr = m.querySelectorAll('[data-row]');
+            var g = Array.from(mr).filter(effective).length;
+            m.querySelector('[data-module-count]').textContent = g + ' / ' + mr.length;
+        });
+        document.getElementById('pmTotal').textContent = granted + ' ' + T.of + ' ' + rows.length;
+        var d = document.getElementById('pmDirty');
+        d.textContent = dirty ? '● ' + dirty + ' ' + T.changes : T.none;
+        d.className = dirty ? 'fw-bold text-danger small' : 'text-muted small';
+        document.getElementById('pmSave').disabled = !dirty;
+    }
+    form.addEventListener('change', refresh);
+    refresh();
+
+    document.getElementById('pmSearch').addEventListener('input', function () {
+        var q = this.value.trim().toLowerCase();
+        rows.forEach(function (r) { r.style.display = !q || r.dataset.search.indexOf(q) >= 0 ? '' : 'none'; });
+    });
+
+    form.addEventListener('submit', function (e) {
+        if (!confirm(T.confirm)) { e.preventDefault(); return; }
+        form.querySelectorAll('input[data-generated]').forEach(function (n) { n.remove(); });
+        if (isUser) {
+            // Send the complete set of Allow/Deny choices; anything else inherits.
+            rows.forEach(function (r) {
+                var c = r.querySelector('input[type=radio]:checked');
+                if (!c || c.value === 'inherit' || c.disabled) return;
+                var h = document.createElement('input');
+                h.type = 'hidden'; h.dataset.generated = '1';
+                h.name = 'overrideMap[' + r.dataset.key + ']';
+                h.value = c.value === 'allow' ? '2' : '3';
+                form.appendChild(h);
+            });
+        } else {
+            // Disabled (locked) switches are not submitted; add them explicitly.
+            form.querySelectorAll('input[type=checkbox][disabled]').forEach(function (i) {
+                var h = document.createElement('input');
+                h.type = 'hidden'; h.dataset.generated = '1'; h.name = 'selected'; h.value = i.value;
+                form.appendChild(h);
+            });
+        }
+    });
+})();
+</script>

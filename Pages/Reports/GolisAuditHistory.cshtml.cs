@@ -7,7 +7,7 @@ using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Pages.Reports;
 
-[Authorize(Roles = "Admin,Finance Officer,Auditor,Manager")]
+[Authorize] // access by permission (Security/PagePermissionFilter)
 public class GolisAuditHistoryModel : PageModel
 {
     private readonly AppDbContext _context;

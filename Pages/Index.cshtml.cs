@@ -9,7 +9,7 @@ using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Pages;
 
-[Authorize(Policy = "CanViewDashboard")]
+[Authorize] // access by permission (Security/PagePermissionFilter)
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class IndexModel : PageModel
 {
@@ -68,34 +68,59 @@ public class IndexModel : PageModel
     public string RevenueAccountAmounts { get; set; } = "[]";
     public decimal RevenueAccountGrandTotal { get; set; }
 
+    /// <summary>True when this dashboard shows only the signed-in collector's own payments.</summary>
+    public bool IsPersonal { get; private set; }
+    private int? _collectorId;
+
+    /// <summary>
+    /// Payments this dashboard covers: a Collector sees only the payments
+    /// they collected; everyone else sees all payments.
+    /// </summary>
+    private IQueryable<Payment> ScopedPayments() =>
+        _collectorId.HasValue
+            ? _context.Payments.Where(p => p.CollectorId == _collectorId.Value)
+            : _context.Payments.AsQueryable();
+
     public void OnGet()
     {
-        // TOTAL VEHICLES
-        TotalVehicles = _context.Vehicles.Count();
+        if (User.IsInRole("Collector"))
+        {
+            IsPersonal = true;
+            // An unknown user id (-1) matches nothing rather than everything.
+            _collectorId = _context.Users
+                .Where(x => x.Username == User.Identity!.Name)
+                .Select(x => (int?)x.Id)
+                .FirstOrDefault() ?? -1;
+        }
+
+        // TOTAL VEHICLES (a collector: the vehicles they served)
+        TotalVehicles = IsPersonal
+            ? ScopedPayments().Where(p => p.IsPaid && !p.IsReverted).Select(p => p.VehicleId).Distinct().Count()
+            : _context.Vehicles.Count();
 
         // TOTAL PAYMENTS
-        TotalPayments = _context.Payments
+        TotalPayments = ScopedPayments()
             .Where(p => p.IsPaid && !p.IsReverted)
             .Count();
 
         // REVERTED PAYMENTS
-        RevertedPayments = _context.Payments
+        RevertedPayments = ScopedPayments()
             .Where(p => p.IsReverted)
             .Count();
 
         // TODAY COLLECTION
         var todayRange = AppTime.GetUtcDayRange(AppTime.Today);
-        TodayTotal = _context.Payments
+        TodayTotal = ScopedPayments()
             .Where(p => p.IsPaid && !p.IsReverted && p.PaidAt >= todayRange.StartUtc && p.PaidAt < todayRange.EndUtc)
             .Sum(p => (decimal?)p.Amount) ?? 0;
 
         // AVERAGE PAYMENT (PAID + NOT REVERTED)
-        AveragePayment = _context.Payments
+        AveragePayment = ScopedPayments()
             .Where(p => p.IsPaid && !p.IsReverted)
             .Average(p => (decimal?)p.Amount) ?? 0;
 
         // ACTIVE COLLECTORS
-        ActiveCollectors = _context.Payments
+        ActiveCollectors = ScopedPayments()
             .Include(p => p.Collector)
             .Include(p => p.ReceiptReference)
             .Where(p => p.IsPaid && !p.IsReverted)
@@ -105,7 +130,7 @@ public class IndexModel : PageModel
             .Count();
 
         // RECENT PAYMENTS (KEEP AS IS)
-        RecentPayments = _context.Payments
+        RecentPayments = ScopedPayments()
             .Include(p => p.Vehicle)
             .Include(p => p.Collector)
             .Include(p => p.ReceiptReference)
@@ -121,7 +146,7 @@ public class IndexModel : PageModel
         var startDate = AppTime.Today.AddDays(-6);
         var startDateUtc = AppTime.GetUtcDayRange(startDate).StartUtc;
 
-        var dailyRaw = _context.Payments
+        var dailyRaw = ScopedPayments()
             .Where(p => p.IsPaid && !p.IsReverted && p.PaidAt >= startDateUtc)
             .Select(p => new
             {
@@ -153,7 +178,7 @@ public class IndexModel : PageModel
         // =========================
         // MOVEMENT (GROUPED, NO DUPLICATES)
         // =========================
-        var movementData = _context.Payments
+        var movementData = ScopedPayments()
             .Where(p => p.IsPaid && !p.IsReverted)
             .GroupBy(p => p.MovementType)
             .Select(g => new MovementRow
@@ -171,7 +196,7 @@ public class IndexModel : PageModel
         // =========================
         // COLLECTOR PERFORMANCE
         // =========================
-        var collectorTotals = _context.Payments
+        var collectorTotals = ScopedPayments()
             .Include(p => p.Collector)
             .Include(p => p.ReceiptReference)
             .Where(p => p.IsPaid && !p.IsReverted)
@@ -194,7 +219,7 @@ public class IndexModel : PageModel
         // =========================
         // REVENUE ACCOUNT CHART
         // =========================
-        var revenueAccountData = _context.Payments
+        var revenueAccountData = ScopedPayments()
             .Where(p => p.IsPaid && !p.IsReverted)
             .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
             .GroupBy(p => new

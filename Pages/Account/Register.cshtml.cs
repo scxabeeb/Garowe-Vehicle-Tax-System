@@ -1,101 +1,88 @@
- using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
-using System.Linq;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Account;
 
-[Authorize(Roles = "Admin")]
+[Authorize] // access by permission (Security/PagePermissionFilter: Users.Create)
 public class RegisterModel : PageModel
 {
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IPermissionService _permissions;
 
-    public RegisterModel(AppDbContext context, IPasswordHasher<User> passwordHasher)
+    public RegisterModel(AppDbContext context, IPasswordHasher<User> passwordHasher, IPermissionService permissions)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _permissions = permissions;
     }
 
-    [BindProperty]
-    public string Username { get; set; } = "";
+    [BindProperty] public string Username { get; set; } = "";
+    [BindProperty] public string FullName { get; set; } = "";
+    [BindProperty] public string Phone { get; set; } = "";
+    [BindProperty] public string Password { get; set; } = "";
+    [BindProperty] public string Role { get; set; } = "Collector";
+    [BindProperty] public int? CheckpointId { get; set; }
 
-    [BindProperty]
-    public string FullName { get; set; } = "";
+    public UserFormModel Form { get; private set; } = new();
 
-    [BindProperty]
-    public string Phone { get; set; } = "";
+    public async Task OnGetAsync() => await BuildFormAsync(new List<string>());
 
-    [BindProperty]
-    public string Password { get; set; } = "";
-
-    [BindProperty]
-    public string Role { get; set; } = "";
-
-    [BindProperty]
-    public int? CheckpointId { get; set; }
-
-    public SelectList Checkpoints { get; set; } = null!;
-
-    public void OnGet()
+    public async Task<IActionResult> OnPostAsync()
     {
-        LoadCheckpoints();
-    }
+        var username = (Username ?? "").Trim();
+        var roles = await UserFormSupport.LoadRolesAsync(_context, _permissions);
+        var errors = new List<string>();
 
-    public IActionResult OnPost()
-    {
-        LoadCheckpoints();
-
-        if (string.IsNullOrWhiteSpace(Username)
-            || string.IsNullOrWhiteSpace(Password)
-            || string.IsNullOrWhiteSpace(Role))
-        {
-            ModelState.AddModelError("", "All fields are required");
-            return Page();
-        }
-
-        if (_context.Users.Any(u => u.Username == Username))
-        {
-            ModelState.AddModelError("", "Username already exists");
-            return Page();
-        }
-
+        if (string.IsNullOrWhiteSpace(username)) errors.Add("Username is required.");
+        else if (_context.Users.Any(u => u.Username.ToLower() == username.ToLower())) errors.Add("Username already exists.");
+        if (string.IsNullOrWhiteSpace(Password) || Password.Trim().Length < UserFormSupport.MinPasswordLength)
+            errors.Add("Password must be at least 6 characters.");
+        if (!roles.Any(r => r.Name.Equals(Role ?? "", StringComparison.OrdinalIgnoreCase))) errors.Add("Choose a role.");
         if (CheckpointId.HasValue && !_context.Checkpoints.Any(c => c.Id == CheckpointId.Value))
+            errors.Add("Selected checkpoint does not exist.");
+
+        if (errors.Any())
         {
-            ModelState.AddModelError("", "Selected checkpoint does not exist");
+            await BuildFormAsync(errors);
             return Page();
         }
 
         var user = new User
         {
-            Username = Username.Trim(),
+            Username = username,
             FullName = FullName?.Trim() ?? "",
             Phone = Phone?.Trim() ?? "",
-            Role = Role,
+            Role = roles.First(r => r.Name.Equals(Role, StringComparison.OrdinalIgnoreCase)).Name,
             Permissions = "",
-            CheckpointId = CheckpointId
+            CheckpointId = CheckpointId,
         };
-
         user.Password = _passwordHasher.HashPassword(user, Password.Trim());
 
         _context.Users.Add(user);
         _context.SaveChanges();
 
+        TempData["Message"] = $"User '{user.Username}' was created.";
         return RedirectToPage("/Account/Users");
     }
 
-    private void LoadCheckpoints()
+    private async Task BuildFormAsync(List<string> errors)
     {
-        Checkpoints = new SelectList(
-            _context.Checkpoints
-                .OrderBy(c => c.Name)
-                .ToList(),
-            "Id",
-            "Name"
-        );
+        Form = new UserFormModel
+        {
+            Username = Username,
+            FullName = FullName,
+            Phone = Phone,
+            Role = Role,
+            CheckpointId = CheckpointId,
+            Roles = await UserFormSupport.LoadRolesAsync(_context, _permissions),
+            Checkpoints = UserFormSupport.LoadCheckpoints(_context, CheckpointId),
+            Errors = errors,
+        };
     }
 }
