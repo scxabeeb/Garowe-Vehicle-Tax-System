@@ -405,6 +405,68 @@ namespace VehicleTax.Web.Migrations
                     b.ToTable("PaymentReferenceSequences");
                 });
 
+            modelBuilder.Entity("VehicleTax.Web.Models.PaymentTransfer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("At")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ByUsername")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("FromAccount")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("FromMovement")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("FromMovementId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("ToAccount")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("ToMovement")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("ToMovementId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("At");
+
+                    b.HasIndex("PaymentId");
+
+                    b.ToTable("PaymentTransfers");
+                });
+
             modelBuilder.Entity("VehicleTax.Web.Models.PermissionAuditLog", b =>
                 {
                     b.Property<int>("Id")
@@ -977,6 +1039,17 @@ namespace VehicleTax.Web.Migrations
                     b.Navigation("RevertedByUser");
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("VehicleTax.Web.Models.PaymentTransfer", b =>
+                {
+                    b.HasOne("VehicleTax.Web.Models.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("VehicleTax.Web.Models.PermissionAuditLog", b =>

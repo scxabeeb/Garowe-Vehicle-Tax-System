@@ -30,6 +30,7 @@ namespace VehicleTax.Web.Data
         public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
         public DbSet<PermissionAuditLog> PermissionAuditLogs => Set<PermissionAuditLog>();
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+        public DbSet<PaymentTransfer> PaymentTransfers => Set<PaymentTransfer>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,6 +40,13 @@ namespace VehicleTax.Web.Data
             {
                 e.HasIndex(x => x.At);
                 e.HasIndex(x => new { x.Username, x.At });
+            });
+
+            modelBuilder.Entity<PaymentTransfer>(e =>
+            {
+                e.Property(x => x.Amount).HasPrecision(18, 2);
+                e.HasIndex(x => x.At);
+                e.HasOne(x => x.Payment).WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<User>()

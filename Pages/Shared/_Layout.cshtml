@@ -221,6 +221,7 @@
                     var canManagePermissions = can("Roles.ManagePermissions");
                     var canRolesView = can("Roles.View");
                     var canActivityLog = canUserView;
+                    var canTransferPayments = User.IsInRole("Admin") || User.IsInRole("Super Admin");
                     var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLowerInvariant();
 
                     var isDataSetup = currentPath.StartsWith("/vehicles") ||
@@ -466,6 +467,14 @@
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Rv/Index">
                                         <i class="bi bi-file-earmark-text"></i> @L["RV History"]
+                                    </a>
+                                </li>
+                                }
+                                @if (canTransferPayments)
+                                {
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/TransferPayments">
+                                        <i class="bi bi-arrow-left-right"></i> @L["Transfer Payments"]
                                     </a>
                                 </li>
                                 }

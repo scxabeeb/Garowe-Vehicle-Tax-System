@@ -1,0 +1,253 @@
+@page
+@model VehicleTax.Web.Pages.Finance.TransferPaymentsModel
+@{
+    ViewData["Title"] = L["Transfer Payments"];
+    string when(DateTime utc) => VehicleTax.Web.AppTime.ToLocal(utc).ToString("dd MMM yyyy HH:mm");
+}
+<style>
+    .tp-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .tp-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .tp-card .head { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
+    .tp-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .tp-table td { vertical-align: middle; font-size: 14px; }
+    .tp-acc { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: #eef4ff; color: #0b57d0; white-space: nowrap; }
+    .tp-lock { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: #f1f5f9; color: #64748b; white-space: nowrap; }
+    .tp-bar { position: sticky; bottom: 0; z-index: 5; background: #fff; border-top: 2px solid #0b57d0; box-shadow: 0 -6px 20px rgba(15,23,42,.08); }
+    .tp-arrow { color: #94a3b8; }
+</style>
+
+<div class="container-fluid py-4" style="max-width: 1400px;">
+    <div class="tp-hero mb-3">
+        <h3 class="fw-bold mb-1"><i class="bi bi-arrow-left-right me-2"></i>@L["Transfer Payments"]</h3>
+        <div style="opacity:.85">@L["Move payments collected under the wrong Traffida to the correct one and its revenue account. The amount does not change."]</div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill"></i>@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning d-flex gap-2 align-items-center"><i class="bi bi-exclamation-triangle-fill"></i>@TempData["Error"]</div>
+    }
+
+    @* ---------- 1. Find payments ---------- *@
+    <form method="get" class="tp-card mb-3">
+        <div class="head"><span class="badge bg-primary rounded-pill">1</span>@L["Find the payments"]</div>
+        <div class="p-3 row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Search"]</label>
+                <input name="Search" value="@Model.Search" class="form-control" placeholder="@L["System ID, invoice no, plate, Golis bill"]" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["From Date"]</label>
+                <input type="date" name="FromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["To Date"]</label>
+                <input type="date" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Current Revenue Account"]</label>
+                <select name="AccountId" class="form-select">
+                    <option value="">@L["All"]</option>
+                    @foreach (var a in Model.Accounts)
+                    {
+                        <option value="@a.Id" selected="@(a.Id == Model.AccountId ? "selected" : null)">@a.DisplayName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Current Traffida"]</label>
+                <select name="MovementId" class="form-select">
+                    <option value="">@L["All"]</option>
+                    @foreach (var m in Model.Movements)
+                    {
+                        <option value="@m.Id" selected="@(m.Id == Model.MovementId ? "selected" : null)">@m.Name@(m.CarType == null ? "" : " · " + m.CarType)</option>
+                    }
+                </select>
+            </div>
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+            <div class="col-md-1 d-grid">
+                <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.Searched)
+    {
+        @* ---------- 2. Select + 3. Transfer ---------- *@
+        <form method="post" asp-page-handler="Transfer" id="tpForm"
+              asp-route-Search="@Model.Search" asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+              asp-route-AccountId="@Model.AccountId" asp-route-MovementId="@Model.MovementId" asp-route-PageSize="@Model.PageSize" asp-route-CurrentPage="@Model.CurrentPage">
+            <div class="tp-card mb-3">
+                <div class="head"><span class="badge bg-primary rounded-pill">2</span>@L["Select the payments to transfer"]</div>
+                <div class="table-responsive">
+                    <table class="table tp-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:36px"><input type="checkbox" class="form-check-input" id="tpAll" /></th>
+                                <th>@L["System ID"]</th>
+                                <th>@L["Invoice No"]</th>
+                                <th>@L["Date"]</th>
+                                <th>@L["Plate"]</th>
+                                <th>@L["Collector"]</th>
+                                <th>@L["Traffida"]</th>
+                                <th>@L["Revenue Account"]</th>
+                                <th class="text-end">@L["Amount"]</th>
+                                <th>@L["Status"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model.Rows)
+                            {
+                                var p = r.Payment;
+                                <tr>
+                                    <td>
+                                        @if (r.LockedBy == null)
+                                        {
+                                            <input type="checkbox" class="form-check-input tp-pick" name="PaymentIds" value="@p.Id" data-amount="@p.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-lock-fill text-muted" title="@L["In an RV: cancel the RV first"]"></i>
+                                        }
+                                    </td>
+                                    <td class="fw-semibold">@p.Id</td>
+                                    <td>@p.InvoiceNumber</td>
+                                    <td class="text-nowrap small">@when(p.PaidAt)</td>
+                                    <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
+                                    <td>@(p.Collector?.Username ?? "—")</td>
+                                    <td>@(p.Movement?.Name ?? p.MovementType)</td>
+                                    <td><span class="tp-acc">@(r.Account ?? "—")</span></td>
+                                    <td class="text-end fw-semibold">$@p.Amount.ToString("N2")</td>
+                                    <td>
+                                        @if (r.LockedBy != null)
+                                        {
+                                            <span class="tp-lock"><i class="bi bi-lock me-1"></i>RV @r.LockedBy</span>
+                                        }
+                                        else if (p.IsPaid)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">@L["Paid"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning-emphasis">@L["Pending"]</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Rows.Any())
+                            {
+                                <tr><td colspan="10" class="text-center text-muted py-4">@L["No payments found."]</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <partial name="_Pager" model="Model.Pager" />
+            </div>
+
+            <div class="tp-card tp-bar mb-3">
+                <div class="p-3 row g-2 align-items-end">
+                    <div class="col-lg-2">
+                        <div class="small text-muted fw-semibold"><span class="badge bg-primary rounded-pill me-1">3</span>@L["Selected"]</div>
+                        <div class="fs-5 fw-bold"><span id="tpCount">0</span> · $<span id="tpSum">0.00</span></div>
+                    </div>
+                    <div class="col-lg-4">
+                        <label class="form-label small fw-semibold mb-1">@L["Correct Traffida"] <span class="text-danger">*</span></label>
+                        <select name="TargetMovementId" class="form-select" required>
+                            <option value="">@L["Choose…"]</option>
+                            @foreach (var g in Model.Movements.GroupBy(m => m.Account))
+                            {
+                                <optgroup label="@g.Key">
+                                    @foreach (var m in g)
+                                    {
+                                        <option value="@m.Id">@m.Name@(m.CarType == null ? "" : " · " + m.CarType) → @g.Key</option>
+                                    }
+                                </optgroup>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-lg-4">
+                        <label class="form-label small fw-semibold mb-1">@L["Reason"] <span class="text-danger">*</span></label>
+                        <input name="Reason" class="form-control" maxlength="500" minlength="5" required placeholder="@L["e.g. Collector selected the wrong Traffida"]" />
+                    </div>
+                    <div class="col-lg-2 d-grid">
+                        <button type="submit" class="btn btn-primary fw-semibold" id="tpGo" disabled>
+                            <i class="bi bi-arrow-left-right me-1"></i>@L["Transfer"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="tp-card mb-3 p-4 text-center text-muted">
+            <i class="bi bi-search fs-3 d-block mb-2"></i>@L["Search by System ID, invoice number or plate, or pick a date range or account, to list payments."]
+        </div>
+    }
+
+    @* ---------- History ---------- *@
+    <div class="tp-card">
+        <div class="head"><i class="bi bi-clock-history text-primary"></i>@L["Recent Transfers"]</div>
+        <div class="table-responsive">
+            <table class="table tp-table mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Date"]</th>
+                        <th>@L["System ID"]</th>
+                        <th>@L["From"]</th>
+                        <th></th>
+                        <th>@L["To"]</th>
+                        <th class="text-end">@L["Amount"]</th>
+                        <th>@L["Reason"]</th>
+                        <th>@L["By"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.History)
+                    {
+                        <tr>
+                            <td class="text-nowrap small">@when(t.At)</td>
+                            <td class="fw-semibold">@t.PaymentId</td>
+                            <td>@t.FromMovement<div class="small text-muted">@t.FromAccount</div></td>
+                            <td class="tp-arrow"><i class="bi bi-arrow-right"></i></td>
+                            <td>@t.ToMovement<div class="small text-muted">@t.ToAccount</div></td>
+                            <td class="text-end">$@t.Amount.ToString("N2")</td>
+                            <td class="small">@t.Reason</td>
+                            <td>@t.ByUsername</td>
+                        </tr>
+                    }
+                    @if (!Model.History.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">@L["No transfers yet."]</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('tpForm');
+    if (!form) return;
+    var picks = form.querySelectorAll('.tp-pick'), all = document.getElementById('tpAll');
+    function update() {
+        var n = 0, sum = 0;
+        picks.forEach(function (c) { if (c.checked) { n++; sum += parseFloat(c.dataset.amount) || 0; } });
+        document.getElementById('tpCount').textContent = n;
+        document.getElementById('tpSum').textContent = sum.toFixed(2);
+        document.getElementById('tpGo').disabled = n === 0;
+        all.checked = n > 0 && n === picks.length;
+    }
+    picks.forEach(function (c) { c.addEventListener('change', update); });
+    all.addEventListener('change', function () { picks.forEach(function (c) { c.checked = all.checked; }); update(); });
+    form.addEventListener('submit', function (e) {
+        var sel = form.querySelector('[name=TargetMovementId]');
+        var msg = '@L["Transfer"] ' + document.getElementById('tpCount').textContent + ' → ' + sel.options[sel.selectedIndex].text + '?';
+        if (!confirm(msg)) e.preventDefault();
+    });
+})();
+</script>
