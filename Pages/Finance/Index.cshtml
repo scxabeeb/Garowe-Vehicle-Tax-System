@@ -1,42 +1,42 @@
 @page
 @model VehicleTax.Web.Pages.Finance.IndexModel
 @{
-    ViewData["Title"] = "Finance Dashboard";
+    ViewData["Title"] = L["Finance Dashboard"];
     Layout = "_Layout";
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
-            <h2 class="mb-0">Finance Dashboard</h2>
-            <div class="text-muted">Today's Payments · Account Summary · RV Management · FMIS Transfers</div>
+            <h2 class="mb-0">@L["Finance Dashboard"]</h2>
+            <div class="text-muted">@L["Today's Payments · Account Summary · RV Management · FMIS Transfers"]</div>
         </div>
         <div class="d-flex gap-2 align-items-end">
             <form method="get" class="d-flex gap-2 align-items-end mb-0">
                 <div>
-                    <label class="form-label mb-0 small">Payment Date</label>
+                    <label class="form-label mb-0 small">@L["Payment Date"]</label>
                     <input type="date" class="form-control" asp-for="Date" />
                 </div>
-                <button class="btn btn-primary" type="submit">Apply</button>
+                <button class="btn btn-primary" type="submit">@L["Apply"]</button>
             </form>
             <button class="btn btn-outline-primary" onclick="window.print()">
-                <i class="bi bi-printer"></i> Print
+                <i class="bi bi-printer"></i> @L["Print"]
             </button>
-            <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index">RV History</a>
+            <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index">@L["RV History"]</a>
         </div>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-6 col-xl-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">Total Paid Transactions</div>
+                <div class="text-muted small">@L["Total Paid Transactions"]</div>
                 <div class="fs-3 fw-bold">@Model.TotalPayments</div>
                 <div class="text-muted small">@Model.Date?.ToString("dd MMMM yyyy")</div>
             </div></div>
         </div>
         <div class="col-md-6 col-xl-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">Total Paid Amount</div>
+                <div class="text-muted small">@L["Total Paid Amount"]</div>
                 <div class="fs-3 fw-bold">$@Model.TotalAmount.ToString("N2")</div>
             </div></div>
         </div>
@@ -52,7 +52,7 @@
         </div>
         <div class="col-md-6 col-xl-3">
             <div class="card shadow-sm h-100 border-warning"><div class="card-body">
-                <div class="text-muted small">Not Yet Included in RV</div>
+                <div class="text-muted small">@L["Not Yet Included in RV"]</div>
                 <div class="fs-3 fw-bold text-warning">@Model.NotYetInRf</div>
                 <div class="text-muted small">$@Model.NotYetInRfAmount.ToString("N2") remaining</div>
             </div></div>
@@ -62,17 +62,17 @@
     <div class="row g-3 mb-4">
         <div class="col-lg-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-semibold">TODAY'S ACCOUNT SUMMARY</div>
+                <div class="card-header bg-white fw-semibold">@L["TODAY'S ACCOUNT SUMMARY"]</div>
                 <div class="card-body p-0">
                     @if (!Model.AccountSummary.Any())
                     {
-                        <div class="p-4 text-center text-muted">No paid payments for this date.</div>
+                        <div class="p-4 text-center text-muted">@L["No paid payments for this date."]</div>
                     }
                     else
                     {
                         <table class="table mb-0 align-middle">
                             <thead class="table-light"><tr>
-                                <th>Financial Account</th><th class="text-end">Transactions</th><th class="text-end">Total</th><th></th>
+                                <th>@L["Financial Account"]</th><th class="text-end">@L["Transactions"]</th><th class="text-end">@L["Total"]</th><th></th>
                             </tr></thead>
                             <tbody>
                             @foreach (var a in Model.AccountSummary)
@@ -85,13 +85,13 @@
                                         <a class="btn btn-sm btn-outline-primary"
                                            asp-page="/Finance/Account"
                                            asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
-                                           asp-route-accountId="@a.RevenueAccountId">View →</a>
+                                           asp-route-accountId="@a.RevenueAccountId">@L["View →"]</a>
                                     </td>
                                 </tr>
                             }
                             </tbody>
                             <tfoot class="table-light fw-bold"><tr>
-                                <td>TOTAL</td>
+                                <td>@L["TOTAL"]</td>
                                 <td class="text-end">@Model.TotalPayments</td>
                                 <td class="text-end">$@Model.TotalAmount.ToString("N2")</td>
                                 <td></td>
@@ -103,14 +103,14 @@
         </div>
         <div class="col-lg-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-semibold">Reconciliation — Paid → RV → FMIS</div>
+                <div class="card-header bg-white fw-semibold">@L["Reconciliation — Paid → RV → FMIS"]</div>
                 <div class="card-body p-0">
                     <table class="table mb-0 align-middle">
-                        <thead class="table-light"><tr><th>Stage</th><th class="text-end">Count</th><th class="text-end">Amount</th></tr></thead>
+                        <thead class="table-light"><tr><th>@L["Stage"]</th><th class="text-end">@L["Count"]</th><th class="text-end">@L["Amount"]</th></tr></thead>
                         <tbody>
-                            <tr><td>Paid Payments</td><td class="text-end">@Model.TotalPayments</td><td class="text-end">$@Model.TotalAmount.ToString("N2")</td></tr>
-                            <tr><td>Included in RV</td><td class="text-end">@Model.IncludedInRf</td><td class="text-end">$@Model.IncludedInRfAmount.ToString("N2")</td></tr>
-                            <tr><td>Transferred to FMIS</td><td class="text-end">@Model.TransferredTo_Fmis</td><td class="text-end">$@Model.TransferredTo_FmisAmount.ToString("N2")</td></tr>
+                            <tr><td>@L["Paid Payments"]</td><td class="text-end">@Model.TotalPayments</td><td class="text-end">$@Model.TotalAmount.ToString("N2")</td></tr>
+                            <tr><td>@L["Included in RV"]</td><td class="text-end">@Model.IncludedInRf</td><td class="text-end">$@Model.IncludedInRfAmount.ToString("N2")</td></tr>
+                            <tr><td>@L["Transferred to FMIS"]</td><td class="text-end">@Model.TransferredTo_Fmis</td><td class="text-end">$@Model.TransferredTo_FmisAmount.ToString("N2")</td></tr>
                             <tr class="table-warning fw-bold"><td>Remaining (needs RV)</td><td class="text-end">@Model.NotYetInRf</td><td class="text-end">$@Model.NotYetInRfAmount.ToString("N2")</td></tr>
                         </tbody>
                     </table>
@@ -124,9 +124,9 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr>
-                    <th>Payment ID</th><th>Ref No.</th><th>Invoice ID</th><th>Receipt</th><th>Golis/Bill No.</th>
-                    <th>Vehicle</th><th>Account</th><th class="text-end">Amount</th><th>Collector</th>
-                    <th>Paid At</th><th>Status</th><th>FMIS Transfer Status</th>
+                    <th>@L["Payment ID"]</th><th>@L["Ref No."]</th><th>@L["Invoice ID"]</th><th>@L["Receipt"]</th><th>@L["Golis/Bill No."]</th>
+                    <th>@L["Vehicle"]</th><th>@L["Account"]</th><th class="text-end">@L["Amount"]</th><th>@L["Collector"]</th>
+                    <th>@L["Paid At"]</th><th>@L["Status"]</th><th>@L["FMIS Transfer Status"]</th>
                 </tr></thead>
                 <tbody>
                 @foreach (var p in Model.Payments)
@@ -153,14 +153,14 @@
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Not Included</span>
+                                <span class="badge bg-secondary">@L["Not Included"]</span>
                             }
                         </td>
                     </tr>
                 }
                 @if (!Model.Payments.Any())
                 {
-                    <tr><td colspan="12" class="text-center text-muted py-4">No paid payments found for this date.</td></tr>
+                    <tr><td colspan="12" class="text-center text-muted py-4">@L["No paid payments found for this date."]</td></tr>
                 }
                 </tbody>
             </table>

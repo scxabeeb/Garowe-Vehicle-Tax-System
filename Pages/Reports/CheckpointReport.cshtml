@@ -9,8 +9,8 @@
                 <i class="bi bi-shield-check fs-4 text-white"></i>
             </div>
             <div>
-                <div class="fw-bold" style="font-size:1.05rem;">Garowe Local Government</div>
-                <div class="text-muted">Checkpoint Collection Report</div>
+                <div class="fw-bold" style="font-size:1.05rem;">@L["Garowe Local Government"]</div>
+                <div class="text-muted">@L["Checkpoint Collection Report"]</div>
             </div>
         </div>
         <div class="text-muted small d-none d-md-block">
@@ -23,36 +23,36 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">From Date</label>
+                    <label class="form-label">@L["From Date"]</label>
                     <input type="date" asp-for="FromDate" class="form-control" />
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">To Date</label>
+                    <label class="form-label">@L["To Date"]</label>
                     <input type="date" asp-for="ToDate" class="form-control" />
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">Checkpoint</label>
+                    <label class="form-label">@L["Checkpoint"]</label>
                     <select asp-for="CheckpointId"
                             asp-items="Model.CheckpointList"
                             class="form-select">
-                        <option value="">All Checkpoints</option>
+                        <option value="">@L["All Checkpoints"]</option>
                     </select>
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">Golis Bill No</label>
+                    <label class="form-label">@L["Golis Bill No"]</label>
                     <input type="text" asp-for="GolisBillNo" class="form-control"
-                           placeholder="Search by bill no..." />
+                           placeholder="@L["Search by bill no..."]" />
                 </div>
 
                 <div class="col-md-3 d-flex align-items-end gap-2">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i> Apply Filters
+                        <i class="bi bi-search"></i> @L["Apply Filters"]
                     </button>
                     <a asp-page="/Reports/CheckpointReport" class="btn btn-secondary w-100">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        <i class="bi bi-arrow-counterclockwise"></i> @L["Reset"]
                     </a>
                 </div>
             </div>
@@ -64,7 +64,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Checkpoints</div>
+                    <div class="text-muted small fw-semibold">@L["Checkpoints"]</div>
                     <h3 class="fw-bold mb-0 text-primary">@Model.TotalCheckpoints</h3>
                 </div>
             </div>
@@ -72,7 +72,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Total Payments</div>
+                    <div class="text-muted small fw-semibold">@L["Total Payments"]</div>
                     <h3 class="fw-bold mb-0 text-warning">@Model.TotalPayments</h3>
                 </div>
             </div>
@@ -80,7 +80,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Total Collected</div>
+                    <div class="text-muted small fw-semibold">@L["Total Collected"]</div>
                     <h3 class="fw-bold mb-0 text-success">$@Model.TotalAmount.ToString("N0")</h3>
                 </div>
             </div>
@@ -88,7 +88,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Avg / Payment</div>
+                    <div class="text-muted small fw-semibold">@L["Avg / Payment"]</div>
                     <h3 class="fw-bold mb-0 text-info">$@(Model.TotalPayments > 0 ? (Model.TotalAmount / Model.TotalPayments).ToString("N0") : "0")</h3>
                 </div>
             </div>
@@ -99,7 +99,7 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <h6 class="fw-bold mb-3">
-                <i class="bi bi-bar-chart-column"></i> Checkpoint Collection Bar Chart
+                <i class="bi bi-bar-chart-column"></i> @L["Checkpoint Collection Bar Chart"]
             </h6>
             <canvas id="checkpointChart"></canvas>
         </div>
@@ -109,18 +109,18 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <h6 class="fw-bold mb-3">
-                <i class="bi bi-table"></i> Checkpoint Summary
+                <i class="bi bi-table"></i> @L["Checkpoint Summary"]
             </h6>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>#</th>
-                            <th>Checkpoint</th>
-                            <th class="text-end">Payments</th>
-                            <th class="text-end">Total Amount</th>
-                            <th class="text-end">Avg / Payment</th>
-                            <th class="text-center">Share</th>
+                            <th>@L["Checkpoint"]</th>
+                            <th class="text-end">@L["Payments"]</th>
+                            <th class="text-end">@L["Total Amount"]</th>
+                            <th class="text-end">@L["Avg / Payment"]</th>
+                            <th class="text-center">@L["Share"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,7 +158,7 @@
                         @if (!Model.CheckpointSummaries.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center text-muted">No checkpoint data for selected filters.</td>
+                                <td colspan="6" class="text-center text-muted">@L["No checkpoint data for selected filters."]</td>
                             </tr>
                         }
                     </tbody>
@@ -171,7 +171,7 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="fw-bold mb-0">Detailed Payments</h6>
+                <h6 class="fw-bold mb-0">@L["Detailed Payments"]</h6>
                 <a asp.page-handler="ExportCsv"
                    asp.route-FromDate="@Model.FromDate"
                    asp.route-ToDate="@Model.ToDate"
@@ -180,7 +180,7 @@
                    asp.route-CurrentPage="@Model.CurrentPage"
                    asp.route-PageSize="@Model.PageSize"
                    class="btn btn-success btn-sm">
-                     <i class="bi bi.file-earmark-download"></i> Export to CSV
+                     <i class="bi bi.file-earmark-download"></i> @L["Export to CSV"]
                 </a>
             </div>
 
@@ -196,26 +196,26 @@
                     <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
                     <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
                     <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
-                    <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">All</option>
+                    <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">@L["All"]</option>
                 </select>
-                <span class="ms-1">rows</span>
+                <span class="ms-1">@L["rows"]</span>
             </form>
 
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th>Ref No.</th>
-                            <th>Date</th>
-                            <th>Plate</th>
-                            <th>Owner</th>
-                            <th>Movement</th>
-                            <th>Collector</th>
-                            <th>Checkpoint</th>
-                            <th>Payment Method</th>
-                            <th>Receipt</th>
-                            <th>Golis Bill No</th>
-                            <th class="text-end">Amount</th>
+                            <th>@L["Ref No."]</th>
+                            <th>@L["Date"]</th>
+                            <th>@L["Plate"]</th>
+                            <th>@L["Owner"]</th>
+                            <th>@L["Traffida"]</th>
+                            <th>@L["Collector"]</th>
+                            <th>@L["Checkpoint"]</th>
+                            <th>@L["Payment Method"]</th>
+                            <th>@L["Receipt"]</th>
+                            <th>@L["Golis Bill No"]</th>
+                            <th class="text-end">@L["Amount"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -238,7 +238,7 @@
                         @if (!Model.Payments.Any())
                         {
                             <tr>
-                                <td colspan="11" class="text-center text-muted">No payments found for the selected filters.</td>
+                                <td colspan="11" class="text-center text-muted">@L["No payments found for the selected filters."]</td>
                             </tr>
                         }
                     </tbody>

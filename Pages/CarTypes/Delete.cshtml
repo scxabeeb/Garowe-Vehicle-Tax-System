@@ -12,7 +12,7 @@
 
                 <div class="card-body text-center">
 
-                    <p class="fs-5">Are you sure you want to delete:</p>
+                    <p class="fs-5">@L["Are you sure you want to delete:"]</p>
 
                     <h5 class="text-danger">@Model.CarType.Name</h5>
 
@@ -20,8 +20,8 @@
 
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                        <button class="btn btn-danger me-2">Yes, Delete</button>
-                        <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+                        <button class="btn btn-danger me-2">@L["Yes, Delete"]</button>
+                        <a asp-page="Index" class="btn btn-secondary">@L["Cancel"]</a>
 
                     </form>
 

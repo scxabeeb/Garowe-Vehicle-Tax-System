@@ -4,6 +4,19 @@
 @{
     var isThermal = string.Equals(Model.PrintMode, "thermal", StringComparison.OrdinalIgnoreCase);
     var isPreview = Model.IsPreview;
+
+    // QR code linking to the public verification page (/verify/{invoice}).
+    string? verifyUrl = null, qrDataUri = null;
+    if (Model.Payment != null)
+    {
+        var host = ViewContext.HttpContext.Request.Host;
+        var scheme = host.Host.Contains("localhost") ? ViewContext.HttpContext.Request.Scheme : "https";
+        verifyUrl = $"{scheme}://{host}/verify/{Model.Payment.InvoiceNumber}";
+        using var qrGenerator = new QRCoder.QRCodeGenerator();
+        using var qrData = qrGenerator.CreateQrCode(verifyUrl, QRCoder.QRCodeGenerator.ECCLevel.M);
+        qrDataUri = "data:image/png;base64," +
+            Convert.ToBase64String(new QRCoder.PngByteQRCode(qrData).GetGraphic(6));
+    }
 }
 
 <style>
@@ -208,13 +221,13 @@
     <div class="card shadow-sm border-0">
         <div class="card-body print-sheet">
             <div class="print-watermark">
-                @(Model.Payment?.IsPaid == true ? "PAID RECEIPT" : (isPreview ? "INVOICE PREVIEW" : "UNPAID INVOICE"))
+                @L[Model.Payment?.IsPaid == true ? "PAID RECEIPT" : (isPreview ? "INVOICE PREVIEW" : "UNPAID INVOICE")]
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4 no-print">
                 <div>
-                    <h4 class="mb-1">@(Model.Payment?.IsPaid == true ? "Receipt" : "Invoice")</h4>
-                    <small class="text-muted">@(Model.Payment?.IsPaid == true ? "Payment receipt detail" : (isPreview ? "Invoice preview (not recorded yet)" : "Pending invoice detail"))</small>
+                    <h4 class="mb-1">@L[Model.Payment?.IsPaid == true ? "Receipt" : "Invoice"]</h4>
+                    <small class="text-muted">@L[Model.Payment?.IsPaid == true ? "Payment receipt detail" : (isPreview ? "Invoice preview (not recorded yet)" : "Pending invoice detail")]</small>
                 </div>
                 <div class="d-flex gap-2">
                     @if (Model.Payment != null)
@@ -225,7 +238,7 @@
                                asp-page="/Payments/Receipt"
                                asp-route-paymentId="@Model.Payment.Id"
                                asp-route-printMode="full">
-                                Full Page
+                                @L["Full Page"]
                             </a>
                         }
                         else
@@ -234,31 +247,35 @@
                                asp-page="/Payments/Receipt"
                                asp-route-paymentId="@Model.Payment.Id"
                                asp-route-printMode="thermal">
-                                Thermal 80mm
+                                @L["Thermal 80mm"]
                             </a>
                         }
                     }
 
                     <button class="btn btn-primary" onclick="window.print()">
-                        <i class="bi bi-printer-fill"></i> @(Model.Payment?.IsPaid == true ? "Print Receipt" : "Print Invoice")
+                        <i class="bi bi-printer-fill"></i> @L[Model.Payment?.IsPaid == true ? "Print Receipt" : "Print Invoice"]
                     </button>
                 </div>
             </div>
 
             @if (Model.Payment == null)
             {
-                <div class="alert alert-warning">Payment not found.</div>
+                <div class="alert alert-warning">@L["Payment not found."]</div>
             }
             else
             {
                 <div class="print-content">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <h3 class="mb-1">Garowe Vehicle Tax System</h3>
-                            <div class="text-muted">Official @(Model.Payment.IsPaid ? "Receipt" : "Invoice") Document</div>
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="/images/Logo.jpeg" alt="" width="56" height="56"
+                                 class="rounded-circle border" style="object-fit:cover;" />
+                            <div>
+                                <h3 class="mb-1">@L["Garowe Vehicle Tax System"]</h3>
+                                <div class="text-muted">@L[Model.Payment.IsPaid ? "Official Receipt Document" : "Official Invoice Document"]</div>
+                            </div>
                         </div>
                         <div class="text-end">
-                            <div class="fw-bold fs-5">@(Model.Payment.IsPaid ? "Receipt" : "Invoice")</div>
+                            <div class="fw-bold fs-5">@L[Model.Payment.IsPaid ? "Receipt" : "Invoice"]</div>
                             <div class="text-muted">@Model.Payment.InvoiceNumber</div>
                         </div>
                     </div>
@@ -266,15 +283,15 @@
                     <div class="doc-banner @(Model.Payment.IsPaid ? "receipt" : "invoice") mb-3">
                         @if (Model.Payment.IsPaid)
                         {
-                            <span><strong>Payment Completed:</strong> This document confirms payment collection.</span>
+                            <span><strong>@L["Payment Completed:"]</strong> @L["This document confirms payment collection."]</span>
                         }
                         else if (isPreview)
                         {
-                            <span><strong>Preview Only:</strong> Payment will be recorded only after admin collects.</span>
+                            <span><strong>@L["Preview Only:"]</strong> @L["Payment will be recorded only after admin collects."]</span>
                         }
                         else
                         {
-                            <span><strong>Payment Pending:</strong> This invoice can be printed now and must be collected by an admin.</span>
+                            <span><strong>@L["Payment Pending:"]</strong> @L["This invoice can be printed now and must be collected by an admin."]</span>
                         }
                     </div>
 
@@ -283,23 +300,23 @@
                             <table class="table meta-table mb-0">
                                 <tbody>
                                     <tr>
-                                        <td class="meta-label">Invoice ID</td>
+                                        <td class="meta-label">@L["Invoice ID"]</td>
                                         <td>@Model.Payment.InvoiceNumber</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Payment ID</td>
+                                        <td class="meta-label">@L["Payment ID"]</td>
                                         <td>@Model.Payment.Id</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Receipt Number</td>
+                                        <td class="meta-label">@L["Receipt Number"]</td>
                                         <td>@Model.Payment.InvoiceNumber</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Short Code</td>
+                                        <td class="meta-label">@L["Short Code"]</td>
                                         <td>@Model.Payment.ShortCode</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Date</td>
+                                        <td class="meta-label">@L["Date"]</td>
                                         <td>@Model.Payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                                     </tr>
                                 </tbody>
@@ -309,47 +326,47 @@
                             <table class="table meta-table mb-0">
                                 <tbody>
                                     <tr>
-                                        <td class="meta-label">Plate</td>
+                                        <td class="meta-label">@L["Plate"]</td>
                                         <td>@Model.Payment.Vehicle?.PlateNumber</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Owner</td>
+                                        <td class="meta-label">@L["Owner"]</td>
                                         <td>@Model.Payment.Vehicle?.OwnerName</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Movement</td>
+                                        <td class="meta-label">@L["Traffida"]</td>
                                         <td>@Model.Payment.MovementType</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Collector</td>
-                                        <td>@(Model.Payment.Collector?.Username ?? "Not assigned")</td>
+                                        <td class="meta-label">@L["Collector"]</td>
+                                        <td>@(Model.Payment.Collector?.Username ?? L["Not assigned"])</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Checkpoint</td>
-                                        <td>@(Model.Payment.Checkpoint?.Name ?? "Unassigned")</td>
+                                        <td class="meta-label">@L["Checkpoint"]</td>
+                                        <td>@(Model.Payment.Checkpoint?.Name ?? L["Unassigned"])</td>
                                     </tr>
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.PaymentMethod))
                                     {
                                         <tr>
-                                            <td class="meta-label">Payment Method</td>
+                                            <td class="meta-label">@L["Payment Method"]</td>
                                             <td>@Model.Payment.PaymentMethod</td>
                                         </tr>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.PaidBy))
                                     {
                                         <tr>
-                                            <td class="meta-label">Paid By</td>
+                                            <td class="meta-label">@L["Paid By"]</td>
                                             <td>@Model.Payment.PaidBy</td>
                                         </tr>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(Model.Payment.TransactionId))
                                     {
                                     <tr>
-                                        <td class="meta-label">Golis Bill No</td>
+                                        <td class="meta-label">@L["Golis Bill No"]</td>
                                         <td>@Model.Payment.TransactionId</td>
                                     </tr>
                                     <tr>
-                                        <td class="meta-label">Receipt Number</td>
+                                        <td class="meta-label">@L["Receipt Number"]</td>
                                         <td>@Model.Payment.InvoiceNumber</td>
                                     </tr>
                                     }
@@ -360,41 +377,50 @@
 
                     <div class="card border-secondary mb-3">
                         <div class="card-body">
-                            <h5 class="mb-3">@(Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary")</h5>
+                            <h5 class="mb-3">@L[Model.Payment.IsPaid ? "Receipt Summary" : "Invoice Summary"]</h5>
                             <div class="row">
                                 <div class="col-md-6">
-                    <p><strong>Reference No.:</strong> @(Model.Payment.ReferenceNo?.ToString() ?? "-")</p>
-                    <p><strong>Payment ID:</strong> @Model.Payment.Id</p>
-                    <p><strong>Invoice ID:</strong> @Model.Payment.InvoiceNumber</p>
-                    <p><strong>Receipt Number:</strong> @(Model.Payment.IsReverted ? "Cancelled" : Model.Payment.InvoiceNumber)</p>
-                    <p><strong>Collector:</strong> @(Model.Payment.Collector?.Username ?? "Not assigned")</p>
-                    <p><strong>Checkpoint:</strong> @(Model.Payment.Checkpoint?.Name ?? "Unassigned")</p>
+                    <p><strong>@L["Reference No.:"]</strong> @(Model.Payment.ReferenceNo?.ToString() ?? "-")</p>
+                    <p><strong>@L["Payment ID:"]</strong> @Model.Payment.Id</p>
+                    <p><strong>@L["Invoice ID:"]</strong> @Model.Payment.InvoiceNumber</p>
+                    <p><strong>@L["Receipt Number:"]</strong> @(Model.Payment.IsReverted ? L["Cancelled"] : Model.Payment.InvoiceNumber)</p>
+                    <p><strong>@L["Collector:"]</strong> @(Model.Payment.Collector?.Username ?? L["Not assigned"])</p>
+                    <p><strong>@L["Checkpoint:"]</strong> @(Model.Payment.Checkpoint?.Name ?? L["Unassigned"])</p>
                                 </div>
                                 <div class="col-md-6 text-md-end">
-                                    <p class="mb-1"><strong>Amount Due:</strong></p>
+                                    <p class="mb-1"><strong>@L["Amount Due:"]</strong></p>
                                     <div class="fs-3 fw-bold summary-amount">$@Model.Payment.Amount.ToString("N0")</div>
                                     <div>
                                         @if (Model.Payment.IsReverted)
                                         {
-                                            <span class="badge bg-danger">Cancelled</span>
+                                            <span class="badge bg-danger">@L["Cancelled"]</span>
                                         }
                                         else if (Model.Payment.IsPaid)
                                         {
-                                            <span class="badge bg-success">Paid</span>
+                                            <span class="badge bg-success">@L["Paid"]</span>
                                         }
                                         else if (isPreview)
                                         {
-                                            <span class="badge bg-secondary">Preview</span>
+                                            <span class="badge bg-secondary">@L["Preview"]</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning text-dark">Invoice Pending</span>
+                                            <span class="badge bg-warning text-dark">@L["Invoice Pending"]</span>
                                         }
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    @if (qrDataUri != null)
+                    {
+                        <div class="text-center mb-3 receipt-qr">
+                            <img src="@qrDataUri" alt="QR" width="150" height="150" />
+                            <div class="fw-semibold small mt-1">@L["Scan to verify receipt"]</div>
+                            <div class="text-muted" style="font-size:11px;word-break:break-all;">@verifyUrl</div>
+                        </div>
+                    }
 
                 @if (!Model.Payment.IsReverted && !Model.Payment.IsPaid)
                 {
@@ -424,20 +450,20 @@
                                     <input type="hidden" name="paymentId" value="@Model.Payment.Id" />
                                     <input type="hidden" name="PrintMode" value="@Model.PrintMode" />
                                     <button type="submit" class="btn btn-success">
-                                        <i class="bi bi-cash-stack"></i> Collect Invoice
+                                        <i class="bi bi-cash-stack"></i> @L["Collect Invoice"]
                                     </button>
                                 </form>
                             }
                         }
                         else
                         {
-                            <span class="badge bg-secondary ms-3">Admin only</span>
+                            <span class="badge bg-secondary ms-3">@L["Admin only"]</span>
                         }
                     </div>
                 }
 
                     <div class="text-muted mt-4">
-                        Printed On: @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+                        @L["Printed On:"] @DateTime.Now.ToString("dd MMM yyyy HH:mm")
                     </div>
                 </div>
             }

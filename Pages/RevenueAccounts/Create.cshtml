@@ -1,14 +1,14 @@
 @page
 @model VehicleTax.Web.Pages.RevenueAccounts.CreateModel
 @{
-    ViewData["Title"] = "Add Revenue Account";
+    ViewData["Title"] = L["Add Revenue Account"];
 }
 
 <div class="module-page">
     <div class="module-header mb-3">
         <div>
-            <h3 class="fw-bold mb-1">Add Revenue Account</h3>
-            <div class="sub">Create a new revenue account for movement classification.</div>
+            <h3 class="fw-bold mb-1">@L["Add Revenue Account"]</h3>
+            <div class="sub">@L["Create a new revenue account for traffida classification."]</div>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
                 <label asp-for="Account.AccountName" class="form-label fw-semibold"></label>
                 <input asp-for="Account.AccountName"
                        class="form-control"
-                       placeholder="e.g. Passing Vehicle Tax Revenue" />
+                       placeholder="@L["e.g. Passing Vehicle Tax Revenue"]" />
                 <span asp-validation-for="Account.AccountName" class="text-danger small"></span>
             </div>
 
@@ -41,7 +41,7 @@
                 <textarea asp-for="Account.Description"
                           class="form-control"
                           rows="3"
-                          placeholder="Optional description..."></textarea>
+                          placeholder="@L["Optional description..."]"></textarea>
                 <span asp-validation-for="Account.Description" class="text-danger small"></span>
             </div>
 
@@ -49,10 +49,10 @@
 
         <div class="card-footer bg-light text-end">
             <a asp-page="Index" class="btn btn-outline-secondary me-2">
-                Cancel
+                @L["Cancel"]
             </a>
             <button type="submit" class="btn btn-success px-4">
-                <i class="bi bi-save"></i> Save
+                <i class="bi bi-save"></i> @L["Save"]
             </button>
         </div>
     </form>

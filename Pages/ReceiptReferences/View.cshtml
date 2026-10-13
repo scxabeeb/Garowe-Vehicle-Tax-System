@@ -2,18 +2,18 @@
 @model VehicleTax.Web.Pages.ReceiptReferences.ViewModel
 
 @{
-    ViewData["Title"] = "Reference Details";
+    ViewData["Title"] = L["Reference Details"];
 }
 
 <div class="row">
     <div class="col-md-6 mx-auto">
 
-        <h3 class="fw-bold mb-3">Reference Details</h3>
+        <h3 class="fw-bold mb-3">@L["Reference Details"]</h3>
 
         @if (Model.Item == null)
         {
             <div class="alert alert-danger">
-                Reference not found.
+                @L["Reference not found."]
             </div>
         }
         else
@@ -23,23 +23,23 @@
                 <div class="card-body">
 
                     <div class="mb-3">
-                        <strong>Reference Number</strong>
+                        <strong>@L["Reference Number"]</strong>
                         <div>@Model.Item.ReferenceNumber</div>
                     </div>
 
                     <div class="mb-3">
-                        <strong>Status</strong><br />
+                        <strong>@L["Status"]</strong><br />
                         @if (Model.Item.IsCancelled)
                         {
-                            <span class="badge bg-dark">Cancelled</span>
+                            <span class="badge bg-dark">@L["Cancelled"]</span>
                         }
                         else if (Model.Item.IsUsed)
                         {
-                            <span class="badge bg-danger">Used</span>
+                            <span class="badge bg-danger">@L["Used"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-success">Available</span>
+                            <span class="badge bg-success">@L["Available"]</span>
                         }
                     </div>
 
@@ -48,17 +48,17 @@
                     {
                         <hr />
                         <div class="mb-3">
-                            <strong>Vehicle</strong>
+                            <strong>@L["Vehicle"]</strong>
                             <div>@Model.Item.Vehicle?.PlateNumber</div>
                         </div>
 
                         <div class="mb-3">
-                            <strong>Collector</strong>
+                            <strong>@L["Collector"]</strong>
                             <div>@Model.Item.UsedBy</div>
                         </div>
 
                         <div class="mb-3">
-                            <strong>Used At</strong>
+                            <strong>@L["Used At"]</strong>
                             <div>@Model.Item.UsedAt?.ToString("yyyy-MM-dd HH:mm")</div>
                         </div>
                     }
@@ -68,17 +68,17 @@
                     {
                         <hr />
                         <div class="mb-3">
-                            <strong>Cancelled By</strong>
+                            <strong>@L["Cancelled By"]</strong>
                             <div>@Model.Item.CancelledBy</div>
                         </div>
 
                         <div class="mb-3">
-                            <strong>Cancelled At</strong>
+                            <strong>@L["Cancelled At"]</strong>
                             <div>@Model.Item.CancelledAt?.ToString("yyyy-MM-dd HH:mm")</div>
                         </div>
 
                         <div class="mb-3">
-                            <strong>Reason</strong>
+                            <strong>@L["Reason"]</strong>
                             <div class="text-danger">@Model.Item.CancelledReason</div>
                         </div>
                     }
@@ -88,14 +88,14 @@
                 <div class="card-footer d-flex gap-2">
 
                     <a asp-page="Index" class="btn btn-secondary">
-                        Back
+                        @L["Back"]
                     </a>
 
                     @* Only show Cancel when Available *@
                     @if (!Model.Item.IsUsed && !Model.Item.IsCancelled)
                     {
                         <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
-                            Cancel Reference
+                            @L["Cancel Reference"]
                         </button>
                     }
 
@@ -112,20 +112,20 @@
     <div class="modal-dialog">
         <form method="post" asp-page-handler="Cancel" asp-route-id="@Model.Item.Id" class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Cancel Receipt Reference</h5>
+                <h5 class="modal-title">@L["Cancel Receipt Reference"]</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Reason for Cancellation</label>
+                    <label class="form-label">@L["Reason for Cancellation"]</label>
                     <textarea name="Reason" class="form-control" rows="3" required></textarea>
                 </div>
             </div>
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-danger">
-                    Confirm Cancel
+                    @L["Confirm Cancel"]
                 </button>
             </div>
         </form>

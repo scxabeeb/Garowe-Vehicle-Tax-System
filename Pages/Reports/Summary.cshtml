@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h3 class="fw-bold mb-4">
         <i class="bi bi-file-earmark-bar-graph"></i>
-        Summary Report
+        @L["Summary Report"]
     </h3>
 
     <!-- FILTERS -->
@@ -12,43 +12,43 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">From Date</label>
+                    <label class="form-label">@L["From Date"]</label>
                     <input type="date" asp-for="FromDate" class="form-control" />
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">To Date</label>
+                    <label class="form-label">@L["To Date"]</label>
                     <input type="date" asp-for="ToDate" class="form-control" />
                 </div>
 
                 <div class="col-md-2">
-                    <label class="form-label">Collector</label>
+                    <label class="form-label">@L["Collector"]</label>
                     <select asp-for="CollectorId" asp-items="Model.Collectors" class="form-select">
-                        <option value="">All</option>
+                        <option value="">@L["All"]</option>
                     </select>
                 </div>
 
                 <div class="col-md-2">
-                    <label class="form-label">Checkpoint</label>
+                    <label class="form-label">@L["Checkpoint"]</label>
                     <select asp-for="CheckpointId" asp-items="Model.Checkpoints" class="form-select">
-                        <option value="">All</option>
+                        <option value="">@L["All"]</option>
                     </select>
                 </div>
 
                 <div class="col-md-2">
-                    <label class="form-label">Movement</label>
+                    <label class="form-label">@L["Traffida"]</label>
                     <select asp-for="MovementId" asp-items="Model.Movements" class="form-select">
-                        <option value="">All</option>
+                        <option value="">@L["All"]</option>
                     </select>
                 </div>
             </div>
 
             <div class="mt-3 text-end">
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search"></i> Apply
+                    <i class="bi bi-search"></i> @L["Apply"]
                 </button>
                 <a asp-page="./Summary" class="btn btn-secondary">
-                    Reset
+                    @L["Reset"]
                 </a>
                 <a asp-page-handler="ExportCsv"
                    asp-route-FromDate="@Model.FromDate"
@@ -57,7 +57,7 @@
                    asp-route-CheckpointId="@Model.CheckpointId"
                    asp-route-MovementId="@Model.MovementId"
                    class="btn btn-success">
-                    <i class="bi bi-file-earmark-excel"></i> Export CSV
+                    <i class="bi bi-file-earmark-excel"></i> @L["Export CSV"]
                 </a>
             </div>
         </div>
@@ -68,7 +68,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Total Transactions</div>
+                    <div class="text-muted small fw-semibold">@L["Total Transactions"]</div>
                     <h3 class="fw-bold mb-0 text-primary">@Model.TotalTransactions</h3>
                 </div>
             </div>
@@ -76,7 +76,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Completed</div>
+                    <div class="text-muted small fw-semibold">@L["Completed"]</div>
                     <h3 class="fw-bold mb-0 text-success">@Model.CompletedCount</h3>
                     <div class="text-muted small fw-semibold">$@Model.CompletedAmount.ToString("N0")</div>
                 </div>
@@ -85,7 +85,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Cancelled</div>
+                    <div class="text-muted small fw-semibold">@L["Cancelled"]</div>
                     <h3 class="fw-bold mb-0 text-danger">@Model.CancelledCount</h3>
                     <div class="text-muted small fw-semibold">$@Model.CancelledAmount.ToString("N0")</div>
                 </div>
@@ -94,7 +94,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Net Amount</div>
+                    <div class="text-muted small fw-semibold">@L["Net Amount"]</div>
                     <h3 class="fw-bold mb-0 text-info">$@Model.NetAmount.ToString("N0")</h3>
                 </div>
             </div>
@@ -107,14 +107,14 @@
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
-                    <h5 class="fw-bold mb-3">By Status</h5>
+                    <h5 class="fw-bold mb-3">@L["By Status"]</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Status</th>
-                                    <th class="text-end">Count</th>
-                                    <th class="text-end">Amount</th>
+                                    <th>@L["Status"]</th>
+                                    <th class="text-end">@L["Count"]</th>
+                                    <th class="text-end">@L["Amount"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -137,16 +137,16 @@
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
-                    <h5 class="fw-bold mb-3">By Collector</h5>
+                    <h5 class="fw-bold mb-3">@L["By Collector"]</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Collector</th>
-                                    <th class="text-end">Completed</th>
-                                    <th class="text-end">Completed Amount</th>
-                                    <th class="text-end">Cancelled</th>
-                                    <th class="text-end">Cancelled Amount</th>
+                                    <th>@L["Collector"]</th>
+                                    <th class="text-end">@L["Completed"]</th>
+                                    <th class="text-end">@L["Completed Amount"]</th>
+                                    <th class="text-end">@L["Cancelled"]</th>
+                                    <th class="text-end">@L["Cancelled Amount"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -173,16 +173,16 @@
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
-                    <h5 class="fw-bold mb-3">By Movement</h5>
+                    <h5 class="fw-bold mb-3">@L["By Traffida"]</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Movement</th>
-                                    <th class="text-end">Completed</th>
-                                    <th class="text-end">Completed Amount</th>
-                                    <th class="text-end">Cancelled</th>
-                                    <th class="text-end">Cancelled Amount</th>
+                                    <th>@L["Traffida"]</th>
+                                    <th class="text-end">@L["Completed"]</th>
+                                    <th class="text-end">@L["Completed Amount"]</th>
+                                    <th class="text-end">@L["Cancelled"]</th>
+                                    <th class="text-end">@L["Cancelled Amount"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -207,16 +207,16 @@
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
-                    <h5 class="fw-bold mb-3">By Checkpoint</h5>
+                    <h5 class="fw-bold mb-3">@L["By Checkpoint"]</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Checkpoint</th>
-                                    <th class="text-end">Completed</th>
-                                    <th class="text-end">Completed Amount</th>
-                                    <th class="text-end">Cancelled</th>
-                                    <th class="text-end">Cancelled Amount</th>
+                                    <th>@L["Checkpoint"]</th>
+                                    <th class="text-end">@L["Completed"]</th>
+                                    <th class="text-end">@L["Completed Amount"]</th>
+                                    <th class="text-end">@L["Cancelled"]</th>
+                                    <th class="text-end">@L["Cancelled Amount"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -248,22 +248,22 @@
                 <table class="table table-bordered table-striped table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>Ref No</th>
-                            <th>Payment ID</th>
-                            <th>Invoice ID</th>
-                            <th>Plate</th>
-                            <th>Movement</th>
-                            <th>Collector</th>
-                            <th class="text-end">Amount</th>
-                            <th>Paid Date</th>
-                            <th>Status</th>
+                            <th>@L["Ref No"]</th>
+                            <th>@L["Payment ID"]</th>
+                            <th>@L["Invoice ID"]</th>
+                            <th>@L["Plate"]</th>
+                            <th>@L["Traffida"]</th>
+                            <th>@L["Collector"]</th>
+                            <th class="text-end">@L["Amount"]</th>
+                            <th>@L["Paid Date"]</th>
+                            <th>@L["Status"]</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model.PaymentRecords.Count == 0)
                         {
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-3">No payments found for the selected filters.</td>
+                                <td colspan="9" class="text-center text-muted py-3">@L["No payments found for the selected filters."]</td>
                             </tr>
                         }
                         else
@@ -282,11 +282,11 @@
                                     <td>
                                         @if (p.IsReverted)
                                         {
-                                            <span class="badge bg-danger">Cancelled</span>
+                                            <span class="badge bg-danger">@L["Cancelled"]</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-success">Completed</span>
+                                            <span class="badge bg-success">@L["Completed"]</span>
                                         }
                                     </td>
                                 </tr>

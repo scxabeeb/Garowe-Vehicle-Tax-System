@@ -5,8 +5,8 @@
 <div class="module-header mb-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-            <h3 class="mb-1 fw-bold">Reports</h3>
-            <div class="sub">Review revenue, operations, and collector performance with filters.</div>
+            <h3 class="mb-1 fw-bold">@L["Reports"]</h3>
+            <div class="sub">@L["Review revenue, operations, and collector performance with filters."]</div>
         </div>
     </div>
 </div>
@@ -15,73 +15,73 @@
     <div class="row g-3">
 
         <div class="col-md-3">
-            <label class="form-label">From Date</label>
+            <label class="form-label">@L["From Date"]</label>
             <input type="date" asp-for="FromDate" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">To Date</label>
+            <label class="form-label">@L["To Date"]</label>
             <input type="date" asp-for="ToDate" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Plate Number</label>
+            <label class="form-label">@L["Plate Number"]</label>
             <input asp-for="PlateNumber" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Car Type</label>
+            <label class="form-label">@L["Car Type"]</label>
             <select asp-for="CarTypeId"
                     asp-items="Model.CarTypes"
                     class="form-select">
-                <option value="">All</option>
+                <option value="">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Movement</label>
+            <label class="form-label">@L["Traffida"]</label>
             <select asp-for="MovementId"
                     asp-items="Model.Movements"
                     class="form-select">
-                <option value="">All</option>
+                <option value="">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Revenue Account</label>
+            <label class="form-label">@L["Revenue Account"]</label>
             <select asp-for="RevenueAccountId"
                     asp-items="Model.RevenueAccounts"
                     class="form-select">
-                <option value="">All Revenue Accounts</option>
+                <option value="">@L["All Revenue Accounts"]</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Golis Bill No</label>
-            <input type="text" asp-for="GolisBillNo" class="form-control" placeholder="Search by bill no..." />
+            <label class="form-label">@L["Golis Bill No"]</label>
+            <input type="text" asp-for="GolisBillNo" class="form-control" placeholder="@L["Search by bill no..."]" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Collector</label>
+            <label class="form-label">@L["Collector"]</label>
             <select asp-for="CollectorId"
                     asp-items="Model.Collectors"
                     class="form-select">
-                <option value="">All</option>
+                <option value="">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Checkpoint</label>
+            <label class="form-label">@L["Checkpoint"]</label>
             <select asp-for="CheckpointId"
                     asp-items="Model.Checkpoints"
                     class="form-select">
-                <option value="">All</option>
+                <option value="">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-6 d-flex align-items-end gap-2">
-            <button class="btn btn-primary w-100 module-action-btn">Apply Filters</button>
-            <a asp-page="./Index" class="btn btn-secondary w-100 module-action-btn">Reset</a>
+            <button class="btn btn-primary w-100 module-action-btn">@L["Apply Filters"]</button>
+            <a asp-page="./Index" class="btn btn-secondary w-100 module-action-btn">@L["Reset"]</a>
         </div>
     </div>
 </form>
@@ -99,7 +99,7 @@
                        asp-route-CollectorId="@Model.CollectorId"
                        asp-route-CheckpointId="@Model.CheckpointId"
                        asp-route-GolisBillNo="@Model.GolisBillNo">
-        Export to Excel
+        @L["Export to Excel"]
     </a>
 </div>
 
@@ -108,7 +108,7 @@
     <div class="col-md-4">
         <div class="card module-kpi-card border-0 text-center">
             <div class="card-body">
-                <div class="module-kpi-title">Total Vehicles</div>
+                <div class="module-kpi-title">@L["Total Vehicles"]</div>
                 <h3 class="module-kpi-value text-primary">@Model.TotalVehicles</h3>
             </div>
         </div>
@@ -116,7 +116,7 @@
     <div class="col-md-4">
         <div class="card module-kpi-card border-0 text-center">
             <div class="card-body">
-                <div class="module-kpi-title">Total Payments</div>
+                <div class="module-kpi-title">@L["Total Payments"]</div>
                 <h3 class="module-kpi-value text-warning">@Model.TotalPayments</h3>
             </div>
         </div>
@@ -124,9 +124,9 @@
     <div class="col-md-4">
         <div class="card module-kpi-card border-0 text-center">
             <div class="card-body">
-                <div class="module-kpi-title">Total Collected</div>
+                <div class="module-kpi-title">@L["Total Collected"]</div>
                 <h3 class="module-kpi-value text-success">$@Model.TotalAmount.ToString("N0")</h3>
-                <div class="module-kpi-sub">Revenue Account Collections</div>
+                <div class="module-kpi-sub">@L["Revenue Account Collections"]</div>
             </div>
         </div>
     </div>
@@ -138,7 +138,7 @@
         <div class="card module-panel-card h-100">
             <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                    <i class="bi bi-wallet2"></i> Collections by Revenue Account
+                    <i class="bi bi-wallet2"></i> @L["Collections by Revenue Account"]
                 </h5>
                 @if (Model.RevenueAccountSummaries.Any())
                 {
@@ -151,7 +151,7 @@
                                 <span class="fw-semibold">@($"{ra.AccountCode} - {ra.AccountName}") (@ra.TotalPayments)</span>
                                 <span>$@ra.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="Revenue account amount">
+                            <div class="progress" role="progressbar" aria-label="@L["Revenue account amount"]">
                                 <div class="progress-bar bg-info" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -159,7 +159,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No revenue account data for selected filters.</p>
+                    <p class="text-muted mb-0">@L["No revenue account data for selected filters."]</p>
                 }
             </div>
         </div>
@@ -172,7 +172,7 @@
         <div class="card module-panel-card h-100">
             <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                    <i class="bi bi-diagram-3"></i> Top Movements
+                    <i class="bi bi-diagram-3"></i> @L["Top Traffida"]
                 </h5>
                 @if (Model.MovementSummaries.Any())
                 {
@@ -185,7 +185,7 @@
                                 <span class="fw-semibold">@m.MovementName (@m.Count)</span>
                                 <span>$@m.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="Movement amount">
+                            <div class="progress" role="progressbar" aria-label="@L["Traffida amount"]">
                                 <div class="progress-bar bg-primary" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -193,7 +193,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No movement data for selected filters.</p>
+                    <p class="text-muted mb-0">@L["No traffida data for selected filters."]</p>
                 }
             </div>
         </div>
@@ -203,7 +203,7 @@
         <div class="card module-panel-card h-100">
             <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                    <i class="bi bi-truck"></i> Top Car Types
+                    <i class="bi bi-truck"></i> @L["Top Car Types"]
                 </h5>
                 @if (Model.CarTypeSummaries.Any())
                 {
@@ -216,7 +216,7 @@
                                 <span class="fw-semibold">@c.CarTypeName (@c.Count)</span>
                                 <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="Car type amount">
+                            <div class="progress" role="progressbar" aria-label="@L["Car type amount"]">
                                 <div class="progress-bar bg-success" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -224,7 +224,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No car type data for selected filters.</p>
+                    <p class="text-muted mb-0">@L["No car type data for selected filters."]</p>
                 }
             </div>
         </div>
@@ -236,7 +236,7 @@
         <div class="card module-panel-card h-100">
             <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                    <i class="bi bi-people"></i> Collector Performance
+                    <i class="bi bi-people"></i> @L["Collector Performance"]
                 </h5>
                 @if (Model.CollectorSummaries.Any())
                 {
@@ -249,7 +249,7 @@
                                 <span class="fw-semibold">@c.CollectorName (@c.TotalPayments)</span>
                                 <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="Collector amount">
+                            <div class="progress" role="progressbar" aria-label="@L["Collector amount"]">
                                 <div class="progress-bar bg-warning" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -257,7 +257,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No collector data for selected filters.</p>
+                    <p class="text-muted mb-0">@L["No collector data for selected filters."]</p>
                 }
             </div>
         </div>
@@ -267,7 +267,7 @@
         <div class="card module-panel-card h-100">
             <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                    <i class="bi bi-geo-alt"></i> Checkpoint Performance
+                    <i class="bi bi-geo-alt"></i> @L["Checkpoint Performance"]
                 </h5>
                 @if (Model.CheckpointSummaries.Any())
                 {
@@ -280,7 +280,7 @@
                                 <span class="fw-semibold">@c.CheckpointName (@c.TotalPayments)</span>
                                 <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="Checkpoint amount">
+                            <div class="progress" role="progressbar" aria-label="@L["Checkpoint amount"]">
                                 <div class="progress-bar bg-secondary" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -288,7 +288,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No checkpoint data for selected filters.</p>
+                    <p class="text-muted mb-0">@L["No checkpoint data for selected filters."]</p>
                 }
             </div>
         </div>
@@ -311,7 +311,7 @@
                                 <span class="fw-semibold">@d.Date.ToString("dd MMM")</span>
                                 <span>$@d.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="Daily collection">
+                            <div class="progress" role="progressbar" aria-label="@L["Daily collection"]">
                                 <div class="progress-bar bg-info" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -319,7 +319,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No daily collection data available.</p>
+                    <p class="text-muted mb-0">@L["No daily collection data available."]</p>
                 }
             </div>
         </div>
@@ -340,7 +340,7 @@
     <input type="hidden" name="GolisBillNo" value="@Model.GolisBillNo" />
 
     <div class="d-flex align-items-center gap-2">
-        <label class="fw-bold">Show</label>
+        <label class="fw-bold">@L["Show"]</label>
 
         <select name="PageSize"
                 class="form-select form-select-sm w-auto"
@@ -372,9 +372,9 @@
             { <option value="200">200</option> }
 
             @if (Model.PageSize == -1)
-            { <option value="-1" selected>All</option> }
+            { <option value="-1" selected>@L["All"]</option> }
             else
-            { <option value="-1">All</option> }
+            { <option value="-1">@L["All"]</option> }
 
         </select>
     </div>
@@ -386,18 +386,18 @@
         <table class="table table-bordered table-striped table-hover mb-0">
             <thead class="table-dark">
                 <tr>
-                    <th>Date</th>
-                    <th>Plate</th>
-                    <th>Owner</th>
-                    <th>Mobile</th>
-                    <th>Car Type</th>
-                    <th>Movement</th>
-                    <th>Revenue Account</th>
-                    <th>Collector</th>
-                    <th>Checkpoint</th>
-                    <th>Receipt No</th>
-                    <th>Golis Bill No</th>
-                    <th class="text-end">Amount</th>
+                    <th>@L["Date"]</th>
+                    <th>@L["Plate"]</th>
+                    <th>@L["Owner"]</th>
+                    <th>@L["Mobile"]</th>
+                    <th>@L["Car Type"]</th>
+                    <th>@L["Traffida"]</th>
+                    <th>@L["Revenue Account"]</th>
+                    <th>@L["Collector"]</th>
+                    <th>@L["Checkpoint"]</th>
+                    <th>@L["Receipt No"]</th>
+                    <th>@L["Golis Bill No"]</th>
+                    <th class="text-end">@L["Amount"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -424,7 +424,7 @@
             else
             {
                 <tr>
-                    <td colspan="12" class="text-center text-muted">No payments found</td>
+                    <td colspan="12" class="text-center text-muted">@L["No payments found"]</td>
                 </tr>
             }
             </tbody>
@@ -432,7 +432,7 @@
             {
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="10" class="fw-bold text-end">TOTAL</td>
+                        <td colspan="10" class="fw-bold text-end">@L["TOTAL"]</td>
                         <td class="fw-bold text-center">@Model.TotalPayments</td>
                         <td class="text-end fw-bold">$@Model.TotalAmount.ToString("N0")</td>
                     </tr>

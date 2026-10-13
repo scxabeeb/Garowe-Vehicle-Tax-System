@@ -1,10 +1,10 @@
 @page
 @model VehicleTax.Web.Pages.Reports.ReceiptReferencesModel
 @{
-    ViewData["Title"] = "Receipt Reference Report";
+    ViewData["Title"] = L["Receipt Reference Report"];
 }
 
-<h3 class="fw-bold mb-4">Receipt Reference Report</h3>
+<h3 class="fw-bold mb-4">@L["Receipt Reference Report"]</h3>
 
 <form method="get" class="card p-3 mb-3 shadow-sm">
     <div class="row g-3">
@@ -14,13 +14,13 @@
             <input name="Search"
                    value="@Model.Search"
                    class="form-control"
-                   placeholder="Reference, Plate, Collector, Cancelled by, Reason..." />
+                   placeholder="@L["Reference, Plate, Collector, Cancelled by, Reason..."]" />
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">Vehicle</label>
+            <label class="form-label">@L["Vehicle"]</label>
             <select name="VehicleId" class="form-select">
-                <option value="">All Vehicles</option>
+                <option value="">@L["All Vehicles"]</option>
                 @foreach (var v in Model.Vehicles)
                 {
                     <option value="@v.Id" selected="@(Model.VehicleId == v.Id ? "selected" : null)">
@@ -31,9 +31,9 @@
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">Collector</label>
+            <label class="form-label">@L["Collector"]</label>
             <select name="Collector" class="form-select">
-                <option value="">All Collectors</option>
+                <option value="">@L["All Collectors"]</option>
                 @foreach (var c in Model.Collectors)
                 {
                     <option value="@c" selected="@(Model.Collector == c ? "selected" : null)">
@@ -44,17 +44,17 @@
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">Status</label>
+            <label class="form-label">@L["Status"]</label>
             <select name="Status" class="form-select">
-                <option value="">All</option>
-                <option value="Available" selected="@(Model.Status == "Available" ? "selected" : null)">Available</option>
-                <option value="Used" selected="@(Model.Status == "Used" ? "selected" : null)">Used</option>
-                <option value="Cancelled" selected="@(Model.Status == "Cancelled" ? "selected" : null)">Cancelled</option>
+                <option value="">@L["All"]</option>
+                <option value="Available" selected="@(Model.Status == "Available" ? "selected" : null)">@L["Available"]</option>
+                <option value="Used" selected="@(Model.Status == "Used" ? "selected" : null)">@L["Used"]</option>
+                <option value="Cancelled" selected="@(Model.Status == "Cancelled" ? "selected" : null)">@L["Cancelled"]</option>
             </select>
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">Show</label>
+            <label class="form-label">@L["Show"]</label>
             <select name="PageSize" class="form-select" onchange="this.form.submit()">
                 <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
                 <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
@@ -64,7 +64,7 @@
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">From Date</label>
+            <label class="form-label">@L["From Date"]</label>
             <input type="date"
                    name="FromDate"
                    value="@(Model.FromDate?.ToString("yyyy-MM-dd"))"
@@ -72,7 +72,7 @@
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">To Date</label>
+            <label class="form-label">@L["To Date"]</label>
             <input type="date"
                    name="ToDate"
                    value="@(Model.ToDate?.ToString("yyyy-MM-dd"))"
@@ -81,7 +81,7 @@
 
         <div class="col-md-12 text-end">
             <button class="btn btn-primary">
-                <i class="bi bi-search"></i> Filter
+                <i class="bi bi-search"></i> @L["Filter"]
             </button>
 
             <a asp-page-handler="ExportCsv"
@@ -92,7 +92,7 @@
                asp-route-fromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
                asp-route-toDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
                class="btn btn-success">
-                <i class="bi bi-file-earmark-excel"></i> Export CSV
+                <i class="bi bi-file-earmark-excel"></i> @L["Export CSV"]
             </a>
         </div>
     </div>
@@ -103,13 +103,13 @@
         <thead class="table-dark">
             <tr>
                 <th>#</th>
-                <th>Reference</th>
-                <th>Status</th>
-                <th>Vehicle Plate</th>
-                <th>Collector</th>
-                <th>Used At</th>
-                <th>Cancelled By</th>
-                <th>Cancelled Reason</th>
+                <th>@L["Reference"]</th>
+                <th>@L["Status"]</th>
+                <th>@L["Vehicle Plate"]</th>
+                <th>@L["Collector"]</th>
+                <th>@L["Used At"]</th>
+                <th>@L["Cancelled By"]</th>
+                <th>@L["Cancelled Reason"]</th>
             </tr>
         </thead>
         <tbody>

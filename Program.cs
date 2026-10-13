@@ -136,6 +136,8 @@ builder.Services.AddScoped<VehicleTax.Web.Services.IFmisTransferService, Vehicle
 
 // ── Permission management (RBAC) ──────────────────────────────────
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<VehicleTax.Web.Services.Lang>();
 builder.Services.AddScoped<VehicleTax.Web.Services.IPermissionService, VehicleTax.Web.Services.PermissionService>();
 
 // =========================

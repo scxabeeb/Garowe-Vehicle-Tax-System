@@ -2,7 +2,7 @@
 @model VehicleTax.Web.Pages.Reports.TaxAmountReportModel
 
 <h3 class="mb-3">
-    <i class="bi bi-cash-stack text-success"></i> Tax Amount Report
+    <i class="bi bi-cash-stack text-success"></i> @L["Tax Amount Report"]
 </h3>
 
 <form method="get" class="row g-2 mb-3">
@@ -13,13 +13,13 @@
                name="Search"
                value="@Model.Search"
                class="form-control"
-               placeholder="Search car type or movement..." />
+               placeholder="@L["Search car type or traffida..."]" />
     </div>
 
     <!-- Car Type Filter -->
     <div class="col-md-3">
         <select name="CarTypeId" class="form-select">
-            <option value="">All Car Types</option>
+            <option value="">@L["All Car Types"]</option>
             @foreach (var ct in Model.CarTypes)
             {
                 <option value="@ct.Id" selected="@(Model.CarTypeId == ct.Id ? "selected" : null)">
@@ -32,7 +32,7 @@
     <!-- Movement Filter (by NAME, unique, no duplicates) -->
     <div class="col-md-3">
         <select name="MovementName" class="form-select">
-            <option value="">All Movements</option>
+            <option value="">@L["All Traffida"]</option>
             @foreach (var mv in Model.Movements)
             {
                 var isSelected = string.Equals(Model.MovementName, mv.Name, StringComparison.OrdinalIgnoreCase);
@@ -46,7 +46,7 @@
     <!-- Filter Button -->
     <div class="col-md-2 d-grid">
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-funnel-fill"></i> Filter
+            <i class="bi bi-funnel-fill"></i> @L["Filter"]
         </button>
     </div>
 </form>
@@ -57,7 +57,7 @@
    asp-route-movementName="@Model.MovementName"
    asp-route-search="@Model.Search"
    class="btn btn-success mb-3">
-    <i class="bi bi-file-earmark-excel"></i> Export to CSV
+    <i class="bi bi-file-earmark-excel"></i> @L["Export to CSV"]
 </a>
 
 <div class="table-responsive">
@@ -65,9 +65,9 @@
         <thead class="table-dark">
             <tr>
                 <th>#</th>
-                <th>Car Type</th>
-                <th>Movement</th>
-                <th>Amount</th>
+                <th>@L["Car Type"]</th>
+                <th>@L["Traffida"]</th>
+                <th>@L["Amount"]</th>
             </tr>
         </thead>
         <tbody>
@@ -105,7 +105,7 @@
         {
             <tr>
                 <td colspan="4" class="text-center text-muted">
-                    No records found.
+                    @L["No records found."]
                 </td>
             </tr>
         }

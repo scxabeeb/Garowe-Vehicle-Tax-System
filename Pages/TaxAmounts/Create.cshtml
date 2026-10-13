@@ -7,7 +7,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
-                    <i class="bi bi-cash-coin"></i> Register Tax Amount
+                    <i class="bi bi-cash-coin"></i> @L["Register Tax Amount"]
                 </h5>
             </div>
 
@@ -19,7 +19,7 @@
 
                     <!-- Car Type -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Car Type</label>
+                        <label class="form-label fw-semibold">@L["Car Type"]</label>
                         <select asp-for="Tax.CarTypeId"
                                 asp-items="Model.CarTypes"
                                 class="form-select"
@@ -31,7 +31,7 @@
 
                     <!-- Movement -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Movement</label>
+                        <label class="form-label fw-semibold">@L["Traffida"]</label>
                         <select asp-for="Tax.MovementId"
                                 class="form-select"
                                 id="movementSelect">
@@ -42,19 +42,19 @@
 
                     <!-- Revenue Account (read-only, determined by Movement) -->
                     <div class="mb-3" id="revenueAccountSection" style="display:none;">
-                        <label class="form-label fw-semibold">Revenue Account</label>
+                        <label class="form-label fw-semibold">@L["Revenue Account"]</label>
                         <div class="form-control bg-light" id="revenueAccountDisplay">
                             --
                         </div>
                         <small class="text-muted">
                             <i class="bi bi-info-circle"></i>
-                            The Revenue Account is determined by the selected Movement and cannot be changed here.
+                            @L["The Revenue Account is determined by the selected Traffida and cannot be changed here."]
                         </small>
                     </div>
 
                     <!-- Amount -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Amount</label>
+                        <label class="form-label fw-semibold">@L["Amount"]</label>
                         <input asp-for="Tax.Amount"
                                type="number"
                                step="0.01"
@@ -64,11 +64,11 @@
 
                     <div class="d-flex justify-content-between mt-4">
                         <a asp-page="/TaxAmounts/Index" class="btn btn-outline-secondary">
-                            Back
+                            @L["Back"]
                         </a>
 
                         <button type="submit" class="btn btn-success">
-                            Save
+                            @L["Save"]
                         </button>
                     </div>
 

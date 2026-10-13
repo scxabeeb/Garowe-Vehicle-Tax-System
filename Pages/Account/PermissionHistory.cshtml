@@ -1,12 +1,12 @@
 @page
 @model VehicleTax.Web.Pages.Account.PermissionHistoryModel
 @{
-    ViewData["Title"] = "Permission Change History";
+    ViewData["Title"] = L["Permission Change History"];
     Layout = "_Layout";
 }
 <div class="container-fluid py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h2 class="mb-0">Permission Change History</h2>
+        <h2 class="mb-0">@L["Permission Change History"]</h2>
         <a class="btn btn-outline-secondary" asp-page="/Account/ManagePermissions">← Permission Manager</a>
     </div>
 
@@ -19,23 +19,23 @@
         <div class="card-body">
             <div class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label small mb-0">Target Type</label>
+                    <label class="form-label small mb-0">@L["Target Type"]</label>
                     <select class="form-select" asp-for="Target">
-                        <option value="0">All</option>
-                        <option value="1">Roles</option>
-                        <option value="2">Users</option>
+                        <option value="0">@L["All"]</option>
+                        <option value="1">@L["Roles"]</option>
+                        <option value="2">@L["Users"]</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small mb-0">Permission</label>
-                    <input class="form-control" asp-for="Permission" placeholder="e.g. Payments.Approve" />
+                    <label class="form-label small mb-0">@L["Permission"]</label>
+                    <input class="form-control" asp-for="Permission" placeholder="@L["e.g. Payments.Approve"]" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small mb-0">Changed By</label>
-                    <input class="form-control" asp-for="ChangedBy" placeholder="Username" />
+                    <label class="form-label small mb-0">@L["Changed By"]</label>
+                    <input class="form-control" asp-for="ChangedBy" placeholder="@L["Username"]" />
                 </div>
                 <div class="col-md-1">
-                    <button class="btn btn-primary w-100" type="submit">Search</button>
+                    <button class="btn btn-primary w-100" type="submit">@L["Search"]</button>
                 </div>
             </div>
         </div>
@@ -45,8 +45,8 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr>
-                    <th>When</th><th>Changed By</th><th>Target</th><th>Permission</th>
-                    <th>Previous</th><th>New</th><th>Details</th>
+                    <th>@L["When"]</th><th>@L["Changed By"]</th><th>@L["Target"]</th><th>@L["Permission"]</th>
+                    <th>@L["Previous"]</th><th>@L["New"]</th><th>@L["Details"]</th>
                 </tr></thead>
                 <tbody>
                 @foreach (var r in Model.Rows)
@@ -66,11 +66,11 @@
                         <td>
                             @if (r.NewValue == "Granted")
                             {
-                                <span class="badge bg-success">Granted</span>
+                                <span class="badge bg-success">@L["Granted"]</span>
                             }
                             else if (r.NewValue == "Revoked")
                             {
-                                <span class="badge bg-danger">Revoked</span>
+                                <span class="badge bg-danger">@L["Revoked"]</span>
                             }
                             else
                             {
@@ -82,7 +82,7 @@
                 }
                 @if (!Model.Rows.Any())
                 {
-                    <tr><td colspan="7" class="text-center text-muted py-4">No permission changes recorded.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">@L["No permission changes recorded."]</td></tr>
                 }
                 </tbody>
             </table>

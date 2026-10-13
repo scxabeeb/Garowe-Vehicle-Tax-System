@@ -1,0 +1,20 @@
+@* English / Somali switch. Returns to the current page after switching. *@
+@{
+    var back = Context.Request.Path + Context.Request.QueryString;
+    var dark = (ViewData["LangSwitchDark"] as bool?) ?? true;
+    var border = dark ? "rgba(255,255,255,.45)" : "#e2e8f0";
+    var idle = dark ? "#fff" : "#475569";
+    var activeBg = dark ? "#fff" : "#0b57d0";
+    var activeFg = dark ? "#0b57d0" : "#fff";
+}
+<div class="lang-switch d-inline-flex align-items-center" role="group" aria-label="@L["Language"]"
+     style="border:1px solid @border;border-radius:999px;padding:2px;gap:2px;">
+    @foreach (var (code, label) in new[] { ("en", "EN"), ("so", "SO") })
+    {
+        var active = L.Code == code;
+        <a href="/set-language/@code?returnUrl=@Uri.EscapeDataString(back)"
+           title="@(code == "en" ? L["English"] : L["Somali"])"
+           style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;text-decoration:none;
+                  background:@(active ? activeBg : "transparent");color:@(active ? activeFg : idle);">@label</a>
+    }
+</div>

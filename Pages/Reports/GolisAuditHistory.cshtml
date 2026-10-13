@@ -4,34 +4,34 @@
 <div class="container mt-4">
     <h3 class="fw-bold mb-4">
         <i class="bi bi-clock-history"></i>
-        Golis Audit History
+        @L["Golis Audit History"]
     </h3>
 
     <div class="card shadow-sm border-0 mb-3">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Statement number, notes..." />
+                    <label class="form-label">@L["Search"]</label>
+                    <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="@L["Statement number, notes..."]" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Status</label>
+                    <label class="form-label">@L["Status"]</label>
                     <select name="statusFilter" class="form-select">
-                        <option value="" selected="@(Model.StatusFilter == null ? "selected" : null)">All</option>
-                        <option value="Draft" selected="@(Model.StatusFilter == AuditStatus.Draft ? "selected" : null)">Draft</option>
-                        <option value="Finalized" selected="@(Model.StatusFilter == AuditStatus.Finalized ? "selected" : null)">Finalized</option>
-                        <option value="Reopened" selected="@(Model.StatusFilter == AuditStatus.Reopened ? "selected" : null)">Reopened</option>
+                        <option value="" selected="@(Model.StatusFilter == null ? "selected" : null)">@L["All"]</option>
+                        <option value="Draft" selected="@(Model.StatusFilter == AuditStatus.Draft ? "selected" : null)">@L["Draft"]</option>
+                        <option value="Finalized" selected="@(Model.StatusFilter == AuditStatus.Finalized ? "selected" : null)">@L["Finalized"]</option>
+                        <option value="Reopened" selected="@(Model.StatusFilter == AuditStatus.Reopened ? "selected" : null)">@L["Reopened"]</option>
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
-                        <i class="bi bi-search"></i> Filter
+                        <i class="bi bi-search"></i> @L["Filter"]
                     </button>
-                    <a asp-page="./GolisAuditHistory" class="btn btn-secondary">Reset</a>
+                    <a asp-page="./GolisAuditHistory" class="btn btn-secondary">@L["Reset"]</a>
                 </div>
                 <div class="col-md-2 d-flex align-items-end justify-content-end">
                     <a asp-page="./GolisAudit" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> New Audit
+                        <i class="bi bi-plus-circle"></i> @L["New Audit"]
                     </a>
                 </div>
             </form>
@@ -44,17 +44,17 @@
                 <table class="table table-bordered table-striped table-sm align-middle">
                     <thead class="table-dark">
                         <tr>
-                            <th>Audit ID</th>
-                            <th>Statement Number</th>
-                            <th>Period</th>
-                            <th class="text-end">Golis Total</th>
-                            <th class="text-end">System Total</th>
-                            <th class="text-end">Difference</th>
-                            <th>Matched</th>
-                            <th>Unmatched</th>
-                            <th>Auditor</th>
-                            <th>Audit Date</th>
-                            <th>Status</th>
+                            <th>@L["Audit ID"]</th>
+                            <th>@L["Statement Number"]</th>
+                            <th>@L["Period"]</th>
+                            <th class="text-end">@L["Golis Total"]</th>
+                            <th class="text-end">@L["System Total"]</th>
+                            <th class="text-end">@L["Difference"]</th>
+                            <th>@L["Matched"]</th>
+                            <th>@L["Unmatched"]</th>
+                            <th>@L["Auditor"]</th>
+                            <th>@L["Audit Date"]</th>
+                            <th>@L["Status"]</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -75,21 +75,21 @@
                                 <td>
                                     @if (a.Status == AuditStatus.Finalized)
                                     {
-                                        <span class="badge bg-success">Finalized</span>
+                                        <span class="badge bg-success">@L["Finalized"]</span>
                                     }
                                     else if (a.Status == AuditStatus.Reopened)
                                     {
-                                        <span class="badge bg-warning text-dark">Reopened</span>
+                                        <span class="badge bg-warning text-dark">@L["Reopened"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Draft</span>
+                                        <span class="badge bg-secondary">@L["Draft"]</span>
                                     }
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
                                         <a asp-page="./GolisAudit" asp-route-auditId="@a.Id" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-eye"></i> View
+                                            <i class="bi bi-eye"></i> @L["View"]
                                         </a>
                                         <form method="post" asp-page="./GolisAudit" asp-page-handler="DeleteAudit" asp-route-auditId="@a.Id" onsubmit="return confirm('Delete this entire audit?');">
                                             <button type="submit" class="btn btn-sm btn-danger">

@@ -13,11 +13,11 @@
 <div class="perm-header mb-3">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-            <h4 class="mb-1 admin-header-title">Permission Manager</h4>
-            <div class="sub">Configure access for <strong>@Model.UserInfo.Username</strong>@(string.IsNullOrWhiteSpace(Model.UserInfo.FullName) ? "" : $" — {Model.UserInfo.FullName}")</div>
+            <h4 class="mb-1 admin-header-title">@L["Permission Manager"]</h4>
+            <div class="sub">@L["Configure access for"] <strong>@Model.UserInfo.Username</strong>@(string.IsNullOrWhiteSpace(Model.UserInfo.FullName) ? "" : $" — {Model.UserInfo.FullName}")</div>
         </div>
         <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
-            <i class="bi bi-arrow-left"></i> Back to Users
+            <i class="bi bi-arrow-left"></i> @L["Back to Users"]
         </a>
     </div>
 </div>
@@ -28,17 +28,17 @@
             <div class="perm-tools mb-3">
                 <div class="row g-2 align-items-center">
                     <div class="col-md-8">
-                        <label class="form-label mb-1">Search Permissions</label>
-                        <input id="permissionSearch" class="form-control" placeholder="Search by key, label, or description..." />
+                        <label class="form-label mb-1">@L["Search Permissions"]</label>
+                        <input id="permissionSearch" class="form-control" placeholder="@L["Search by key, label, or description..."]" />
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label mb-1">Quick Actions</label>
+                        <label class="form-label mb-1">@L["Quick Actions"]</label>
                         <div class="d-grid gap-2 d-md-flex">
                             <button class="btn btn-outline-primary w-100 admin-btn" type="button" id="selectAllVisibleBtn">
-                                <i class="bi bi-check2-square"></i> Select Visible
+                                <i class="bi bi-check2-square"></i> @L["Select Visible"]
                             </button>
                             <button class="btn btn-outline-secondary w-100 admin-btn" type="button" id="clearAllBtn">
-                                <i class="bi bi-x-square"></i> Clear All
+                                <i class="bi bi-x-square"></i> @L["Clear All"]
                             </button>
                         </div>
                     </div>
@@ -52,8 +52,8 @@
                     <div class="perm-group-head">
                         <div class="fw-bold">@group.Key</div>
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary group-select-btn admin-btn" data-group="@groupSlug">Select Group</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary group-clear-btn admin-btn" data-group="@groupSlug">Clear Group</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary group-select-btn admin-btn" data-group="@groupSlug">@L["Select Group"]</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary group-clear-btn admin-btn" data-group="@groupSlug">@L["Clear Group"]</button>
                         </div>
                     </div>
                     <div class="perm-list">
@@ -90,25 +90,25 @@
         <div class="col-lg-4">
             <div class="side-panel">
                 <div class="side-panel-head">
-                    <div class="fw-bold">Access Summary</div>
+                    <div class="fw-bold">@L["Access Summary"]</div>
                 </div>
                 <div class="side-panel-body">
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <div class="count-chip">
                                 <div id="selectedPermissionCount" class="fw-bold fs-5">0</div>
-                                <div class="small text-muted">Permissions</div>
+                                <div class="small text-muted">@L["Permissions"]</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="count-chip">
                                 <div id="selectedPageCount" class="fw-bold fs-5">0</div>
-                                <div class="small text-muted">Pages</div>
+                                <div class="small text-muted">@L["Pages"]</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-2 fw-semibold">Pages This User Can See</div>
+                    <div class="mb-2 fw-semibold">@L["Pages This User Can See"]</div>
                     <div id="visiblePagesPreview" class="d-flex flex-wrap gap-2 mb-3">
                         @if (Model.SelectedVisiblePages.Any())
                         {
@@ -119,12 +119,12 @@
                         }
                         else
                         {
-                            <span class="text-muted">No page access assigned</span>
+                            <span class="text-muted">@L["No page access assigned"]</span>
                         }
                     </div>
 
                     <button class="btn btn-success w-100 admin-btn">
-                        <i class="bi bi-save"></i> Save Permissions
+                        <i class="bi bi-save"></i> @L["Save Permissions"]
                     </button>
                 </div>
             </div>

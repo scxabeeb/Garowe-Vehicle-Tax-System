@@ -5,7 +5,7 @@
 
     <h3 class="fw-bold mb-4">
         <i class="bi bi-cash-coin text-success"></i>
-        Collect Vehicle Tax
+        @L["Collect Vehicle Tax"]
     </h3>
 
     @if (TempData["SuccessMessage"] != null)
@@ -31,7 +31,7 @@
 
                 <!-- Plate Number -->
                 <div class="mb-3 col-md-6">
-                    <label class="form-label fw-semibold">Plate Number</label>
+                    <label class="form-label fw-semibold">@L["Plate Number"]</label>
                     <input asp-for="PlateNumber" class="form-control" placeholder="e.g. GAR-1234" />
                 </div>
 
@@ -41,29 +41,29 @@
                             type="submit"
                             formnovalidate
                             class="btn btn-outline-primary">
-                        <i class="bi bi-search"></i> Search Vehicle
+                        <i class="bi bi-search"></i> @L["Search Vehicle"]
                     </button>
 
                     <button asp-page-handler="Reset"
                             type="submit"
                             formnovalidate
                             class="btn btn-outline-secondary ms-2">
-                        <i class="bi bi-arrow-repeat"></i> Reset
+                        <i class="bi bi-arrow-repeat"></i> @L["Reset"]
                     </button>
                 </div>
 
                 @if (Model.Vehicle != null)
                 {
                     <div class="alert alert-secondary">
-                        <strong>Owner:</strong> @Model.Vehicle.OwnerName |
-                        <strong>Car Type:</strong> @Model.Vehicle.CarType?.Name
+                        <strong>@L["Owner:"]</strong> @Model.Vehicle.OwnerName |
+                        <strong>@L["Car Type:"]</strong> @Model.Vehicle.CarType?.Name
                     </div>
 
                     <div class="row g-3">
 
                         <!-- Movement -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Movement</label>
+                            <label class="form-label fw-semibold">@L["Traffida"]</label>
                             <select asp-for="MovementId"
                                     asp-items="Model.Movements"
                                     class="form-select"
@@ -75,7 +75,7 @@
 
                         <!-- Quantity -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Quantity</label>
+                            <label class="form-label fw-semibold">@L["Quantity"]</label>
                             <input asp-for="Quantity"
                                    type="number"
                                    min="1"
@@ -95,13 +95,13 @@
                         <div class="alert alert-info mt-4">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <strong>Unit:</strong> $@Model.UnitAmount.ToString("N0")
+                                    <strong>@L["Unit:"]</strong> $@Model.UnitAmount.ToString("N0")
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>Qty:</strong> @Model.Quantity
+                                    <strong>@L["Qty:"]</strong> @Model.Quantity
                                 </div>
                                 <div class="col-md-4 text-end fw-bold">
-                                    Total: $@Model.Amount.ToString("N0")
+                                    @L["Total: $"]@Model.Amount.ToString("N0")
                                 </div>
                             </div>
                         </div>
@@ -110,7 +110,7 @@
                             <button asp-page-handler="GenerateInvoice"
                                     type="submit"
                                     class="btn btn-success btn-lg">
-                                <i class="bi bi-receipt"></i> Generate Invoice
+                                <i class="bi bi-receipt"></i> @L["Generate Invoice"]
                             </button>
                         </div>
                     }
@@ -127,22 +127,22 @@
 
                 <h4 class="mb-3">
                     <i class="bi bi-clock-history"></i>
-                    Payment History
+                    @L["Payment History"]
                 </h4>
 
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead class="table-dark">
                             <tr>
-                                <th>Payment ID</th>
-                                <th>Date</th>
-                                <th>Movement</th>
-                                <th>Amount</th>
-                                <th>Invoice ID</th>
-                                <th>Golis Bill No</th>
-                                <th>Code</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>@L["Payment ID"]</th>
+                                <th>@L["Date"]</th>
+                                <th>@L["Traffida"]</th>
+                                <th>@L["Amount"]</th>
+                                <th>@L["Invoice ID"]</th>
+                                <th>@L["Golis Bill No"]</th>
+                                <th>@L["Code"]</th>
+                                <th>@L["Status"]</th>
+                                <th>@L["Action"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,21 +163,21 @@
                                 <td>
                                     @if (p.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Cancelled</span>
+                                        <span class="badge bg-danger">@L["Cancelled"]</span>
                                     }
                                     else if (p.IsPaid)
                                     {
-                                        <span class="badge bg-success">Paid</span>
+                                        <span class="badge bg-success">@L["Paid"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning text-dark">Invoice Pending</span>
+                                        <span class="badge bg-warning text-dark">@L["Invoice Pending"]</span>
                                     }
                                 </td>
                                 <td>
                                 @if (p.IsReverted)
                                 {
-                                    <span class="text-muted small">No actions</span>
+                                    <span class="text-muted small">@L["No actions"]</span>
                                 }
                                  else if (!p.IsPaid)
                                  {
@@ -196,19 +196,19 @@
                                                  }
                                              </select>
                                              <button type="submit" class="btn btn-sm btn-success w-100">
-                                                 <i class="bi bi-cash"></i> Collect
+                                                 <i class="bi bi-cash"></i> @L["Collect"]
                                              </button>
                                          </form>
                                      }
                                     else
                                     {
-                                        <span class="badge bg-secondary d-block mb-2">Admin only</span>
+                                        <span class="badge bg-secondary d-block mb-2">@L["Admin only"]</span>
                                     }
 
                                     <a class="btn btn-sm btn-outline-primary w-100"
                                        asp-page="/Payments/Receipt"
                                        asp-route-paymentId="@p.Id">
-                                        <i class="bi bi-printer"></i> Print Invoice
+                                        <i class="bi bi-printer"></i> @L["Print Invoice"]
                                     </a>
                                 }
                                 else if (User.IsInRole("Admin"))
@@ -218,17 +218,17 @@
                                         <input type="text"
                                                name="reason"
                                                class="form-control mb-2"
-                                               placeholder="Reason for cancellation"
+                                               placeholder="@L["Reason for cancellation"]"
                                                required />
                                         <button type="submit" class="btn btn-sm btn-warning w-100">
-                                            <i class="bi bi-x-circle"></i> Cancel
+                                            <i class="bi bi-x-circle"></i> @L["Cancel"]
                                         </button>
                                     </form>
 
                                     <a class="btn btn-sm btn-outline-primary w-100"
                                        asp-page="/Payments/Receipt"
                                        asp-route-paymentId="@p.Id">
-                                        <i class="bi bi-printer"></i> Print Receipt
+                                        <i class="bi bi-printer"></i> @L["Print Receipt"]
                                     </a>
                                 }
                                 else
@@ -236,7 +236,7 @@
                                     <a class="btn btn-sm btn-outline-primary w-100"
                                        asp-page="/Payments/Receipt"
                                        asp-route-paymentId="@p.Id">
-                                        <i class="bi bi-printer"></i> Print Receipt
+                                        <i class="bi bi-printer"></i> @L["Print Receipt"]
                                     </a>
                                 }
                                 </td>

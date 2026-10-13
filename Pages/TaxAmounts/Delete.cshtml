@@ -1,7 +1,7 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.TaxAmounts.DeleteModel
 @{
-    ViewData["Title"] = "Delete Tax Amount";
+    ViewData["Title"] = L["Delete Tax Amount"];
 }
 
 <div class="row justify-content-center">
@@ -9,9 +9,9 @@
 
         <!-- PAGE TITLE -->
         <div class="mb-4 text-center">
-            <h3 class="fw-bold text-danger">Delete Tax Amount</h3>
+            <h3 class="fw-bold text-danger">@L["Delete Tax Amount"]</h3>
             <p class="text-muted">
-                This action cannot be undone
+                @L["This action cannot be undone"]
             </p>
         </div>
 
@@ -21,12 +21,12 @@
             <div class="card-body p-4">
 
                 <div class="alert alert-warning">
-                    Are you sure you want to delete this tax amount?
+                    @L["Are you sure you want to delete this tax amount?"]
                 </div>
 
-                <p><strong>Car Type:</strong> @Model.Tax.CarType?.Name</p>
-                <p><strong>Movement:</strong> @Model.Tax.Movement?.Name</p>
-                <p><strong>Amount:</strong> $@Model.Tax.Amount.ToString("N0")</p>
+                <p><strong>@L["Car Type:"]</strong> @Model.Tax.CarType?.Name</p>
+                <p><strong>@L["Traffida:"]</strong> @Model.Tax.Movement?.Name</p>
+                <p><strong>@L["Amount:"]</strong> $@Model.Tax.Amount.ToString("N0")</p>
 
             </div>
 
@@ -34,12 +34,12 @@
 
                 <a asp-page="Index"
                    class="btn btn-outline-secondary me-2">
-                    Cancel
+                    @L["Cancel"]
                 </a>
 
                 <button type="submit"
                         class="btn btn-danger px-4">
-                    Yes, Delete
+                    @L["Yes, Delete"]
                 </button>
 
             </div>

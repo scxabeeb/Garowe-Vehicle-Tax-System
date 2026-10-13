@@ -1,19 +1,19 @@
 @page
 @model VehicleTax.Web.Pages.Reports.PaymentSummaryModel
 @{
-    ViewData["Title"] = "Payment Summary Report";
+    ViewData["Title"] = L["Payment Summary Report"];
     Layout = "_Layout";
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-            <h2 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Payment Summary Report</h2>
-            <div class="text-muted">Payments grouped by System ID and Status</div>
+            <h2 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>@L["Payment Summary Report"]</h2>
+            <div class="text-muted">@L["Payments grouped by System ID and Status"]</div>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-primary" onclick="window.print()">
-                <i class="bi bi-printer me-1"></i> Print
+                <i class="bi bi-printer me-1"></i> @L["Print"]
             </button>
             <a class="btn btn-outline-secondary" asp-page="/Reports/Index">← Reports</a>
         </div>
@@ -23,28 +23,28 @@
         <div class="card-body">
             <div class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label small mb-0">From Date</label>
+                    <label class="form-label small mb-0">@L["From Date"]</label>
                     <input type="date" class="form-control" asp-for="FromDate" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small mb-0">To Date</label>
+                    <label class="form-label small mb-0">@L["To Date"]</label>
                     <input type="date" class="form-control" asp-for="ToDate" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">Status</label>
+                    <label class="form-label small mb-0">@L["Status"]</label>
                     <select class="form-select" asp-for="Status">
-                        <option value="">All</option>
-                        <option>Paid</option>
-                        <option>Pending</option>
-                        <option>Reverted</option>
+                        <option value="">@L["All"]</option>
+                        <option>@L["Paid"]</option>
+                        <option>@L["Pending"]</option>
+                        <option>@L["Reverted"]</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">System ID</label>
-                    <input class="form-control" asp-for="SystemId" placeholder="Filter by System ID" />
+                    <label class="form-label small mb-0">@L["System ID"]</label>
+                    <input class="form-control" asp-for="SystemId" placeholder="@L["Filter by System ID"]" />
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-primary w-100" type="submit">Search</button>
+                    <button class="btn btn-primary w-100" type="submit">@L["Search"]</button>
                 </div>
             </div>
         </div>
@@ -63,25 +63,25 @@
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">Total Transactions</div>
+                <div class="text-muted small">@L["Total Transactions"]</div>
                 <div class="fs-3 fw-bold">@Model.TotalTransactions</div>
             </div></div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">Total Amount</div>
+                <div class="text-muted small">@L["Total Amount"]</div>
                 <div class="fs-3 fw-bold">$@Model.TotalAmount.ToString("N2")</div>
             </div></div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">Unique System IDs</div>
+                <div class="text-muted small">@L["Unique System IDs"]</div>
                 <div class="fs-3 fw-bold">@Model.UniqueSystemIds</div>
             </div></div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">Statuses Found</div>
+                <div class="text-muted small">@L["Statuses Found"]</div>
                 <div class="fs-3 fw-bold">@Model.UniqueStatuses</div>
             </div></div>
         </div>
@@ -89,14 +89,14 @@
 
     <!-- Detail Table -->
     <div class="card shadow-sm">
-        <div class="card-header bg-white fw-semibold">Payment Summary by System ID and Status</div>
+        <div class="card-header bg-white fw-semibold">@L["Payment Summary by System ID and Status"]</div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr>
-                    <th>System ID</th>
-                    <th>Status</th>
-                    <th class="text-end">Transactions</th>
-                    <th class="text-end">Total Amount</th>
+                    <th>@L["System ID"]</th>
+                    <th>@L["Status"]</th>
+                    <th class="text-end">@L["Transactions"]</th>
+                    <th class="text-end">@L["Total Amount"]</th>
                     <th class="text-end">% of Total</th>
                 </tr></thead>
                 <tbody>
@@ -125,13 +125,13 @@
                 }
                 @if (!Model.Rows.Any())
                 {
-                    <tr><td colspan="5" class="text-center text-muted py-4">No payments found for the selected criteria.</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-4">@L["No payments found for the selected criteria."]</td></tr>
                 }
                 </tbody>
                 @if (Model.Rows.Any())
                 {
                     <tfoot class="table-light fw-bold"><tr>
-                        <td colspan="2">TOTAL</td>
+                        <td colspan="2">@L["TOTAL"]</td>
                         <td class="text-end">@Model.TotalTransactions</td>
                         <td class="text-end">$@Model.TotalAmount.ToString("N2")</td>
                         <td class="text-end">100.0%</td>

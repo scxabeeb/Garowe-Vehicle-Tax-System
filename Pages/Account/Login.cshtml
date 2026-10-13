@@ -2,7 +2,7 @@
 @model VehicleTax.Web.Pages.Account.LoginModel
 @{
     Layout = "_LoginLayout";
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = L["Login"];
 }
 
 <div class="card border-0 shadow-lg"
@@ -13,14 +13,19 @@
 
     <div class="card-body p-4">
 
+        <div class="text-end mb-1">
+            @{ ViewData["LangSwitchDark"] = false; }
+            <partial name="_LangSwitch" view-data="ViewData" />
+        </div>
+
         <div class="text-center mb-3">
             <img src="/images/Logo.jpeg"
                  width="70"
                  height="70"
                  class="mb-2 rounded-circle shadow-sm" />
 
-            <h6 class="fw-bold mb-0">Garowe Municipality</h6>
-            <small class="text-muted">Vehicle Tax System</small>
+            <h6 class="fw-bold mb-0">@L["Garowe Municipality"]</h6>
+            <small class="text-muted">@L["Vehicle Tax System"]</small>
         </div>
 
         <form method="post">
@@ -32,7 +37,7 @@
                     </span>
                     <input asp-for="Username"
                            class="form-control"
-                           placeholder="Username"
+                           placeholder="@L["Username"]"
                            required />
                 </div>
             </div>
@@ -45,14 +50,14 @@
                     <input asp-for="Password"
                            type="password"
                            class="form-control"
-                           placeholder="Password"
+                           placeholder="@L["Password"]"
                            required />
                 </div>
             </div>
 
             <button type="submit"
                     class="btn btn-primary w-100 fw-semibold">
-                Login
+                @L["Login"]
             </button>
 
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))

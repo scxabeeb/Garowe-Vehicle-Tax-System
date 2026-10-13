@@ -8,7 +8,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center p-4">
 
-                    <h5 class="fw-bold mb-3">Delete Movement</h5>
+                    <h5 class="fw-bold mb-3">@L["Delete Traffida"]</h5>
 
                     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                     {
@@ -18,7 +18,7 @@
                     }
 
                     <p class="mb-4">
-                        Are you sure you want to delete
+                        @L["Are you sure you want to delete"]
                         <strong>@Model.Movement.Name</strong>?
                     </p>
 
@@ -27,12 +27,12 @@
 
                         <a asp-page="Index"
                            class="btn btn-outline-secondary me-2">
-                            Cancel
+                            @L["Cancel"]
                         </a>
 
                         <button type="submit"
                                 class="btn btn-danger">
-                            Delete
+                            @L["Delete"]
                         </button>
                     </form>
 

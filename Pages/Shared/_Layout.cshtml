@@ -1,6 +1,6 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@L.Code">
 <head>
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - Vehicle Tax System</title>
@@ -191,7 +191,7 @@
         <a class="navbar-brand d-flex align-items-center gap-2" asp-page="/Index">
             <img src="/images/Logo.jpeg" width="40" height="40" />
             <span class="fw-bold text-uppercase" style="letter-spacing:.35px;">
-                Garowe Local Government 
+                @L["Garowe Local Government"] 
             </span>
         </a>
 
@@ -241,34 +241,34 @@
                                 <i class="bi bi-grid-1x2"></i> Data & Setup
                             </a>
                             <ul class="dropdown-menu shadow border-0">
-                                <li class="menu-category">Registry</li>
+                                <li class="menu-category">@L["Registry"]</li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Vehicles/Index">
-                                        <i class="bi bi-truck"></i> Vehicles
+                                        <i class="bi bi-truck"></i> @L["Vehicles"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/CarTypes/Index">
-                                        <i class="bi bi-diagram-3"></i> Car Types
+                                        <i class="bi bi-diagram-3"></i> @L["Car Types"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Movements/Index">
-                                        <i class="bi bi-arrow-left-right"></i> Movements
+                                        <i class="bi bi-arrow-left-right"></i> @L["Traffida"]
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
-                                <li class="menu-category">Tax Setup</li>
+                                <li class="menu-category">@L["Tax Setup"]</li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/TaxAmounts/Index">
-                                        <i class="bi bi-currency-dollar"></i> Tax Amounts
+                                        <i class="bi bi-currency-dollar"></i> @L["Tax Amounts"]
                                     </a>
                                 </li>
                                 @if (isAdmin)
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Checkpoints/Index">
-                                            <i class="bi bi-geo-alt"></i> Checkpoints
+                                            <i class="bi bi-geo-alt"></i> @L["Checkpoints"]
                                         </a>
                                     </li>
                                 }
@@ -276,7 +276,7 @@
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/RevenueAccounts/Index">
-                                            <i class="bi bi-wallet2"></i> Revenue Accounts
+                                            <i class="bi bi-wallet2"></i> @L["Revenue Accounts"]
                                         </a>
                                     </li>
                                 }
@@ -291,15 +291,15 @@
                                href="#"
                                role="button"
                                data-bs-toggle="dropdown">
-                                <i class="bi bi-cash-stack"></i> Payments
+                                <i class="bi bi-cash-stack"></i> @L["Payments"]
                             </a>
                             <ul class="dropdown-menu shadow border-0">
-                                <li class="menu-category">Payment Tools</li>
+                                <li class="menu-category">@L["Payment Tools"]</li>
                                 @if (canPaymentView)
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/ReceiptReferences/Index">
-                                            <i class="bi bi-upload"></i> Receipt References
+                                            <i class="bi bi-upload"></i> @L["Receipt References"]
                                         </a>
                                     </li>
                                 }
@@ -307,7 +307,7 @@
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Payments/Collect">
-                                            <i class="bi bi-wallet2"></i> Collect Tax
+                                            <i class="bi bi-wallet2"></i> @L["Collect Tax"]
                                         </a>
                                     </li>
                                 }
@@ -322,18 +322,18 @@
                                href="#"
                                role="button"
                                data-bs-toggle="dropdown">
-                                <i class="bi bi-shield-check"></i> Administration
+                                <i class="bi bi-shield-check"></i> @L["Administration"]
                             </a>
 
                             <ul class="dropdown-menu shadow border-0">
-                                <li class="menu-category">User Management</li>
+                                <li class="menu-category">@L["User Management"]</li>
                                 @if (canUserView)
                                 {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2"
                                            asp-page="/Account/Users">
                                             <i class="bi bi-list-ul"></i>
-                                            Manage Users
+                                            @L["Manage Users"]
                                         </a>
                                     </li>
                                 }
@@ -344,7 +344,7 @@
                                         <a class="dropdown-item d-flex align-items-center gap-2"
                                            asp-page="/Account/Register">
                                             <i class="bi bi-person-plus"></i>
-                                            Create User
+                                            @L["Create User"]
                                         </a>
                                     </li>
                                 }
@@ -355,7 +355,7 @@
                                         <a class="dropdown-item d-flex align-items-center gap-2"
                                            asp-page="/Account/UserSecurity">
                                             <i class="bi bi-shield-lock"></i>
-                                            User Security
+                                            @L["User Security"]
                                         </a>
                                     </li>
                                 }
@@ -367,14 +367,14 @@
                                         <a class="dropdown-item d-flex align-items-center gap-2"
                                            asp-page="/Account/ManagePermissions">
                                             <i class="bi bi-sliders"></i>
-                                            Manage Permissions
+                                            @L["Manage Permissions"]
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2"
                                            asp-page="/Account/PermissionHistory">
                                             <i class="bi bi-clock-history"></i>
-                                            Permission Change History
+                                            @L["Permission Change History"]
                                         </a>
                                     </li>
                                 }
@@ -389,30 +389,30 @@
                                href="#"
                                role="button"
                                data-bs-toggle="dropdown">
-                                <i class="bi bi-bar-chart-line"></i> Reports
+                                <i class="bi bi-bar-chart-line"></i> @L["Reports"]
                             </a>
 
                             <ul class="dropdown-menu shadow border-0" style="max-height: 75vh; overflow-y: auto;">
-                                <li class="menu-category">Operations Reports</li>
+                                <li class="menu-category">@L["Operations Reports"]</li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/vehicles">
                                         <i class="bi bi-truck"></i>
-                                        Vehicle Registry Report
+                                        @L["Vehicle Registry Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/movements">
                                         <i class="bi bi-arrow-left-right"></i>
-                                        Movement Catalog Report
+                                        @L["Traffida Catalog Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/taxmovement">
                                         <i class="bi bi-bar-chart"></i>
-                                        Tax by Movement Report
+                                        @L["Tax by Traffida Report"]
                                     </a>
                                 </li>
                                 <li>
@@ -426,21 +426,21 @@
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/TaxAmountReport">
                                         <i class="bi bi-currency-dollar"></i>
-                                        Tax Amount Schedule
+                                        @L["Tax Amount Schedule"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/ReceiptReferences">
                                         <i class="bi bi-receipt"></i>
-                                        Receipt References Report
+                                        @L["Receipt References Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/usersreport">
                                         <i class="bi bi-people"></i>
-                                        User Activity Report
+                                        @L["User Activity Report"]
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
@@ -449,42 +449,42 @@
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/Summary">
                                         <i class="bi bi-file-earmark-bar-graph"></i>
-                                        Summary Report
+                                        @L["Summary Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/Index">
                                         <i class="bi bi-graph-up-arrow"></i>
-                                        Payment Summary Report
+                                        @L["Payment Summary Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/RevenueAccountReport">
                                         <i class="bi bi-wallet2"></i>
-                                        Revenue Account Report
+                                        @L["Revenue Account Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/CheckpointReport">
                                         <i class="bi bi-geo-alt"></i>
-                                        Checkpoint Collection Report
+                                        @L["Checkpoint Collection Report"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/GolisAudit">
                                         <i class="bi bi-shield-check"></i>
-                                        Golis Audit
+                                        @L["Golis Audit"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/GolisAuditHistory">
                                         <i class="bi bi-clock-history"></i>
-                                        Golis Audit History
+                                        @L["Golis Audit History"]
                                     </a>
                                 </li>
                                 <li>
@@ -498,14 +498,14 @@
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Transactions/Index">
                                         <i class="bi bi-arrow-left-right"></i>
-                                        Transactions Audit Log
+                                        @L["Transactions Audit Log"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Reports/PaymentSummary">
                                         <i class="bi bi-bar-chart-line"></i>
-                                        Payment Summary Report
+                                        @L["Payment Summary Report"]
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
@@ -514,14 +514,14 @@
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Finance/Index">
                                         <i class="bi bi-cash-stack"></i>
-                                        Finance Dashboard
+                                        @L["Finance Dashboard"]
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2"
                                        asp-page="/Finance/Rv/Index">
                                         <i class="bi bi-file-earmark-text"></i>
-                                        RV History
+                                        @L["RV History"]
                                     </a>
                                 </li>
                              </ul>
@@ -531,6 +531,9 @@
             </ul>
 
             <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item me-2 my-2 my-lg-0">
+                    <partial name="_LangSwitch" />
+                </li>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <li class="nav-item dropdown">
@@ -544,7 +547,7 @@
                             </span>
 
                             <span class="d-none d-md-block">
-                                <small class="d-block text-white-50" style="line-height:1;">Signed in as</small>
+                                <small class="d-block text-white-50" style="line-height:1;">@L["Signed in as"]</small>
                                 <span class="fw-semibold" style="line-height:1.2;">@User.Identity.Name</span>
                             </span>
                         </a>
@@ -558,7 +561,7 @@
                                     <div>
                                         <div class="fw-bold">@User.Identity.Name</div>
                                         <small class="text-muted">
-                                            Role: @(User.IsInRole("Admin") ? "Administrator" : "User")
+                                            @L["Role:"] @L[User.IsInRole("Admin") ? "Administrator" : "User"]
                                         </small>
                                     </div>
                                 </div>
@@ -570,7 +573,7 @@
                                 <a class="dropdown-item d-flex align-items-center"
                                    asp-page="/Account/ChangePassword">
                                     <i class="bi bi-key me-2"></i>
-                                    Change Password
+                                    @L["Change Password"]
                                 </a>
                             </li>
 
@@ -581,7 +584,7 @@
                                         class="dropdown-item text-danger d-flex align-items-center"
                                         onclick="logoutUser()">
                                     <i class="bi bi-box-arrow-right me-2"></i>
-                                    Logout
+                                    @L["Logout"]
                                 </button>
                             </li>
                         </ul>
@@ -591,7 +594,7 @@
                 {
                     <li class="nav-item">
                         <a class="btn btn-sm btn-outline-light" asp-page="/Account/Login">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
+                            <i class="bi bi-box-arrow-in-right"></i> @L["Login"]
                         </a>
                     </li>
                 }

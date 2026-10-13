@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.Finance.AccountModel
 @{
-    ViewData["Title"] = "Account Detail";
+    ViewData["Title"] = L["Account Detail"];
     Layout = "_Layout";
 }
 
@@ -17,19 +17,19 @@
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Transactions</div>
+                <div class="text-muted small">@L["Transactions"]</div>
                 <div class="fs-3 fw-bold">@Model.Transactions</div>
             </div></div>
         </div>
         <div class="col-md-4">
             <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Total</div>
+                <div class="text-muted small">@L["Total"]</div>
                 <div class="fs-3 fw-bold">$@Model.Total.ToString("N2")</div>
             </div></div>
         </div>
         <div class="col-md-4">
             <div class="card shadow-sm"><div class="card-body">
-                <div class="text-muted small">Eligible for new RV</div>
+                <div class="text-muted small">@L["Eligible for new RV"]</div>
                 <div class="fs-3 fw-bold text-success">@Model.Rows.Count(r => r.Eligible)</div>
             </div></div>
         </div>
@@ -50,15 +50,15 @@
           id="rvForm">
         <div class="card shadow-sm">
             <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-                <span>Payments — select for RV</span>
+                <span>@L["Payments — select for RV"]</span>
                 <span class="small text-muted" id="selInfo"></span>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light"><tr>
                         <th style="width:36px"><input type="checkbox" class="form-check-input" id="checkAll" /></th>
-                        <th>Ref No.</th><th>Payment ID</th><th>Receipt</th>
-                        <th class="text-end">Amount</th><th>Collector</th><th>Status</th>
+                        <th>@L["Ref No."]</th><th>@L["Payment ID"]</th><th>@L["Receipt"]</th>
+                        <th class="text-end">@L["Amount"]</th><th>@L["Collector"]</th><th>@L["Status"]</th>
                     </tr></thead>
                     <tbody>
                     @foreach (var r in Model.Rows)
@@ -79,22 +79,22 @@
                             <td>
                                 @if (r.Eligible)
                                 {
-                                    <span class="badge bg-success">Paid</span>
+                                    <span class="badge bg-success">@L["Paid"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-info text-dark">In @r.RvNumber</span>
+                                    <span class="badge bg-info text-dark">@L["In"] @r.RvNumber</span>
                                 }
                             </td>
                         </tr>
                     }
                     @if (!Model.Rows.Any())
                     {
-                        <tr><td colspan="7" class="text-center text-muted py-4">No paid payments for this account on this date.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">@L["No paid payments for this account on this date."]</td></tr>
                     }
                     </tbody>
                     <tfoot class="table-light fw-bold"><tr>
-                        <td colspan="4">Selected total</td>
+                        <td colspan="4">@L["Selected total"]</td>
                         <td class="text-end" id="selTotal">$0.00</td>
                         <td colspan="2"></td>
                     </tr></tfoot>
@@ -103,10 +103,10 @@
             <div class="card-footer bg-white d-flex justify-content-end gap-2">
                 <a class="btn btn-outline-secondary" asp-page="/Finance/Account"
                    asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
-                   asp-route-accountId="@Model.AccountId">Cancel</a>
+                   asp-route-accountId="@Model.AccountId">@L["Cancel"]</a>
                 <button type="submit" class="btn btn-primary" id="btnGenerate"
                         onclick="return confirm('Generate an RV for the selected payments? Totals will be recalculated from the payment records.');">
-                    Generate RV
+                    @L["Generate RV"]
                 </button>
             </div>
         </div>

@@ -5,7 +5,7 @@
 
     <h3 class="fw-bold mb-4">
         <i class="bi bi-filter-square"></i>
-        All Transactions
+        @L["All Transactions"]
     </h3>
 
     <!-- SUMMARY CARDS -->
@@ -13,7 +13,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Total Transactions</div>
+                    <div class="text-muted small fw-semibold">@L["Total Transactions"]</div>
                     <h3 class="fw-bold mb-0 text-primary">@Model.TotalTransactions</h3>
                     <div class="text-muted small fw-semibold">$@Model.TotalAmount.ToString("N0")</div>
                 </div>
@@ -22,7 +22,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Completed</div>
+                    <div class="text-muted small fw-semibold">@L["Completed"]</div>
                     <h3 class="fw-bold mb-0 text-success">@Model.CompletedCount</h3>
                     <div class="text-muted small fw-semibold">$@Model.CompletedAmount.ToString("N0")</div>
                 </div>
@@ -31,7 +31,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Cancelled</div>
+                    <div class="text-muted small fw-semibold">@L["Cancelled"]</div>
                     <h3 class="fw-bold mb-0 text-danger">@Model.CancelledCount</h3>
                     <div class="text-muted small fw-semibold">$@Model.CancelledAmount.ToString("N0")</div>
                 </div>
@@ -40,9 +40,9 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">Net Amount</div>
+                    <div class="text-muted small fw-semibold">@L["Net Amount"]</div>
                     <h3 class="fw-bold mb-0 text-info">$@Model.NetAmount.ToString("N0")</h3>
-                    <div class="text-muted small fw-semibold">Completed - Cancelled</div>
+                    <div class="text-muted small fw-semibold">@L["Completed - Cancelled"]</div>
                 </div>
             </div>
         </div>
@@ -54,17 +54,17 @@
             <div class="row g-3">
 
                 <div class="col-md-3">
-                    <label class="form-label">From Date</label>
+                    <label class="form-label">@L["From Date"]</label>
                     <input type="date" asp-for="FromDate" class="form-control" />
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">To Date</label>
+                    <label class="form-label">@L["To Date"]</label>
                     <input type="date" asp-for="ToDate" class="form-control" />
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">User</label>
+                    <label class="form-label">@L["User"]</label>
                     <select asp-for="UserId" class="form-select">
                         <option value="">-- All Users --</option>
                         @foreach (var u in Model.Users)
@@ -75,11 +75,11 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">Action</label>
+                    <label class="form-label">@L["Action"]</label>
                     <select asp-for="Action" class="form-select">
                         <option value="All">All (Completed & Cancelled)</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Reverted">Cancelled</option>
+                        <option value="Completed">@L["Completed"]</option>
+                        <option value="Reverted">@L["Cancelled"]</option>
                     </select>
                 </div>
 
@@ -87,11 +87,11 @@
 
             <div class="mt-3 text-end">
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search"></i> Filter
+                    <i class="bi bi-search"></i> @L["Filter"]
                 </button>
 
                 <a asp-page="/Transactions/Index" class="btn btn-secondary">
-                    Reset
+                    @L["Reset"]
                 </a>
             </div>
         </div>
@@ -113,14 +113,14 @@
                 <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
                 <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
                 <option value="200" selected="@(Model.PageSize == 200 ? "selected" : null)">200</option>
-                <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">All</option>
+                <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">@L["All"]</option>
             </select>
-            <span class="ms-1">rows</span>
+            <span class="ms-1">@L["rows"]</span>
         </form>
 
         <a href="~/Transactions/Index?handler=ExportFiltered&FromDate=@Model.FromDate&ToDate=@Model.ToDate&UserId=@Model.UserId&Action=@Model.Action"
            class="btn btn-success">
-            <i class="bi bi-file-earmark-excel"></i> Export Filtered
+            <i class="bi bi-file-earmark-excel"></i> @L["Export Filtered"]
         </a>
     </div>
 
@@ -131,18 +131,18 @@
                 <table class="table table-bordered table-striped align-middle">
                     <thead class="table-dark">
                         <tr>
-                            <th>Ref No</th>
-                            <th>Date</th>
-                            <th>Plate</th>
-                            <th>Car Type</th>
-                            <th>Movement</th>
-                            <th>Collector</th>
-                            <th>Amount</th>
-                            <th>Receipt No</th>
-                            <th>Golis Bill No</th>
-                            <th>Status</th>
-                            <th>Cancelled By</th>
-                            <th>Cancel Reason</th>
+                            <th>@L["Ref No"]</th>
+                            <th>@L["Date"]</th>
+                            <th>@L["Plate"]</th>
+                            <th>@L["Car Type"]</th>
+                            <th>@L["Traffida"]</th>
+                            <th>@L["Collector"]</th>
+                            <th>@L["Amount"]</th>
+                            <th>@L["Receipt No"]</th>
+                            <th>@L["Golis Bill No"]</th>
+                            <th>@L["Status"]</th>
+                            <th>@L["Cancelled By"]</th>
+                            <th>@L["Cancel Reason"]</th>
                         </tr>
                     </thead>
 
@@ -162,11 +162,11 @@
                                 <td>
                                     @if (t.IsReverted)
                                     {
-                                        <span class="badge bg-danger">Cancelled</span>
+                                        <span class="badge bg-danger">@L["Cancelled"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success">Completed</span>
+                                        <span class="badge bg-success">@L["Completed"]</span>
                                     }
                                 </td>
                                 <td>@(t.RevertedByUser?.Username ?? "-")</td>

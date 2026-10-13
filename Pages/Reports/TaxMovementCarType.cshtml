@@ -6,43 +6,43 @@
 <form method="get" class="card p-3 mb-3 shadow-sm">
     <div class="row g-2">
         <div class="col-md-3">
-            <label class="form-label">From Date</label>
+            <label class="form-label">@L["From Date"]</label>
             <input type="date" asp-for="FromDate" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">To Date</label>
+            <label class="form-label">@L["To Date"]</label>
             <input type="date" asp-for="ToDate" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Movement Name</label>
+            <label class="form-label">@L["Traffida Name"]</label>
             <select asp-for="MovementName" asp-items="Model.Movements" class="form-select">
-                <option value="">All Movements</option>
+                <option value="">@L["All Traffida"]</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Page Size</label>
+            <label class="form-label">@L["Page Size"]</label>
             <select asp-for="PageSize" class="form-select">
                 <option value="10">10</option>
                 <option value="20" selected>20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="999999">All</option>
+                <option value="999999">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-12 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary w-100">Filter</button>
-            <a asp-page="./TaxMovementCarType" class="btn btn-secondary w-100">Reset</a>
+            <button type="submit" class="btn btn-primary w-100">@L["Filter"]</button>
+            <a asp-page="./TaxMovementCarType" class="btn btn-secondary w-100">@L["Reset"]</a>
             <a asp-page-handler="Export"
                asp-route-FromDate="@Model.FromDate"
                asp-route-ToDate="@Model.ToDate"
                     asp-route-MovementName="@Model.MovementName"
                asp-route-CarTypeId="@Model.CarTypeId"
                class="btn btn-success w-100">
-                Export CSV
+                @L["Export CSV"]
             </a>
         </div>
     </div>
@@ -50,7 +50,7 @@
 
 <div class="card shadow-sm mb-3">
     <div class="card-body text-center">
-        <h5 class="text-muted">Total Tax Collected</h5>
+        <h5 class="text-muted">@L["Total Tax Collected"]</h5>
         <h2 class="fw-bold text-success">
             $@Model.TotalTax.ToString("N0")
         </h2>
@@ -65,10 +65,10 @@
         <table class="table table-striped mb-0">
             <thead class="table-dark">
                 <tr>
-                    <th>Movement</th>
-                    <th>Car Type</th>
-                    <th>Total Payments</th>
-                    <th>Total Amount</th>
+                    <th>@L["Traffida"]</th>
+                    <th>@L["Car Type"]</th>
+                    <th>@L["Total Payments"]</th>
+                    <th>@L["Total Amount"]</th>
                 </tr>
             </thead>
             <tbody>

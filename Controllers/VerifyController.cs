@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Controllers;
 
@@ -56,35 +57,41 @@ public class VerifyController : ControllerBase
     public ContentResult VerifyPage(string code)
     {
         var payment = Find(code);
+        var somali = Lang.Resolve(HttpContext) == Lang.Somali;
+        string T(string english) => Lang.Translate(english, somali);
         string body;
         if (payment == null)
         {
-            body = Card("#b91c1c", "#fef2f2", "NOT FOUND",
-                "No receipt matches this code.", "");
+            body = Card("#b91c1c", "#fef2f2", T("NOT FOUND"),
+                T("No receipt matches this code."), "");
         }
         else
         {
             var valid = payment.IsPaid && !payment.IsReverted;
-            var status = payment.IsReverted ? "CANCELLED" : (payment.IsPaid ? "PAID" : "NOT PAID");
+            var status = T(payment.IsReverted ? "CANCELLED" : (payment.IsPaid ? "PAID" : "NOT PAID"));
             var color = valid ? "#15803d" : "#b91c1c";
             var bg = valid ? "#f0fdf4" : "#fef2f2";
             var rows =
-                Row("Invoice No", payment.InvoiceNumber) +
-                Row("Plate", payment.Vehicle?.PlateNumber) +
-                Row("Owner", payment.Vehicle?.OwnerName) +
-                Row("Movement", payment.Movement?.Name ?? payment.MovementType) +
-                Row("Amount", "$" + payment.Amount.ToString("0.00")) +
-                Row("Paid At", AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy, HH:mm")) +
-                Row("Collector", payment.Collector?.Username) +
-                (string.IsNullOrWhiteSpace(payment.TransactionId) ? "" : Row("Golis Bill", payment.TransactionId));
+                Row(T("Invoice No"), payment.InvoiceNumber) +
+                Row(T("Plate"), payment.Vehicle?.PlateNumber) +
+                Row(T("Owner"), payment.Vehicle?.OwnerName) +
+                Row(T("Traffida"), payment.Movement?.Name ?? payment.MovementType) +
+                Row(T("Amount"), "$" + payment.Amount.ToString("0.00")) +
+                Row(T("Paid At"), AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy, HH:mm")) +
+                Row(T("Collector"), payment.Collector?.Username) +
+                (string.IsNullOrWhiteSpace(payment.TransactionId) ? "" : Row(T("Golis Bill"), payment.TransactionId));
             body = Card(color, bg, status,
-                valid ? "This receipt is genuine and paid." : "This receipt is not valid as a paid receipt.",
+                T(valid ? "This receipt is genuine and paid." : "This receipt is not valid as a paid receipt."),
                 rows);
         }
 
-        var html = $@"<!doctype html><html lang=""en""><head><meta charset=""utf-8"">
+        var langCode = somali ? Lang.Somali : Lang.English;
+        string Switch(string c, string label) =>
+            $@"<a href=""?lang={c}"" class=""{(c == langCode ? "on" : "")}"">{label}</a>";
+        var title = WebUtility.HtmlEncode(T("Receipt Verification"));
+        var html = $@"<!doctype html><html lang=""{langCode}""><head><meta charset=""utf-8"">
 <meta name=""viewport"" content=""width=device-width,initial-scale=1"">
-<title>Receipt Verification - Garowe Vehicle Tax</title>
+<title>{title} - Garowe Vehicle Tax</title>
 <style>
 body{{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f8fafc;color:#0f172a}}
 .wrap{{max-width:420px;margin:0 auto;padding:24px 16px}}
@@ -97,10 +104,17 @@ table{{width:100%;border-collapse:collapse}}
 td{{padding:10px 16px;border-top:1px solid #f1f5f9;font-size:14px}}
 td:first-child{{color:#64748b}} td:last-child{{text-align:right;font-weight:700}}
 .foot{{text-align:center;color:#94a3b8;font-size:12px;margin-top:14px}}
+.top{{display:flex;align-items:center;gap:10px;margin-bottom:16px}}
+.top img{{width:40px;height:40px;border-radius:50%;object-fit:cover}}
+.top h1{{flex:1;text-align:left;margin:0}}
+.sw a{{font-size:12px;font-weight:800;text-decoration:none;color:#475569;padding:3px 9px;border-radius:999px}}
+.sw a.on{{background:#0b57d0;color:#fff}}
+.sw{{border:1px solid #e2e8f0;border-radius:999px;padding:2px}}
 </style></head><body><div class=""wrap"">
-<h1>Garowe Vehicle Tax &middot; Receipt Verification</h1>
+<div class=""top""><img src=""/images/Logo.jpeg"" alt="""">
+<h1>{title}</h1><span class=""sw"">{Switch("en", "EN")}{Switch("so", "SO")}</span></div>
 {body}
-<div class=""foot"">Garowe Local Government</div>
+<div class=""foot"">{WebUtility.HtmlEncode(T("Garowe Local Government"))}</div>
 </div></body></html>";
 
         return Content(html, "text/html; charset=utf-8");

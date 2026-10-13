@@ -2,7 +2,7 @@
 @model UserSecurityModel
 
 @{
-    ViewData["Title"] = "User Security";
+    ViewData["Title"] = L["User Security"];
     var selectedUser = Model.SelectedUser;
     var totalUsers = Model.AllUsers.Count;
     var lockedUsers = Model.AllUsers.Count(u => u.IsLocked);
@@ -12,11 +12,11 @@
 <div class="sec-header mb-3">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-            <h4 class="mb-1 admin-header-title"><i class="bi bi-shield-lock"></i> User Security</h4>
-            <div class="sub">Lock/unlock users and reset account passwords securely.</div>
+            <h4 class="mb-1 admin-header-title"><i class="bi bi-shield-lock"></i> @L["User Security"]</h4>
+            <div class="sub">@L["Lock/unlock users and reset account passwords securely."]</div>
         </div>
         <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
-            <i class="bi bi-arrow-left"></i> Back to Users
+            <i class="bi bi-arrow-left"></i> @L["Back to Users"]
         </a>
     </div>
 </div>
@@ -24,13 +24,13 @@
 <div class="row g-3 mb-3">
     <div class="col-md-6">
         <div class="stat-chip">
-            <div class="small text-muted">Total Users</div>
+            <div class="small text-muted">@L["Total Users"]</div>
             <div class="fs-4 fw-bold">@totalUsers</div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="stat-chip">
-            <div class="small text-muted">Locked Users</div>
+            <div class="small text-muted">@L["Locked Users"]</div>
             <div class="fs-4 fw-bold text-danger">@lockedUsers</div>
         </div>
     </div>
@@ -52,12 +52,12 @@
     <div class="col-lg-5">
         <div class="security-card">
             <div class="security-card-head">
-                <div class="fw-bold">Select User</div>
+                <div class="fw-bold">@L["Select User"]</div>
             </div>
             <div class="security-card-body">
                 <form method="get">
                     <div class="mb-3">
-                        <label class="form-label">User</label>
+                        <label class="form-label">@L["User"]</label>
                         <select class="form-select" name="id" required>
                             <option value="">-- Select User --</option>
                             @foreach (var u in Model.AllUsers)
@@ -74,7 +74,7 @@
                         </select>
                     </div>
                     <button class="btn btn-primary w-100 admin-btn">
-                        <i class="bi bi-search"></i> Load User
+                        <i class="bi bi-search"></i> @L["Load User"]
                     </button>
                 </form>
             </div>
@@ -84,46 +84,46 @@
     <div class="col-lg-7">
         <div class="security-card">
             <div class="security-card-head d-flex justify-content-between align-items-center">
-                <div class="fw-bold">Selected User Details</div>
+                <div class="fw-bold">@L["Selected User Details"]</div>
                 @if (selectedUser != null)
                 {
                     if (selectedUser.IsLocked)
                     {
-                        <span class="badge bg-danger">Locked</span>
+                        <span class="badge bg-danger">@L["Locked"]</span>
                     }
                     else
                     {
-                        <span class="badge bg-success">Active</span>
+                        <span class="badge bg-success">@L["Active"]</span>
                     }
                 }
             </div>
             <div class="security-card-body">
                 @if (selectedUser == null)
                 {
-                    <div class="text-muted">Select a user to manage lock status and password.</div>
+                    <div class="text-muted">@L["Select a user to manage lock status and password."]</div>
                 }
                 else
                 {
                     <div class="table-responsive mb-3">
                         <table class="table table-bordered align-middle mb-0">
                             <tr>
-                                <th style="width:180px;">User ID</th>
+                                <th style="width:180px;">@L["User ID"]</th>
                                 <td>@selectedUser.Id</td>
                             </tr>
                             <tr>
-                                <th>Username</th>
+                                <th>@L["Username"]</th>
                                 <td class="fw-semibold">@selectedUser.Username</td>
                             </tr>
                             <tr>
-                                <th>Full Name</th>
+                                <th>@L["Full Name"]</th>
                                 <td>@(string.IsNullOrWhiteSpace(selectedUser.FullName) ? "-" : selectedUser.FullName)</td>
                             </tr>
                             <tr>
-                                <th>Phone</th>
+                                <th>@L["Phone"]</th>
                                 <td>@(string.IsNullOrWhiteSpace(selectedUser.Phone) ? "-" : selectedUser.Phone)</td>
                             </tr>
                             <tr>
-                                <th>Role</th>
+                                <th>@L["Role"]</th>
                                 <td><span class="badge bg-info text-dark">@selectedUser.Role</span></td>
                             </tr>
                         </table>
@@ -132,7 +132,7 @@
                     <div class="row g-3">
                         <div class="col-md-5">
                             <div class="border rounded p-3 h-100">
-                                <div class="fw-semibold mb-2">Account Lock</div>
+                                <div class="fw-semibold mb-2">@L["Account Lock"]</div>
                                 <form method="post" asp-page-handler="ToggleLock">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" asp-for="Id" />
@@ -146,21 +146,21 @@
 
                         <div class="col-md-7">
                             <div class="border rounded p-3 h-100">
-                                <div class="fw-semibold mb-2">Reset Password</div>
+                                <div class="fw-semibold mb-2">@L["Reset Password"]</div>
                                 <form method="post" asp-page-handler="ChangePassword">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" asp-for="Id" />
 
                                     <div class="mb-2">
-                                        <label class="form-label">New Password</label>
+                                        <label class="form-label">@L["New Password"]</label>
                                         <input asp-for="NewPassword"
                                                type="password"
                                                class="form-control"
-                                               placeholder="Enter new password" />
+                                               placeholder="@L["Enter new password"]" />
                                     </div>
 
                                     <button class="btn btn-primary w-100 admin-btn">
-                                        <i class="bi bi-key"></i> Change Password
+                                        <i class="bi bi-key"></i> @L["Change Password"]
                                     </button>
                                 </form>
                             </div>

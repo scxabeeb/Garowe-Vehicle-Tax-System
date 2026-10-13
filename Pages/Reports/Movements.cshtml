@@ -1,39 +1,39 @@
 @page
 @model VehicleTax.Web.Pages.Reports.MovementsModel
 @{
-    ViewData["Title"] = "Movement Report";
+    ViewData["Title"] = L["Traffida Report"];
 }
 
-<h3 class="fw-bold mb-4">Movement Report</h3>
+<h3 class="fw-bold mb-4">@L["Traffida Report"]</h3>
 
 <form method="get" class="card p-3 shadow-sm mb-4">
     <div class="row g-3">
 
         <div class="col-md-3">
-            <label class="form-label">Movement Name</label>
+            <label class="form-label">@L["Traffida Name"]</label>
             <input asp-for="MovementName" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">Car Type</label>
+            <label class="form-label">@L["Car Type"]</label>
             <select asp-for="CarTypeId" asp-items="Model.CarTypes" class="form-select">
-                <option value="">All</option>
+                <option value="">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-2">
-            <label class="form-label">Show</label>
+            <label class="form-label">@L["Show"]</label>
             <select asp-for="PageSize" class="form-select">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="-1">All</option>
+                <option value="-1">@L["All"]</option>
             </select>
         </div>
 
         <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-primary w-100">Filter</button>
+            <button class="btn btn-primary w-100">@L["Filter"]</button>
         </div>
 
         <div class="col-md-2 d-flex align-items-end">
@@ -52,7 +52,7 @@
     <div class="col-md-4">
         <div class="card text-center shadow-sm">
             <div class="card-body">
-                <h6>Total Movements</h6>
+                <h6>@L["Total Traffida"]</h6>
                 <h4>@Model.TotalRecords</h4>
             </div>
         </div>
@@ -62,8 +62,8 @@
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
-            <th>Movement</th>
-            <th>Car Type</th>
+            <th>@L["Traffida"]</th>
+            <th>@L["Car Type"]</th>
         </tr>
     </thead>
     <tbody>
@@ -71,7 +71,7 @@
         {
             <tr>
                 <td colspan="2" class="text-center text-muted">
-                    No movement records found.
+                    @L["No traffida records found."]
                 </td>
             </tr>
         }
@@ -99,7 +99,7 @@
                    asp-route-PageSize="@Model.PageSize"
                    asp-route-MovementName="@Model.MovementName"
                    asp-route-CarTypeId="@Model.CarTypeId">
-                    Previous
+                    @L["Previous"]
                 </a>
             </li>
 
@@ -122,7 +122,7 @@
                    asp-route-PageSize="@Model.PageSize"
                    asp-route-MovementName="@Model.MovementName"
                    asp-route-CarTypeId="@Model.CarTypeId">
-                    Next
+                    @L["Next"]
                 </a>
             </li>
 

@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.Movements.CreateModel
 @{
-    ViewData["Title"] = "Add Movement";
+    ViewData["Title"] = L["Add Traffida"];
 }
 
 <div class="container mt-4">
@@ -9,9 +9,9 @@
         <div class="col-md-6 col-lg-5">
 
             <div class="text-center mb-4">
-                <h3 class="fw-bold mb-1">Add Movement</h3>
+                <h3 class="fw-bold mb-1">@L["Add Traffida"]</h3>
                 <p class="text-muted small">
-                    Create one movement for multiple car types
+                    @L["Create one traffida for multiple car types"]
                 </p>
             </div>
 
@@ -20,10 +20,10 @@
 
                     <!-- Movement Name -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Movement Name</label>
+                        <label class="form-label fw-semibold">@L["Traffida Name"]</label>
                         <input asp-for="MovementName"
                                class="form-control"
-                               placeholder="e.g. Passing, Staying"
+                               placeholder="@L["e.g. Passing, Staying"]"
                                required />
                         <span asp-validation-for="MovementName"
                               class="text-danger small"></span>
@@ -58,7 +58,7 @@
 
                     <!-- Revenue Account -->
                     <div class="mb-3">
-                        <label asp-for="RevenueAccountId" class="form-label fw-semibold">Revenue Account</label>
+                        <label asp-for="RevenueAccountId" class="form-label fw-semibold">@L["Revenue Account"]</label>
                         <select asp-for="RevenueAccountId"
                                 class="form-select"
                                 asp-items="Model.RevenueAccounts">
@@ -71,11 +71,11 @@
 
                 <div class="card-footer bg-light text-end">
                     <a asp-page="Index" class="btn btn-outline-secondary me-2">
-                        Back
+                        @L["Back"]
                     </a>
 
                     <button type="submit" class="btn btn-success px-4">
-                        Save
+                        @L["Save"]
                     </button>
                 </div>
             </form>

@@ -1,10 +1,10 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.Vehicles.DeleteModel
 
-<h3 class="text-danger">Delete Vehicle</h3>
+<h3 class="text-danger">@L["Delete Vehicle"]</h3>
 
 <div class="alert alert-warning">
-    Are you sure you want to delete this vehicle?
+    @L["Are you sure you want to delete this vehicle?"]
 </div>
 
 @if (TempData["ErrorMessage"] != null)
@@ -15,12 +15,12 @@
 }
 
 <div class="card p-3 mb-3">
-    <p><strong>Plate:</strong> @Model.Vehicle.PlateNumber</p>
-    <p><strong>Owner:</strong> @Model.Vehicle.OwnerName</p>
-    <p><strong>Car Type:</strong> @Model.Vehicle.CarType?.Name</p>
+    <p><strong>@L["Plate:"]</strong> @Model.Vehicle.PlateNumber</p>
+    <p><strong>@L["Owner:"]</strong> @Model.Vehicle.OwnerName</p>
+    <p><strong>@L["Car Type:"]</strong> @Model.Vehicle.CarType?.Name</p>
 </div>
 
 <form method="post">
-    <button class="btn btn-danger">Yes, Delete</button>
-    <a asp-page="Index" class="btn btn-secondary ms-2">Cancel</a>
+    <button class="btn btn-danger">@L["Yes, Delete"]</button>
+    <a asp-page="Index" class="btn btn-secondary ms-2">@L["Cancel"]</a>
 </form>

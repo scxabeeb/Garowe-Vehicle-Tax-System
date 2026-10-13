@@ -1,13 +1,13 @@
 @page
 @model VehicleTax.Web.Pages.ReceiptReferences.UploadModel
 @{
-    ViewData["Title"] = "Upload Receipt Numbers";
+    ViewData["Title"] = L["Upload Receipt Numbers"];
 }
 
 <div class="row justify-content-center">
     <div class="col-md-8">
 
-        <h3 class="fw-bold mb-3 text-center">Upload Receipt Numbers</h3>
+        <h3 class="fw-bold mb-3 text-center">@L["Upload Receipt Numbers"]</h3>
 
         @if (TempData["Error"] != null)
         {
@@ -29,20 +29,20 @@
                     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
 
                         <small class="text-muted">
-                            Allowed: .xlsx , .csv
+                            @L["Allowed: .xlsx , .csv"]
                         </small>
 
                         <div class="d-flex gap-2">
 
                             <form method="post" asp-page-handler="DownloadTemplate">
                                 <button class="btn btn-outline-info btn-sm">
-                                    Download Template
+                                    @L["Download Template"]
                                 </button>
                             </form>
 
                             <form method="post" asp-page-handler="DownloadSample">
                                 <button class="btn btn-outline-primary btn-sm">
-                                    Download Sample Data
+                                    @L["Download Sample Data"]
                                 </button>
                             </form>
 
@@ -51,7 +51,7 @@
                     </div>
 
                     <button class="btn btn-primary w-100">
-                        Preview Upload
+                        @L["Preview Upload"]
                     </button>
 
                 </form>
@@ -62,7 +62,7 @@
             <!-- PREVIEW TABLE -->
             <div class="card shadow-sm border-0">
                 <div class="card-header fw-bold">
-                    Preview Result
+                    @L["Preview Result"]
                 </div>
 
                 <div class="card-body p-0">
@@ -70,8 +70,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
-                                <th>Reference Number</th>
-                                <th>Status</th>
+                                <th>@L["Reference Number"]</th>
+                                <th>@L["Status"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -99,12 +99,12 @@
 
                     <form method="post" asp-page-handler="DownloadErrors">
                         <button class="btn btn-outline-danger">
-                            Download Error Rows
+                            @L["Download Error Rows"]
                         </button>
                     </form>
 
                     <a asp-page="Upload" class="btn btn-secondary ms-auto">
-                        Cancel
+                        @L["Cancel"]
                     </a>
                 </div>
             </div>

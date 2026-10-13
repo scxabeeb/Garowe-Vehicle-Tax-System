@@ -1,14 +1,14 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.RevenueAccounts.EditModel
 @{
-    ViewData["Title"] = "Edit Revenue Account";
+    ViewData["Title"] = L["Edit Revenue Account"];
 }
 
 <div class="module-page">
     <div class="module-header mb-3">
         <div>
-            <h3 class="fw-bold mb-1">Edit Revenue Account</h3>
-            <div class="sub">Update revenue account details.</div>
+            <h3 class="fw-bold mb-1">@L["Edit Revenue Account"]</h3>
+            <div class="sub">@L["Update revenue account details."]</div>
         </div>
     </div>
 
@@ -45,7 +45,7 @@
                     <label asp-for="Account.AccountName" class="form-label fw-semibold"></label>
                     <input asp-for="Account.AccountName"
                            class="form-control"
-                           placeholder="e.g. Passing Vehicle Tax Revenue" />
+                           placeholder="@L["e.g. Passing Vehicle Tax Revenue"]" />
                     <span asp-validation-for="Account.AccountName" class="text-danger small"></span>
                 </div>
 
@@ -55,7 +55,7 @@
                     <textarea asp-for="Account.Description"
                               class="form-control"
                               rows="3"
-                              placeholder="Optional description..."></textarea>
+                              placeholder="@L["Optional description..."]"></textarea>
                     <span asp-validation-for="Account.Description" class="text-danger small"></span>
                 </div>
 
@@ -72,10 +72,10 @@
 
         <div class="card-footer bg-light text-end">
             <a asp-page="Index" class="btn btn-outline-secondary me-2">
-                Cancel
+                @L["Cancel"]
             </a>
             <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-save"></i> Save Changes
+                <i class="bi bi-save"></i> @L["Save Changes"]
             </button>
         </div>
     </form>

@@ -1,18 +1,18 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.Account.EditUserModel
 @{
-    ViewData["Title"] = "Edit User";
+    ViewData["Title"] = L["Edit User"];
 }
 
 <div class="account-admin-page">
 <div class="edit-header mb-3">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-            <h4 class="mb-1 admin-header-title"><i class="bi bi-pencil-square"></i> Edit User</h4>
-            <div class="sub">Update account role and optional password reset.</div>
+            <h4 class="mb-1 admin-header-title"><i class="bi bi-pencil-square"></i> @L["Edit User"]</h4>
+            <div class="sub">@L["Update account role and optional password reset."]</div>
         </div>
         <a asp-page="/Account/Users" class="btn btn-light btn-sm admin-btn">
-            <i class="bi bi-arrow-left"></i> Back to Users
+            <i class="bi bi-arrow-left"></i> @L["Back to Users"]
         </a>
     </div>
 </div>
@@ -20,55 +20,55 @@
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
         <form method="post" class="edit-card">
-            <div class="edit-card-head fw-bold">Account Information</div>
+            <div class="edit-card-head fw-bold">@L["Account Information"]</div>
             <div class="edit-card-body">
                 <input type="hidden" asp-for="EditUser.Id" />
 
                 <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input asp-for="EditUser.Username" class="form-control" placeholder="Enter username" />
+                    <label class="form-label">@L["Username"]</label>
+                    <input asp-for="EditUser.Username" class="form-control" placeholder="@L["Enter username"]" />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input asp-for="EditUser.FullName" class="form-control" placeholder="Enter full name" />
+                    <label class="form-label">@L["Full Name"]</label>
+                    <input asp-for="EditUser.FullName" class="form-control" placeholder="@L["Enter full name"]" />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Phone</label>
-                    <input asp-for="EditUser.Phone" class="form-control" placeholder="Enter phone number" />
+                    <label class="form-label">@L["Phone"]</label>
+                    <input asp-for="EditUser.Phone" class="form-control" placeholder="@L["Enter phone number"]" />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">New Password</label>
-                    <input asp-for="EditUser.Password" type="password" class="form-control" placeholder="Leave blank to keep current password" />
-                    <small class="text-muted">Leave blank to keep old password</small>
+                    <label class="form-label">@L["New Password"]</label>
+                    <input asp-for="EditUser.Password" type="password" class="form-control" placeholder="@L["Leave blank to keep current password"]" />
+                    <small class="text-muted">@L["Leave blank to keep old password"]</small>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Role</label>
+                    <label class="form-label">@L["Role"]</label>
                     <select asp-for="EditUser.Role" class="form-select">
-                        <option>Admin</option>
-                        <option>Collector</option>
-                        <option>Viewer</option>
-                        <option>Auditor</option>
+                        <option>@L["Admin"]</option>
+                        <option>@L["Collector"]</option>
+                        <option>@L["Viewer"]</option>
+                        <option>@L["Auditor"]</option>
                     </select>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Checkpoint</label>
+                    <label class="form-label">@L["Checkpoint"]</label>
                     <select asp-for="EditUser.CheckpointId" asp-items="Model.Checkpoints" class="form-select">
-                        <option value="">No checkpoint</option>
+                        <option value="">@L["No checkpoint"]</option>
                     </select>
                 </div>
 
                 <div class="d-grid gap-2 d-md-flex">
                     <button type="submit" class="btn btn-success w-100 admin-btn">
-                        <i class="bi bi-save"></i> Save Changes
+                        <i class="bi bi-save"></i> @L["Save Changes"]
                     </button>
 
                     <a asp-page="/Account/Users" class="btn btn-outline-secondary w-100 admin-btn">
-                        <i class="bi bi-x-circle"></i> Cancel
+                        <i class="bi bi-x-circle"></i> @L["Cancel"]
                     </a>
                 </div>
             </div>

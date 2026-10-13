@@ -1,12 +1,12 @@
 @page
 @model VehicleTax.Web.Pages.Vehicles.CreateModel
 
-<h3 class="mb-3">Register Vehicle</h3>
+<h3 class="mb-3">@L["Register Vehicle"]</h3>
 
 <form method="post" class="card p-4 shadow-sm">
 
     <div class="mb-3">
-        <label class="form-label">Plate Number</label>
+        <label class="form-label">@L["Plate Number"]</label>
         <input asp-for="Vehicle.PlateNumber"
                class="form-control"
                required />
@@ -14,7 +14,7 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Owner Name</label>
+        <label class="form-label">@L["Owner Name"]</label>
         <input asp-for="Vehicle.OwnerName"
                class="form-control"
                required />
@@ -22,7 +22,7 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Mobile Number</label>
+        <label class="form-label">@L["Mobile Number"]</label>
         <input asp-for="Vehicle.Mobile"
                class="form-control"
                placeholder="61xxxxxxx" />
@@ -30,7 +30,7 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Car Type</label>
+        <label class="form-label">@L["Car Type"]</label>
         <select asp-for="Vehicle.CarTypeId"
                 asp-items="Model.CarTypes"
                 class="form-select"
@@ -42,11 +42,11 @@
 
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-success">
-            Save
+            @L["Save"]
         </button>
         <a asp-page="/Vehicles/Index"
            class="btn btn-secondary">
-            Cancel
+            @L["Cancel"]
         </a>
     </div>
 

@@ -5,11 +5,11 @@
 <div class="module-header mb-3">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-            <h3 class="mb-1 fw-bold">Vehicles</h3>
-            <div class="sub">Browse, search, and manage registered vehicle records.</div>
+            <h3 class="mb-1 fw-bold">@L["Vehicles"]</h3>
+            <div class="sub">@L["Browse, search, and manage registered vehicle records."]</div>
         </div>
         <a asp-page="Create" class="btn btn-light module-action-btn">
-            <i class="bi bi-plus-circle"></i> Register Vehicle
+            <i class="bi bi-plus-circle"></i> @L["Register Vehicle"]
         </a>
     </div>
 </div>
@@ -24,14 +24,14 @@
             <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
             <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
             <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
-            <option value="-1" selected="@(Model.PageSize == -1 ? "selected" : null)">All</option>
+            <option value="-1" selected="@(Model.PageSize == -1 ? "selected" : null)">@L["All"]</option>
         </select>
 
         <input type="text"
                id="searchInput"
                class="form-control"
                style="width:220px"
-               placeholder="Search plate or mobile..." />
+               placeholder="@L["Search plate or mobile..."]" />
     </div>
 </div>
 
@@ -41,11 +41,11 @@
             <table class="table table-hover table-bordered align-middle" id="vehicleTable">
                 <thead class="table-light">
                     <tr>
-                        <th>Plate</th>
-                        <th>Owner</th>
-                        <th>Mobile</th>
-                        <th>Car Type</th>
-                        <th class="text-center">Actions</th>
+                        <th>@L["Plate"]</th>
+                        <th>@L["Owner"]</th>
+                        <th>@L["Mobile"]</th>
+                        <th>@L["Car Type"]</th>
+                        <th class="text-center">@L["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,13 +60,13 @@
                             <a asp-page="Edit"
                                asp-route-id="@v.Id"
                                          class="btn btn-sm btn-outline-primary me-1 module-action-btn">
-                                Edit
+                                @L["Edit"]
                             </a>
                             <a asp-page="Delete"
                                asp-route-id="@v.Id"
                                          class="btn btn-sm btn-outline-danger module-action-btn"
                                onclick="return confirm('Delete this vehicle?');">
-                                Delete
+                                @L["Delete"]
                             </a>
                         </td>
                     </tr>
@@ -88,7 +88,7 @@
                asp-page="./Index"
                asp-route-pageIndex="@(Model.PageIndex - 1)"
                asp-route-pageSize="@Model.PageSize">
-                Previous
+                @L["Previous"]
             </a>
         </li>
 
@@ -109,7 +109,7 @@
                asp-page="./Index"
                asp-route-pageIndex="@(Model.PageIndex + 1)"
                asp-route-pageSize="@Model.PageSize">
-                Next
+                @L["Next"]
             </a>
         </li>
 

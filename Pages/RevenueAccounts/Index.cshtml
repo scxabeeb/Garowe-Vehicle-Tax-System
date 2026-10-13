@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.RevenueAccounts.IndexModel
 @{
-    ViewData["Title"] = "Revenue Accounts";
+    ViewData["Title"] = L["Revenue Accounts"];
 }
 
 <div class="module-page">
@@ -18,11 +18,11 @@
     <div class="module-header mb-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
-                <h3 class="fw-bold mb-1">Revenue Accounts</h3>
-                <div class="sub">Manage revenue accounts that movements are linked to.</div>
+                <h3 class="fw-bold mb-1">@L["Revenue Accounts"]</h3>
+                <div class="sub">@L["Manage revenue accounts that traffida are linked to."]</div>
             </div>
             <a asp-page="Create" class="btn btn-light module-action-btn">
-                <i class="bi bi-plus-circle"></i> Add Revenue Account
+                <i class="bi bi-plus-circle"></i> @L["Add Revenue Account"]
             </a>
         </div>
     </div>
@@ -33,25 +33,25 @@
             <div class="col-md-3">
                 <input asp-for="SearchCode"
                        class="form-control"
-                       placeholder="Search by Account Code..." />
+                       placeholder="@L["Search by Account Code..."]" />
             </div>
             <div class="col-md-3">
                 <input asp-for="SearchName"
                        class="form-control"
-                       placeholder="Search by Account Name..." />
+                       placeholder="@L["Search by Account Name..."]" />
             </div>
             <div class="col-md-3">
                 <select asp-for="Status" class="form-select">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="">@L["All Status"]</option>
+                    <option value="active">@L["Active"]</option>
+                    <option value="inactive">@L["Inactive"]</option>
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end gap-2">
                 <button class="btn btn-primary w-100 module-action-btn">
-                    Apply
+                    @L["Apply"]
                 </button>
-                <a asp-page="./Index" class="btn btn-outline-secondary w-100 module-action-btn">Reset</a>
+                <a asp-page="./Index" class="btn btn-outline-secondary w-100 module-action-btn">@L["Reset"]</a>
             </div>
         </div>
     </form>
@@ -62,11 +62,11 @@
             <table class="table table-bordered table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Account Code</th>
-                        <th>Account Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th class="text-center" style="width:180px">Actions</th>
+                        <th>@L["Account Code"]</th>
+                        <th>@L["Account Name"]</th>
+                        <th>@L["Description"]</th>
+                        <th>@L["Status"]</th>
+                        <th class="text-center" style="width:180px">@L["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -82,23 +82,23 @@
                                 <td class="text-center">
                                     @if (item.IsActive)
                                     {
-                                        <span class="badge bg-success">Active</span>
+                                        <span class="badge bg-success">@L["Active"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Inactive</span>
+                                        <span class="badge bg-secondary">@L["Inactive"]</span>
                                     }
                                 </td>
                                 <td class="text-center">
                                     <a asp-page="Edit"
                                        asp-route-id="@item.Id"
                                        class="btn btn-sm btn-outline-warning me-1 module-action-btn">
-                                        Edit
+                                        @L["Edit"]
                                     </a>
                                     <a asp-page="Delete"
                                        asp-route-id="@item.Id"
                                        class="btn btn-sm btn-outline-danger module-action-btn">
-                                        Delete
+                                        @L["Delete"]
                                     </a>
                                 </td>
                             </tr>
@@ -109,7 +109,7 @@
                     {
                         <tr>
                             <td colspan="5" class="text-center text-muted">
-                                No revenue accounts found
+                                @L["No revenue accounts found"]
                             </td>
                         </tr>
                     }

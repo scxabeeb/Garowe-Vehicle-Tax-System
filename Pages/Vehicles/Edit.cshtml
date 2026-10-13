@@ -1,7 +1,7 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.Vehicles.EditModel
 @{
-    ViewData["Title"] = "Edit Vehicle";
+    ViewData["Title"] = L["Edit Vehicle"];
 }
 
 <div class="container mt-4">
@@ -11,7 +11,7 @@
 
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Edit Vehicle</h5>
+                    <h5 class="mb-0">@L["Edit Vehicle"]</h5>
                 </div>
 
                 <div class="card-body">
@@ -24,7 +24,7 @@
                              id="validationSummary"></div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Plate Number</label>
+                            <label class="form-label fw-semibold">@L["Plate Number"]</label>
 
                             @if (Model.HasPayments)
                             {
@@ -33,7 +33,7 @@
                                        readonly />
 
                                 <small class="text-danger">
-                                    Plate number is locked because this vehicle has payments.
+                                    @L["Plate number is locked because this vehicle has payments."]
                                 </small>
                             }
                             else
@@ -46,22 +46,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Owner Name</label>
+                            <label class="form-label fw-semibold">@L["Owner Name"]</label>
                             <input asp-for="Vehicle.OwnerName"
                                    class="form-control"
-                                   placeholder="Owner full name"
+                                   placeholder="@L["Owner full name"]"
                                    required />
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Mobile</label>
+                            <label class="form-label fw-semibold">@L["Mobile"]</label>
                             <input asp-for="Vehicle.Mobile"
                                    class="form-control"
                                    placeholder="2526xxxxxxx" />
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">Car Type</label>
+                            <label class="form-label fw-semibold">@L["Car Type"]</label>
                             <select asp-for="Vehicle.CarTypeId"
                                     asp-items="Model.CarTypes"
                                     class="form-select">

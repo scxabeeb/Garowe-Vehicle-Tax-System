@@ -10,21 +10,21 @@
 <div class="container-fluid py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-            <h2 class="mb-0">RV NUMBER: @rv.RvNumber</h2>
+            <h2 class="mb-0">@L["RV NUMBER:"] @rv.RvNumber</h2>
             <div class="text-muted">@AppTime.ToLocal(rv.RvDate).ToString("dd MMMM yyyy")</div>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-primary" onclick="window.print()">
-                <i class="bi bi-printer"></i> Print
+                <i class="bi bi-printer"></i> @L["Print"]
             </button>
             <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index">← RV History</a>
-            <a class="btn btn-outline-primary" asp-page="/Finance/Index" asp-route-date="@AppTime.ToLocal(rv.RvDate).ToString("yyyy-MM-dd")">Finance Dashboard</a>
+            <a class="btn btn-outline-primary" asp-page="/Finance/Index" asp-route-date="@AppTime.ToLocal(rv.RvDate).ToString("yyyy-MM-dd")">@L["Finance Dashboard"]</a>
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div class="alert alert-danger"><strong>FMIS Error:</strong> @Model.ErrorMessage</div>
+        <div class="alert alert-danger"><strong>@L["FMIS Error:"]</strong> @Model.ErrorMessage</div>
     }
     @if (!string.IsNullOrEmpty(Model.Message))
     {
@@ -34,32 +34,32 @@
     <div class="row g-3 mb-4">
         <div class="col-lg-8">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-semibold">RV DOCUMENT</div>
+                <div class="card-header bg-white fw-semibold">@L["RV DOCUMENT"]</div>
                 <div class="card-body">
                     <dl class="row mb-0">
-                        <dt class="col-5 col-md-3">RV Number</dt>
+                        <dt class="col-5 col-md-3">@L["RV Number"]</dt>
                         <dd class="col-7 col-md-9 fw-bold">@rv.RvNumber</dd>
-                        <dt class="col-5 col-md-3">System ID</dt>
+                        <dt class="col-5 col-md-3">@L["System ID"]</dt>
                         <dd class="col-7 col-md-9 font-monospace small">@(rv.SystemId ?? "-")</dd>
-                        <dt class="col-5 col-md-3">RV Date</dt>
+                        <dt class="col-5 col-md-3">@L["RV Date"]</dt>
                         <dd class="col-7 col-md-9">@AppTime.ToLocal(rv.RvDate).ToString("dd MMMM yyyy")</dd>
-                        <dt class="col-5 col-md-3">Prepared By</dt>
+                        <dt class="col-5 col-md-3">@L["Prepared By"]</dt>
                         <dd class="col-7 col-md-9">@(rv.PreparedBy?.FullName ?? rv.PreparedBy?.Username ?? "-")</dd>
-                        <dt class="col-5 col-md-3">Financial Account</dt>
+                        <dt class="col-5 col-md-3">@L["Financial Account"]</dt>
                         <dd class="col-7 col-md-9">@Model.AccountName</dd>
-                        <dt class="col-5 col-md-3">Payment Period</dt>
+                        <dt class="col-5 col-md-3">@L["Payment Period"]</dt>
                         <dd class="col-7 col-md-9">@AppTime.ToLocal(rv.PeriodFrom ?? AppTime.Today).ToString("dd MMM yyyy") – @AppTime.ToLocal(rv.PeriodTo ?? AppTime.Today).ToString("dd MMM yyyy")</dd>
-                        <dt class="col-5 col-md-3">Number of Transactions</dt>
+                        <dt class="col-5 col-md-3">@L["Number of Transactions"]</dt>
                         <dd class="col-7 col-md-9">@rv.TotalTransactions</dd>
-                        <dt class="col-5 col-md-3">Total Amount</dt>
+                        <dt class="col-5 col-md-3">@L["Total Amount"]</dt>
                         <dd class="col-7 col-md-9 fs-5 fw-bold">$@rv.TotalAmount.ToString("N2")</dd>
-                        <dt class="col-5 col-md-3">Status</dt>
+                        <dt class="col-5 col-md-3">@L["Status"]</dt>
                         <dd class="col-7 col-md-9">
                             <span class="badge @(rv.Status == RvStatus.Transferred ? "bg-success" : rv.Status == RvStatus.Cancelled ? "bg-danger" : rv.Status == RvStatus.ReadyForFmis ? "bg-info text-dark" : "bg-warning text-dark")">
                                 @rv.Status
                             </span>
                         </dd>
-                        <dt class="col-5 col-md-3">FMIS Status</dt>
+                        <dt class="col-5 col-md-3">@L["FMIS Status"]</dt>
                         <dd class="col-7 col-md-9">
                             <span class="badge @(rv.FmisStatus == FmisTransferStatus.Transferred ? "bg-success" : rv.FmisStatus == FmisTransferStatus.Failed ? "bg-danger" : "bg-secondary")">
                                 @rv.FmisStatus
@@ -67,21 +67,21 @@
                         </dd>
                         @if (!string.IsNullOrEmpty(rv.FmisBatchNumber))
                         {
-                            <dt class="col-5 col-md-3">FMIS Batch No.</dt>
+                            <dt class="col-5 col-md-3">@L["FMIS Batch No."]</dt>
                             <dd class="col-7 col-md-9 fw-bold">@rv.FmisBatchNumber</dd>
                         }
                         @if (rv.TransferredAt.HasValue)
                         {
-                            <dt class="col-5 col-md-3">Transferred At</dt>
+                            <dt class="col-5 col-md-3">@L["Transferred At"]</dt>
                             <dd class="col-7 col-md-9">@AppTime.ToLocal(rv.TransferredAt.Value).ToString("dd MMM yyyy HH:mm")</dd>
-                            <dt class="col-5 col-md-3">Transferred By</dt>
+                            <dt class="col-5 col-md-3">@L["Transferred By"]</dt>
                             <dd class="col-7 col-md-9">@(rv.TransferredBy?.FullName ?? rv.TransferredBy?.Username ?? "-")</dd>
                         }
                         @if (rv.Status == RvStatus.Cancelled)
                         {
-                            <dt class="col-5 col-md-3">Cancelled At</dt>
+                            <dt class="col-5 col-md-3">@L["Cancelled At"]</dt>
                             <dd class="col-7 col-md-9">@(rv.CancelledAt.HasValue ? AppTime.ToLocal(rv.CancelledAt.Value).ToString("dd MMM yyyy HH:mm") : "-")</dd>
-                            <dt class="col-5 col-md-3">Cancellation Reason</dt>
+                            <dt class="col-5 col-md-3">@L["Cancellation Reason"]</dt>
                             <dd class="col-7 col-md-9 text-danger">@rv.CancellationReason</dd>
                         }
                     </dl>
@@ -90,29 +90,29 @@
         </div>
         <div class="col-lg-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-semibold">FMIS TRANSFER</div>
+                <div class="card-header bg-white fw-semibold">@L["FMIS TRANSFER"]</div>
                 <div class="card-body">
                     @if (rv.Status == RvStatus.Transferred)
                     {
                         <div class="alert alert-success py-2">
-                            <strong>Transferred.</strong><br />
-                            Batch No.: @rv.FmisBatchNumber<br />
-                            At: @(rv.TransferredAt.HasValue ? AppTime.ToLocal(rv.TransferredAt.Value).ToString("dd MMM yyyy HH:mm") : "-")<br />
-                            By: @(rv.TransferredBy?.FullName ?? rv.TransferredBy?.Username ?? "-")
+                            <strong>@L["Transferred."]</strong><br />
+                            @L["Batch No.:"] @rv.FmisBatchNumber<br />
+                            @L["At:"] @(rv.TransferredAt.HasValue ? AppTime.ToLocal(rv.TransferredAt.Value).ToString("dd MMM yyyy HH:mm") : "-")<br />
+                            @L["By:"] @(rv.TransferredBy?.FullName ?? rv.TransferredBy?.Username ?? "-")
                         </div>
                     }
                     else if (rv.Status == RvStatus.Cancelled)
                     {
-                        <div class="alert alert-danger py-2 mb-2">This RV is <strong>cancelled</strong>. The record is preserved for audit.</div>
+                        <div class="alert alert-danger py-2 mb-2">@L["This RV is"] <strong>@L["cancelled"]</strong>. The record is preserved for audit.</div>
                     }
                     else
                     {
                         @if (rv.FmisStatus == FmisTransferStatus.Failed)
                         {
                             <div class="alert alert-danger py-2">
-                                <strong>Previous transfer failed:</strong><br />@rv.FmisResponse
+                                <strong>@L["Previous transfer failed:"]</strong><br />@rv.FmisResponse
                                 <hr class="my-2" />
-                                You can retry below — no second RV will be created.
+                                @L["You can retry below — no second RV will be created."]
                             </div>
                         }
                         <div class="d-grid gap-2">
@@ -139,7 +139,7 @@
         @if (!totalsMatch)
         {
             <div class="alert alert-warning">
-                <strong>Validation:</strong> Payment sum $@Model.PaymentSum.ToString("N2") does not match RV total $@rv.TotalAmount.ToString("N2") — FMIS transfer is blocked.
+                <strong>@L["Validation:"]</strong> @L["Payment sum $"]@Model.PaymentSum.ToString("N2") does not match RV total $@rv.TotalAmount.ToString("N2") — FMIS transfer is blocked.
             </div>
         }
         else
@@ -154,8 +154,8 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light"><tr>
-                        <th>#</th><th>Ref No.</th><th>Payment ID</th><th>Invoice ID</th>
-                        <th class="text-end">Amount</th><th>Paid At</th><th>Collector</th>
+                        <th>#</th><th>@L["Ref No."]</th><th>@L["Payment ID"]</th><th>@L["Invoice ID"]</th>
+                        <th class="text-end">@L["Amount"]</th><th>@L["Paid At"]</th><th>@L["Collector"]</th>
                     </tr></thead>
                     <tbody>
                     @{ var i = 1; }
@@ -187,13 +187,13 @@
                 <div class="card-body">
                     <form method="post" asp-page-handler="Cancel" asp-route-number="@rv.RvNumber" class="row g-2 align-items-end">
                         <div class="col-md-8">
-                            <label class="form-label small mb-0">Cancellation reason</label>
-                            <input class="form-control" name="reason" placeholder="Reason for cancelling this RV" />
+                            <label class="form-label small mb-0">@L["Cancellation reason"]</label>
+                            <input class="form-control" name="reason" placeholder="@L["Reason for cancelling this RV"]" />
                         </div>
                         <div class="col-md-4">
                             <button class="btn btn-outline-danger w-100"
                                     onclick="return confirm('Cancel @rv.RvNumber? The RV record will be preserved for audit; its payments will be released for a future RV.');">
-                                Cancel RV
+                                @L["Cancel RV"]
                             </button>
                         </div>
                     </form>
@@ -202,11 +202,11 @@
         }
 
         <div class="card shadow-sm">
-            <div class="card-header bg-white fw-semibold">AUDIT TRAIL</div>
+            <div class="card-header bg-white fw-semibold">@L["AUDIT TRAIL"]</div>
             <div class="table-responsive">
                 <table class="table table-sm align-middle mb-0">
                     <thead class="table-light"><tr>
-                        <th>When</th><th>Action</th><th>Status Change</th><th>By</th><th>Details</th>
+                        <th>@L["When"]</th><th>@L["Action"]</th><th>@L["Status Change"]</th><th>@L["By"]</th><th>@L["Details"]</th>
                     </tr></thead>
                     <tbody>
                     @foreach (var log in rv.AuditLogs.OrderBy(l => l.ActionAt))
@@ -223,7 +223,7 @@
                     }
                     @if (!rv.AuditLogs.Any())
                     {
-                        <tr><td colspan="5" class="text-center text-muted py-3">No audit entries.</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-3">@L["No audit entries."]</td></tr>
                     }
                     </tbody>
                 </table>

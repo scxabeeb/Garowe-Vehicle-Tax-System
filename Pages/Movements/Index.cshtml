@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.Movements.IndexModel
 @{
-    ViewData["Title"] = "Movements";
+    ViewData["Title"] = L["Traffida"];
 }
 
 <div class="module-page">
@@ -18,11 +18,11 @@
     <div class="module-header mb-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
-                <h3 class="fw-bold mb-1">Movement Types</h3>
-                <div class="sub">Manage movement definitions and linked car types.</div>
+                <h3 class="fw-bold mb-1">@L["Traffida Types"]</h3>
+                <div class="sub">@L["Manage traffida definitions and linked car types."]</div>
             </div>
             <a asp-page="Create" class="btn btn-light module-action-btn">
-                <i class="bi bi-plus-circle"></i> Add Movement
+                <i class="bi bi-plus-circle"></i> @L["Add Traffida"]
             </a>
         </div>
     </div>
@@ -33,19 +33,19 @@
         <div class="col-md-4">
             <input asp-for="Search"
                    class="form-control"
-                   placeholder="Search movement..." />
+                   placeholder="@L["Search traffida..."]" />
         </div>
 
         <div class="col-md-3">
             <button class="btn btn-primary w-100 module-action-btn">
-                Search
+                @L["Search"]
             </button>
         </div>
 
         <div class="col-md-3">
             <a class="btn btn-outline-secondary w-100 module-action-btn"
                href="?search=@Model.Search&sort=@(Model.Sort == "asc" ? "desc" : "asc")">
-                Sort @(Model.Sort == "asc" ? "Z–A" : "A–Z")
+                @L["Sort"] @(Model.Sort == "asc" ? "Z–A" : "A–Z")
             </a>
         </div>
         </div>
@@ -58,11 +58,11 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width:70px">#</th>
-                        <th>Movement Name</th>
-                        <th>Car Type</th>
-                        <th>Revenue Account</th>
+                        <th>@L["Traffida Name"]</th>
+                        <th>@L["Car Type"]</th>
+                        <th>@L["Revenue Account"]</th>
                         <th class="text-center" style="width:180px">
-                            Actions
+                            @L["Actions"]
                         </th>
                     </tr>
                 </thead>
@@ -85,7 +85,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-muted">No Car Type</span>
+                                    <span class="text-muted">@L["No Car Type"]</span>
                                 }
                             </td>
                             <td>
@@ -97,19 +97,19 @@
                                 }
                                 else
                                 {
-                                    <span class="text-muted">Not assigned</span>
+                                    <span class="text-muted">@L["Not assigned"]</span>
                                 }
                             </td>
                             <td class="text-center">
                                 <a asp-page="Edit"
                                    asp-route-id="@item.Id"
                                    class="btn btn-sm btn-outline-warning me-1 module-action-btn">
-                                    Edit
+                                    @L["Edit"]
                                 </a>
                                 <a asp-page="Delete"
                                    asp-route-id="@item.Id"
                                    class="btn btn-sm btn-outline-danger module-action-btn">
-                                    Delete
+                                    @L["Delete"]
                                 </a>
                             </td>
                         </tr>
@@ -120,7 +120,7 @@
                 {
                     <tr>
                         <td colspan="5" class="text-center text-muted">
-                            No movements found
+                            @L["No traffida found"]
                         </td>
                     </tr>
                 }

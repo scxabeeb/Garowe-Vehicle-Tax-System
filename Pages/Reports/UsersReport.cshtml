@@ -2,37 +2,37 @@
 @model VehicleTax.Web.Pages.Reports.UsersReportModel
 
 <h3 class="mb-3">
-    <i class="bi bi-people-fill text-primary"></i> Users Report
+    <i class="bi bi-people-fill text-primary"></i> @L["Users Report"]
 </h3>
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-4">
         <input type="text" name="Search" value="@Model.Search"
                class="form-control"
-               placeholder="Search username, name, phone, role or permission..." />
+               placeholder="@L["Search username, name, phone, role or permission..."]" />
     </div>
 
     <div class="col-md-3">
         <select name="Role" class="form-select">
-            <option value="">All Roles</option>
-            <option value="Admin" selected="@(Model.Role == "Admin" ? "selected" : null)">Admin</option>
-            <option value="Collector" selected="@(Model.Role == "Collector" ? "selected" : null)">Collector</option>
-            <option value="Viewer" selected="@(Model.Role == "Viewer" ? "selected" : null)">Viewer</option>
-            <option value="Auditor" selected="@(Model.Role == "Auditor" ? "selected" : null)">Auditor</option>
+            <option value="">@L["All Roles"]</option>
+            <option value="Admin" selected="@(Model.Role == "Admin" ? "selected" : null)">@L["Admin"]</option>
+            <option value="Collector" selected="@(Model.Role == "Collector" ? "selected" : null)">@L["Collector"]</option>
+            <option value="Viewer" selected="@(Model.Role == "Viewer" ? "selected" : null)">@L["Viewer"]</option>
+            <option value="Auditor" selected="@(Model.Role == "Auditor" ? "selected" : null)">@L["Auditor"]</option>
         </select>
     </div>
 
     <div class="col-md-3">
         <select name="Status" class="form-select">
-            <option value="">All Status</option>
-            <option value="Active" selected="@(Model.Status == "Active" ? "selected" : null)">Active</option>
-            <option value="Locked" selected="@(Model.Status == "Locked" ? "selected" : null)">Locked</option>
+            <option value="">@L["All Status"]</option>
+            <option value="Active" selected="@(Model.Status == "Active" ? "selected" : null)">@L["Active"]</option>
+            <option value="Locked" selected="@(Model.Status == "Locked" ? "selected" : null)">@L["Locked"]</option>
         </select>
     </div>
 
     <div class="col-md-2 d-grid">
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-funnel-fill"></i> Filter
+            <i class="bi bi-funnel-fill"></i> @L["Filter"]
         </button>
     </div>
 </form>
@@ -42,7 +42,7 @@
    asp-route-role="@Model.Role"
    asp-route-status="@Model.Status"
    class="btn btn-success mb-3">
-    <i class="bi bi-file-earmark-excel"></i> Export to CSV
+    <i class="bi bi-file-earmark-excel"></i> @L["Export to CSV"]
 </a>
 
 <div class="table-responsive">
@@ -50,12 +50,12 @@
         <thead class="table-dark">
             <tr>
                 <th>#</th>
-                <th>Username</th>
-                <th>Full Name</th>
-                <th>Phone</th>
-                <th>Role</th>
-                <th>Permissions</th>
-                <th>Status</th>
+                <th>@L["Username"]</th>
+                <th>@L["Full Name"]</th>
+                <th>@L["Phone"]</th>
+                <th>@L["Role"]</th>
+                <th>@L["Permissions"]</th>
+                <th>@L["Status"]</th>
             </tr>
         </thead>
         <tbody>
@@ -87,11 +87,11 @@
                     <td>
                         @if (user.IsLocked)
                         {
-                            <span class="badge bg-danger">Locked</span>
+                            <span class="badge bg-danger">@L["Locked"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">@L["Active"]</span>
                         }
                     </td>
                 </tr>
@@ -102,7 +102,7 @@
         {
             <tr>
                 <td colspan="7" class="text-center text-muted">
-                    No users found.
+                    @L["No users found."]
                 </td>
             </tr>
         }

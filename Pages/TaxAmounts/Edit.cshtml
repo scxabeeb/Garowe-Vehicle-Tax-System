@@ -1,7 +1,7 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.TaxAmounts.EditModel
 @{
-    ViewData["Title"] = "Edit Tax Amount";
+    ViewData["Title"] = L["Edit Tax Amount"];
 }
 
 <div class="row justify-content-center">
@@ -9,9 +9,9 @@
 
         <!-- PAGE TITLE -->
         <div class="mb-4 text-center">
-            <h3 class="fw-bold">Edit Tax Amount</h3>
+            <h3 class="fw-bold">@L["Edit Tax Amount"]</h3>
             <p class="text-muted">
-                Update tax amount by car type and movement
+                @L["Update tax amount by car type and traffida"]
             </p>
         </div>
 
@@ -26,7 +26,7 @@
 
                 <div class="mb-3">
                     <label asp-for="Tax.CarTypeId" class="form-label fw-semibold">
-                        Car Type
+                        @L["Car Type"]
                     </label>
                     <select asp-for="Tax.CarTypeId"
                             asp-items="Model.CarTypes"
@@ -38,7 +38,7 @@
 
                 <div class="mb-3">
                     <label asp-for="Tax.MovementId" class="form-label fw-semibold">
-                        Movement
+                        @L["Traffida"]
                     </label>
                     <select asp-for="Tax.MovementId"
                             asp-items="Model.Movements"
@@ -50,19 +50,19 @@
 
                 <!-- Revenue Account (read-only, determined by Movement) -->
                 <div class="mb-3" id="revenueAccountSection" style="@(string.IsNullOrEmpty(Model.RevenueAccountDisplay) ? "display:none;" : "")">
-                    <label class="form-label fw-semibold">Revenue Account</label>
+                    <label class="form-label fw-semibold">@L["Revenue Account"]</label>
                     <div class="form-control bg-light" id="revenueAccountDisplay">
                         @(Model.RevenueAccountDisplay ?? "—")
                     </div>
                     <small class="text-muted">
                         <i class="bi bi-info-circle"></i>
-                        The Revenue Account is determined by the selected Movement and cannot be changed here.
+                        @L["The Revenue Account is determined by the selected Traffida and cannot be changed here."]
                     </small>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Tax.Amount" class="form-label fw-semibold">
-                        Amount
+                        @L["Amount"]
                     </label>
                     <input asp-for="Tax.Amount"
                            type="number"
@@ -79,12 +79,12 @@
 
                 <a asp-page="Index"
                    class="btn btn-outline-secondary me-2">
-                    Cancel
+                    @L["Cancel"]
                 </a>
 
                 <button type="submit"
                         class="btn btn-warning px-4">
-                    Save Changes
+                    @L["Save Changes"]
                 </button>
 
             </div>
