@@ -247,7 +247,7 @@ public class SummaryModel : PageModel
 
         // Per-payment detail — include the audit Reference No. (or blank/for unrecorded)
         sb.AppendLine();
-        sb.AppendLine("System ID,Ref No,Invoice ID,Plate,Traffida,Collector,Amount,Date,Status");
+        sb.AppendLine("System ID,Ref No,Invoice ID,Plate,Tariff,Collector,Amount,Date,Status");
 
         foreach (var p in PaymentRecords)
         {

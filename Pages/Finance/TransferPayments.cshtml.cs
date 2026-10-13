@@ -9,8 +9,8 @@ using VehicleTax.Web.Services;
 namespace VehicleTax.Web.Pages.Finance;
 
 /// <summary>
-/// Admins move payments collected under the wrong Traffida to the right one,
-/// which moves them to that Traffida's revenue account. The amount is kept;
+/// Admins move payments collected under the wrong Tariff to the right one,
+/// which moves them to that Tariff's revenue account. The amount is kept;
 /// payments in an active RV are locked (cancel the RV first).
 /// </summary>
 public class TransferPaymentsModel : PageModel
@@ -62,7 +62,7 @@ public class TransferPaymentsModel : PageModel
 
         string? error =
             ids.Count == 0 ? "Select at least one payment." :
-            target == null ? "Choose the correct Traffida." :
+            target == null ? "Choose the correct Tariff." :
             reason.Length < 5 ? "Enter the reason for the transfer (at least 5 characters)." :
             null;
         if (error != null)

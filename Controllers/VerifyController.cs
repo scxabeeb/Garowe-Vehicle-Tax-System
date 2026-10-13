@@ -75,7 +75,7 @@ public class VerifyController : ControllerBase
                 Row(T("Invoice No"), payment.InvoiceNumber) +
                 Row(T("Plate"), payment.Vehicle?.PlateNumber) +
                 Row(T("Owner"), payment.Vehicle?.OwnerName) +
-                Row(T("Traffida"), payment.Movement?.Name ?? payment.MovementType) +
+                Row(T("Tariff"), payment.Movement?.Name ?? payment.MovementType) +
                 Row(T("Amount"), "$" + payment.Amount.ToString("0.00")) +
                 Row(T("Paid At"), AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy, HH:mm")) +
                 Row(T("Collector"), payment.Collector?.Username) +

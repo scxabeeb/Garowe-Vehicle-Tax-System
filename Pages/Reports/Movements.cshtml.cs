@@ -60,7 +60,7 @@ namespace VehicleTax.Web.Pages.Reports
             var carTypeNames = await query.Select(m => m.CarType != null ? m.CarType.Name : null).ToListAsync();
             SummaryGroups = new()
             {
-                new("Traffida by Car Type", "bi-truck",
+                new("Tariff by Car Type", "bi-truck",
                     VehicleTax.Web.Services.ReportDetails.CountBy(carTypeNames, n => n)),
             };
 
@@ -95,7 +95,7 @@ namespace VehicleTax.Web.Pages.Reports
             var data = await query.OrderBy(m => m.Name).ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("System ID,Traffida,CarType");
+            sb.AppendLine("System ID,Tariff,CarType");
 
             foreach (var m in data)
             {

@@ -31,11 +31,11 @@
 
                     <!-- Movement -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">@L["Traffida"]</label>
+                        <label class="form-label fw-semibold">@L["Tariff"]</label>
                         <select asp-for="Tax.MovementId"
                                 class="form-select"
                                 id="movementSelect">
-                            <option value="">-- @L["Select Traffida"] --</option>
+                            <option value="">-- @L["Select Tariff"] --</option>
                         </select>
                         <span asp-validation-for="Tax.MovementId" class="text-danger"></span>
                     </div>
@@ -48,7 +48,7 @@
                         </div>
                         <small class="text-muted">
                             <i class="bi bi-info-circle"></i>
-                            @L["The Revenue Account is determined by the selected Traffida and cannot be changed here."]
+                            @L["The Revenue Account is determined by the selected Tariff and cannot be changed here."]
                         </small>
                     </div>
 
@@ -92,14 +92,14 @@ document.getElementById("carTypeSelect").addEventListener("change", function () 
     revenueSection.style.display = 'none';
 
     if (!carTypeId) {
-        movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
+        movementSelect.innerHTML = '<option value="">-- @L["Select Tariff"] --</option>';
         return;
     }
 
     fetch(`?handler=Movements&carTypeId=${carTypeId}`)
         .then(res => res.json())
         .then(data => {
-            movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
+            movementSelect.innerHTML = '<option value="">-- @L["Select Tariff"] --</option>';
             data.forEach(m => {
                 movementSelect.innerHTML += `<option value="${m.id}" data-revenue="${m.revenueAccountDisplay}">${m.name}</option>`;
             });

@@ -9,7 +9,7 @@ public record PaymentDetailRow(
     DateTime PaidAt,
     string Plate,
     string Owner,
-    string Traffida,
+    string Tariff,
     string CarType,
     string Collector,
     string Checkpoint,
@@ -18,7 +18,7 @@ public record PaymentDetailRow(
     decimal Amount,
     string Status);
 
-/// <summary>One group line (e.g. one traffida) in a report's Summary view.</summary>
+/// <summary>One group line (e.g. one tariff) in a report's Summary view.</summary>
 public record SummaryGroupRow(string Name, int Count, decimal Amount);
 
 /// <summary>A titled list of counts for a record report's Summary view.</summary>
@@ -29,7 +29,7 @@ public class PaymentSummaryBreakdown
 {
     public int PaidCount { get; init; }
     public decimal PaidAmount { get; init; }
-    public List<SummaryGroupRow> ByTraffida { get; init; } = new();
+    public List<SummaryGroupRow> ByTariff { get; init; } = new();
     public List<SummaryGroupRow> ByCollector { get; init; } = new();
     public List<SummaryGroupRow> ByCheckpoint { get; init; } = new();
     public List<SummaryGroupRow> ByCarType { get; init; } = new();
@@ -99,7 +99,7 @@ public static class ReportDetails
         {
             PaidCount = await paid.CountAsync(),
             PaidAmount = await paid.SumAsync(p => (decimal?)p.Amount) ?? 0m,
-            ByTraffida = await Group(paid.Select(p => new NameAmount { Name = p.Movement != null ? p.Movement.Name : p.MovementType, Amount = p.Amount })),
+            ByTariff = await Group(paid.Select(p => new NameAmount { Name = p.Movement != null ? p.Movement.Name : p.MovementType, Amount = p.Amount })),
             ByCollector = await Group(paid.Select(p => new NameAmount { Name = p.Collector != null ? p.Collector.Username : "-", Amount = p.Amount })),
             ByCheckpoint = await Group(paid.Where(p => p.Checkpoint != null)
                 .Select(p => new NameAmount { Name = p.Checkpoint!.Name, Amount = p.Amount })),

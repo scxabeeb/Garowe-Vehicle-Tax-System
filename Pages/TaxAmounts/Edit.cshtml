@@ -11,7 +11,7 @@
         <div class="mb-4 text-center">
             <h3 class="fw-bold">@L["Edit Tax Amount"]</h3>
             <p class="text-muted">
-                @L["Update tax amount by car type and traffida"]
+                @L["Update tax amount by car type and tariff"]
             </p>
         </div>
 
@@ -38,7 +38,7 @@
 
                 <div class="mb-3">
                     <label asp-for="Tax.MovementId" class="form-label fw-semibold">
-                        @L["Traffida"]
+                        @L["Tariff"]
                     </label>
                     <select asp-for="Tax.MovementId"
                             asp-items="Model.Movements"
@@ -56,7 +56,7 @@
                     </div>
                     <small class="text-muted">
                         <i class="bi bi-info-circle"></i>
-                        @L["The Revenue Account is determined by the selected Traffida and cannot be changed here."]
+                        @L["The Revenue Account is determined by the selected Tariff and cannot be changed here."]
                     </small>
                 </div>
 
@@ -120,14 +120,14 @@ document.getElementById("carTypeSelect").addEventListener("change", function () 
     movementSelect.innerHTML = '<option value="">Loading...</option>';
 
     if (!carTypeId) {
-        movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
+        movementSelect.innerHTML = '<option value="">-- @L["Select Tariff"] --</option>';
         return;
     }
 
     fetch(`?handler=Movements&carTypeId=${carTypeId}`)
         .then(res => res.json())
         .then(data => {
-            movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
+            movementSelect.innerHTML = '<option value="">-- @L["Select Tariff"] --</option>';
             const currentVal = "@Model.Tax.MovementId";
             data.forEach(m => {
                 const selected = m.id == currentVal ? " selected" : "";

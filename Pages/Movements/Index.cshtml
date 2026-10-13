@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.Movements.IndexModel
 @{
-    ViewData["Title"] = L["Traffida"];
+    ViewData["Title"] = L["Tariff"];
 }
 
 <div class="module-page">
@@ -18,11 +18,11 @@
     <div class="module-header mb-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
-                <h3 class="fw-bold mb-1">@L["Traffida Types"]</h3>
-                <div class="sub">@L["Manage traffida definitions and linked car types."]</div>
+                <h3 class="fw-bold mb-1">@L["Tariff Types"]</h3>
+                <div class="sub">@L["Manage tariff definitions and linked car types."]</div>
             </div>
             <a asp-page="Create" class="btn btn-light module-action-btn">
-                <i class="bi bi-plus-circle"></i> @L["Add Traffida"]
+                <i class="bi bi-plus-circle"></i> @L["Add Tariff"]
             </a>
         </div>
     </div>
@@ -33,7 +33,7 @@
         <div class="col-md-4">
             <input asp-for="Search"
                    class="form-control"
-                   placeholder="@L["Search traffida..."]" />
+                   placeholder="@L["Search tariff..."]" />
         </div>
 
         <div class="col-md-3">
@@ -58,7 +58,7 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width:70px">#</th>
-                        <th>@L["Traffida Name"]</th>
+                        <th>@L["Tariff Name"]</th>
                         <th>@L["Car Type"]</th>
                         <th>@L["Revenue Account"]</th>
                         <th class="text-center" style="width:180px">
@@ -120,7 +120,7 @@
                 {
                     <tr>
                         <td colspan="5" class="text-center text-muted">
-                            @L["No traffida found"]
+                            @L["No tariffs found"]
                         </td>
                     </tr>
                 }

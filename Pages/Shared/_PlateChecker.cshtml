@@ -11,7 +11,7 @@
         ["valid"] = L["VALID · PAID"], ["notPaid"] = L["NOT PAID"], ["cancelled"] = L["CANCELLED"],
         ["notFound"] = L["Vehicle not found."], ["receiptNotFound"] = L["No receipt matches this code."],
         ["network"] = L["Network error. Please try again."], ["enterPlate"] = L["Plate Number"],
-        ["owner"] = L["Owner"], ["traffida"] = L["Traffida"], ["amount"] = L["Amount"], ["paidAt"] = L["Paid At"],
+        ["owner"] = L["Owner"], ["tariff"] = L["Tariff"], ["amount"] = L["Amount"], ["paidAt"] = L["Paid At"],
         ["lastPaid"] = L["Last Paid"], ["invoice"] = L["Invoice No"], ["golis"] = L["Golis Bill No"],
         ["collector"] = L["Collector"], ["systemId"] = L["System ID"],
         ["cameraError"] = L["Camera not available. Type the invoice number instead."],
@@ -100,7 +100,7 @@
                 show(paidToday ? 'ok' : 'bad', v.plateNumber,
                     paidToday ? T.paidToday : T.notPaidToday,
                     paidToday ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis',
-                    row(T.owner, v.ownerName) + row(T.traffida, v.movement) +
+                    row(T.owner, v.ownerName) + row(T.tariff, v.movement) +
                     row(paidToday ? T.paidAt : T.lastPaid, v.paidAt ? fmt(v.paidAt) : '-') +
                     (v.amount != null ? row(T.amount, '$' + Number(v.amount).toFixed(2)) : '') +
                     row(T.invoice, v.invoiceNumber) + row(T.golis, v.golisBillNo) + row(T.systemId, v.paymentId));
@@ -128,7 +128,7 @@
                     p.isReverted ? T.cancelled : (valid ? T.valid : T.notPaid),
                     valid ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger',
                     row(T.invoice, p.invoiceNumber) + row(T.systemId, p.paymentId) + row(T.owner, p.ownerName) +
-                    row(T.traffida, p.movement) + row(T.amount, '$' + Number(p.amount).toFixed(2)) +
+                    row(T.tariff, p.movement) + row(T.amount, '$' + Number(p.amount).toFixed(2)) +
                     row(T.paidAt, fmt(p.paidAt)) + row(T.collector, p.collector) +
                     (p.golisBillNo ? row(T.golis, p.golisBillNo) : ''));
             })

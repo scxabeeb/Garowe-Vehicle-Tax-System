@@ -389,7 +389,7 @@ namespace VehicleTax.Web.Pages.Reports
             TotalAmount = payments.Sum(p => p.Amount);
 
             var sb = new StringBuilder();
-            sb.AppendLine("System ID,Date,Plate,Owner,Mobile,Car Type,Traffida,Revenue Account,Collector,Checkpoint,Receipt No,Golis Bill No,Amount");
+            sb.AppendLine("System ID,Date,Plate,Owner,Mobile,Car Type,Tariff,Revenue Account,Collector,Checkpoint,Receipt No,Golis Bill No,Amount");
 
             foreach (var p in payments)
             {

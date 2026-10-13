@@ -1,7 +1,7 @@
 @page "{id:int}"
 @model VehicleTax.Web.Pages.Movements.EditModel
 @{
-    ViewData["Title"] = L["Edit Traffida"];
+    ViewData["Title"] = L["Edit Tariff"];
 }
 
 @if (TempData["Success"] != null)
@@ -25,9 +25,9 @@
     <div class="col-md-6">
 
         <div class="mb-4 text-center">
-            <h3 class="fw-bold">@L["Edit Traffida"]</h3>
+            <h3 class="fw-bold">@L["Edit Tariff"]</h3>
             <p class="text-muted">
-                @L["Update traffida and car type"]
+                @L["Update tariff and car type"]
             </p>
         </div>
 
@@ -39,7 +39,7 @@
 
                 <!-- Movement Name -->
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">@L["Traffida Name"]</label>
+                    <label class="form-label fw-semibold">@L["Tariff Name"]</label>
                     <input asp-for="Movement.Name"
                            class="form-control"
                            required />

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace VehicleTax.Web.Models;
 
 /// <summary>
-/// A payment moved from one Traffida (and so revenue account) to another,
+/// A payment moved from one Tariff (and so revenue account) to another,
 /// because it was collected under the wrong one. The amount never changes.
 /// </summary>
 public class PaymentTransfer

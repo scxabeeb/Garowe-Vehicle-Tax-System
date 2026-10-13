@@ -77,7 +77,7 @@ namespace VehicleTax.Web.Pages.Reports
             sb.AppendLine($"Revenue Account Details: {Account.AccountCode} - {Account.AccountName}");
             sb.AppendLine($"From: {FromDate?.ToString("dd-MMM-yyyy") ?? "All"}  To: {ToDate?.ToString("dd-MMM-yyyy") ?? "All"}");
             sb.AppendLine("");
-            sb.AppendLine("System ID,Ref No,Date,Receipt No,Plate,Owner,Car Type,Traffida,Amount");
+            sb.AppendLine("System ID,Ref No,Date,Receipt No,Plate,Owner,Car Type,Tariff,Amount");
 
             foreach (var t in Transactions)
             {

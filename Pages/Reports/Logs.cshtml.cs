@@ -160,7 +160,7 @@ public class LogsModel : PageModel
         var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("System ID,Date,Plate,Car Type,Traffida,Revenue Account,Collector,Checkpoint,Payment Method,Transaction ID,Receipt No,Amount,Status,Cancelled By,Cancel Reason,Remarks,Paid By");
+        sb.AppendLine("System ID,Date,Plate,Car Type,Tariff,Revenue Account,Collector,Checkpoint,Payment Method,Transaction ID,Receipt No,Amount,Status,Cancelled By,Cancel Reason,Remarks,Paid By");
 
         foreach (var p in data)
         {

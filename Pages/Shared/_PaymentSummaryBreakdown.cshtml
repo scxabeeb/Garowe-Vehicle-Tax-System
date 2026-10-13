@@ -1,9 +1,9 @@
 @model VehicleTax.Web.Services.PaymentSummaryBreakdown
-@* Summary view: paid totals grouped by traffida, collector, checkpoint, car type. *@
+@* Summary view: paid totals grouped by tariff, collector, checkpoint, car type. *@
 @{
     var groups = new[]
     {
-        (Title: L["By Traffida"], Icon: "bi-signpost-split", Rows: Model.ByTraffida),
+        (Title: L["By Tariff"], Icon: "bi-signpost-split", Rows: Model.ByTariff),
         (Title: L["By Collector"], Icon: "bi-person-badge", Rows: Model.ByCollector),
         (Title: L["By Checkpoint"], Icon: "bi-geo-alt", Rows: Model.ByCheckpoint),
         (Title: L["By Car Type"], Icon: "bi-truck", Rows: Model.ByCarType),

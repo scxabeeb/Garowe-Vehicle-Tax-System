@@ -84,13 +84,13 @@ namespace VehicleTax.Web.Pages.Reports
             TotalCount = totalCount;
             var summary = query.Select(t => new
             {
-                Traffida = t.Movement != null ? t.Movement.Name : null,
+                Tariff = t.Movement != null ? t.Movement.Name : null,
                 CarType = t.CarType != null ? t.CarType.Name : null,
             }).ToList();
             SummaryGroups = new()
             {
-                new("Tax Amounts by Traffida", "bi-signpost-split",
-                    VehicleTax.Web.Services.ReportDetails.CountBy(summary, t => t.Traffida)),
+                new("Tax Amounts by Tariff", "bi-signpost-split",
+                    VehicleTax.Web.Services.ReportDetails.CountBy(summary, t => t.Tariff)),
                 new("Tax Amounts by Car Type", "bi-truck",
                     VehicleTax.Web.Services.ReportDetails.CountBy(summary, t => t.CarType)),
             };
@@ -124,7 +124,7 @@ namespace VehicleTax.Web.Pages.Reports
 
             var list = query.ToList();
 
-            var csv = "System ID,CarType,Traffida,Amount\n";
+            var csv = "System ID,CarType,Tariff,Amount\n";
             foreach (var t in list)
             {
                 csv += $"{t.Id},{t.CarType?.Name},{t.Movement?.Name},{t.Amount:N0}\n";

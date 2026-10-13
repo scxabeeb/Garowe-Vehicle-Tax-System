@@ -54,7 +54,7 @@ public class ManagePermissionsModel : PageModel
         [AppPermissions.Keys.ReportsExport] = "Export reports (CSV / Excel)",
         [AppPermissions.Keys.ReportsPrint] = "Print reports",
         [AppPermissions.Keys.ReportsDownload] = "Download reports",
-        [AppPermissions.Keys.SettingsView] = "View setup (car types, traffida, tax, checkpoints)",
+        [AppPermissions.Keys.SettingsView] = "View setup (car types, tariff, tax, checkpoints)",
         [AppPermissions.Keys.SettingsEdit] = "Change setup",
         [AppPermissions.Keys.FinanceView] = "View finance & RV",
         [AppPermissions.Keys.FinanceManage] = "Manage RV, FMIS & Golis audits",

@@ -78,13 +78,13 @@
 
                         <!-- Movement -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">@L["Traffida"]</label>
+                            <label class="form-label fw-semibold">@L["Tariff"]</label>
                             <select asp-for="MovementId"
                                     asp-items="Model.Movements"
                                     class="form-select"
                                     onchange="document.getElementById('calcBtn').click()"
                                     required>
-                                <option value="">-- @L["Select Traffida"] --</option>
+                                <option value="">-- @L["Select Tariff"] --</option>
                             </select>
                         </div>
 
@@ -168,7 +168,7 @@
                             <tr>
                                 <th>@L["System ID"]</th>
                                 <th>@L["Date"]</th>
-                                <th>@L["Traffida"]</th>
+                                <th>@L["Tariff"]</th>
                                 <th>@L["Amount"]</th>
                                 <th>@L["Invoice ID"]</th>
                                 <th>@L["Golis Bill No"]</th>

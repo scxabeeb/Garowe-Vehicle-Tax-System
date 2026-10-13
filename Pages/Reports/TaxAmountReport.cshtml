@@ -13,7 +13,7 @@
                name="Search"
                value="@Model.Search"
                class="form-control"
-               placeholder="@L["Search car type or traffida..."]" />
+               placeholder="@L["Search car type or tariff..."]" />
     </div>
 
     <!-- Car Type Filter -->
@@ -32,7 +32,7 @@
     <!-- Movement Filter (by NAME, unique, no duplicates) -->
     <div class="col-md-3">
         <select name="MovementName" class="form-select">
-            <option value="">@L["All Traffida"]</option>
+            <option value="">@L["All Tariffs"]</option>
             @foreach (var mv in Model.Movements)
             {
                 var isSelected = string.Equals(Model.MovementName, mv.Name, StringComparison.OrdinalIgnoreCase);
@@ -74,7 +74,7 @@
             <tr>
                 <th>@L["System ID"]</th>
                 <th>@L["Car Type"]</th>
-                <th>@L["Traffida"]</th>
+                <th>@L["Tariff"]</th>
                 <th>@L["Amount"]</th>
             </tr>
         </thead>

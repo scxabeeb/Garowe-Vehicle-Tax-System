@@ -39,7 +39,7 @@
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">@L["Traffida"]</label>
+            <label class="form-label">@L["Tariff"]</label>
             <select asp-for="MovementId"
                     asp-items="Model.Movements"
                     class="form-select">
@@ -176,7 +176,7 @@
         <div class="card module-panel-card h-100">
             <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                    <i class="bi bi-diagram-3"></i> @L["Top Traffida"]
+                    <i class="bi bi-diagram-3"></i> @L["Top Tariff"]
                 </h5>
                 @if (Model.MovementSummaries.Any())
                 {
@@ -189,7 +189,7 @@
                                 <span class="fw-semibold">@m.MovementName (@m.Count)</span>
                                 <span>$@m.TotalAmount.ToString("N0")</span>
                             </div>
-                            <div class="progress" role="progressbar" aria-label="@L["Traffida amount"]">
+                            <div class="progress" role="progressbar" aria-label="@L["Tariff amount"]">
                                 <div class="progress-bar bg-primary" style="width:@pct.ToString("0.#")%"></div>
                             </div>
                         </div>
@@ -197,7 +197,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">@L["No traffida data for selected filters."]</p>
+                    <p class="text-muted mb-0">@L["No tariff data for selected filters."]</p>
                 }
             </div>
         </div>
@@ -399,7 +399,7 @@
                     <th>@L["Owner"]</th>
                     <th>@L["Mobile"]</th>
                     <th>@L["Car Type"]</th>
-                    <th>@L["Traffida"]</th>
+                    <th>@L["Tariff"]</th>
                     <th>@L["Revenue Account"]</th>
                     <th>@L["Collector"]</th>
                     <th>@L["Checkpoint"]</th>

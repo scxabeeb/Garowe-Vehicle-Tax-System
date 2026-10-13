@@ -178,7 +178,7 @@ public class CheckpointReportModel : PageModel
         var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("System ID,Ref No,Date,Plate,Owner,Mobile,Car Type,Traffida,Revenue Account,Collector,Checkpoint,Payment Method,Receipt No,Golis Bill No,Amount");
+        sb.AppendLine("System ID,Ref No,Date,Plate,Owner,Mobile,Car Type,Tariff,Revenue Account,Collector,Checkpoint,Payment Method,Receipt No,Golis Bill No,Amount");
 
         foreach (var p in data)
         {

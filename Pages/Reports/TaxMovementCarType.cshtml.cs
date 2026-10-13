@@ -150,7 +150,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Traffida,Car Type,Total Payments,Total Amount");
+            sb.AppendLine("Tariff,Car Type,Total Payments,Total Amount");
 
             foreach (var item in data)
             {

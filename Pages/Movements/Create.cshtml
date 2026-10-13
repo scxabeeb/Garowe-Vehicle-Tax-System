@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.Movements.CreateModel
 @{
-    ViewData["Title"] = L["Add Traffida"];
+    ViewData["Title"] = L["Add Tariff"];
 }
 
 <div class="container mt-4">
@@ -9,9 +9,9 @@
         <div class="col-md-6 col-lg-5">
 
             <div class="text-center mb-4">
-                <h3 class="fw-bold mb-1">@L["Add Traffida"]</h3>
+                <h3 class="fw-bold mb-1">@L["Add Tariff"]</h3>
                 <p class="text-muted small">
-                    @L["Create one traffida for multiple car types"]
+                    @L["Create one tariff for multiple car types"]
                 </p>
             </div>
 
@@ -20,7 +20,7 @@
 
                     <!-- Movement Name -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">@L["Traffida Name"]</label>
+                        <label class="form-label fw-semibold">@L["Tariff Name"]</label>
                         <input asp-for="MovementName"
                                class="form-control"
                                placeholder="@L["e.g. Passing, Staying"]"
