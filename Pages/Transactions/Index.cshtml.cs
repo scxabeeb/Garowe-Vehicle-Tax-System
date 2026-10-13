@@ -5,6 +5,7 @@ using System.Text;
 using VehicleTax.Web;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Transactions;
 
@@ -35,7 +36,9 @@ public class IndexModel : PageModel
     public int PageSize { get; set; } = 10;
 
     [BindProperty(SupportsGet = true)]
-    public int Page { get; set; } = 1;
+    public int CurrentPage { get; set; } = 1;
+
+    public Pager Pager { get; set; } = new(0, 1, 10);
 
     public List<User> Users { get; set; } = new();
     public List<Payment> Transactions { get; set; } = new();
@@ -49,10 +52,37 @@ public class IndexModel : PageModel
     public decimal CancelledAmount { get; set; }
     public decimal NetAmount => CompletedAmount - CancelledAmount;
 
-    public void OnGet()
+    public async Task OnGetAsync()
     {
-        Users = _context.Users.OrderBy(u => u.Username).ToList();
+        Users = await _context.Users.AsNoTracking().OrderBy(u => u.Username).ToListAsync();
 
+        var query = Filtered();
+
+        // Summary totals over the whole filtered set, computed in the database.
+        var totals = await query
+            .GroupBy(p => p.IsReverted)
+            .Select(g => new { Reverted = g.Key, Count = g.Count(), Amount = g.Sum(p => p.Amount) })
+            .ToListAsync();
+        CompletedCount = totals.Where(t => !t.Reverted).Sum(t => t.Count);
+        CompletedAmount = totals.Where(t => !t.Reverted).Sum(t => t.Amount);
+        CancelledCount = totals.Where(t => t.Reverted).Sum(t => t.Count);
+        CancelledAmount = totals.Where(t => t.Reverted).Sum(t => t.Amount);
+        TotalTransactions = CompletedCount + CancelledCount;
+        TotalAmount = CompletedAmount + CancelledAmount;
+
+        Pager = new Pager(TotalTransactions, CurrentPage, PageSize);
+
+        // Latest action first: use RevertedAt for cancelled, PaidAt for completed.
+        Transactions = await Pager.Apply(query
+                .OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt)
+                .ThenByDescending(p => p.Id))
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    /// <summary>Payments matching the filters, with what the table shows.</summary>
+    private IQueryable<Payment> Filtered()
+    {
         var query = _context.Payments
             .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
             .Include(p => p.ReceiptReference)
@@ -85,74 +115,27 @@ public class IndexModel : PageModel
                 query = query.Where(p => p.IsReverted);
         }
 
-        // Compute summary totals from the filtered dataset (before paging)
-        var allFiltered = query.ToList();
-        TotalTransactions = allFiltered.Count;
-        TotalAmount = allFiltered.Sum(p => p.Amount);
-        CompletedCount = allFiltered.Count(p => !p.IsReverted);
-        CompletedAmount = allFiltered.Where(p => !p.IsReverted).Sum(p => p.Amount);
-        CancelledCount = allFiltered.Count(p => p.IsReverted);
-        CancelledAmount = allFiltered.Where(p => p.IsReverted).Sum(p => p.Amount);
-
-        // Latest action first: use RevertedAt for cancelled, PaidAt for completed.
-        query = query.OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt);
-
-        // PageSize = 0 means show all
-        if (PageSize > 0)
-        {
-            query = query
-                .Skip((Page - 1) * PageSize)
-                .Take(PageSize);
-        }
-
-        Transactions = query.ToList();
+        return query;
     }
 
     // EXPORT ONLY FILTERED DATA (ignores paging)
     public IActionResult OnGetExportFiltered()
     {
-        var query = _context.Payments
-            .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
-            .Include(p => p.ReceiptReference)
-            .Include(p => p.RevertedByUser)
-            .Include(p => p.Collector)
-            .AsQueryable();
-
-        // Same filters as OnGet
-        if (FromDate.HasValue)
-            query = query.Where(p =>
-                (!p.IsReverted && p.PaidAt.Date >= FromDate.Value.Date) ||
-                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date >= FromDate.Value.Date));
-
-        if (ToDate.HasValue)
-            query = query.Where(p =>
-                (!p.IsReverted && p.PaidAt.Date <= ToDate.Value.Date) ||
-                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date <= ToDate.Value.Date));
-
-        if (UserId.HasValue)
-            query = query.Where(p =>
-                p.CollectorId == UserId.Value ||
-                p.RevertedByUserId == UserId.Value);
-
-        if (!string.IsNullOrEmpty(Action) && Action != "All")
-        {
-            if (Action == "Completed")
-                query = query.Where(p => p.IsPaid && !p.IsReverted);
-
-            if (Action == "Reverted")
-                query = query.Where(p => p.IsReverted);
-        }
+        var query = Filtered();
 
         var data = query
             .OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt)
+            .ThenByDescending(p => p.Id)
+            .AsNoTracking()
             .ToList();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Ref No,Date,Plate,Car Type,Movement,Collector,Amount,Receipt No,Golis Bill No,Status,Cancelled By,Cancel Reason");
+        sb.AppendLine("System ID,Ref No,Date,Plate,Car Type,Movement,Collector,Amount,Receipt No,Golis Bill No,Status,Cancelled By,Cancel Reason");
 
         foreach (var t in data)
         {
             sb.AppendLine(string.Join(",",
+                t.Id,
                 Escape(t.ReferenceNo?.ToString() ?? "-"),
                 Escape(AppTime.ToLocal(t.PaidAt).ToString("dd MMM yyyy HH:mm")),
                 Escape(t.Vehicle?.PlateNumber),

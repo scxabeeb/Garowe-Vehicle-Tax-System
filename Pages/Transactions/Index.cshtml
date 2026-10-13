@@ -66,7 +66,7 @@
                 <div class="col-md-3">
                     <label class="form-label">@L["User"]</label>
                     <select asp-for="UserId" class="form-select">
-                        <option value="">-- All Users --</option>
+                        <option value="">@L["All Users"]</option>
                         @foreach (var u in Model.Users)
                         {
                             <option value="@u.Id">@u.Username</option>
@@ -77,7 +77,7 @@
                 <div class="col-md-3">
                     <label class="form-label">@L["Action"]</label>
                     <select asp-for="Action" class="form-select">
-                        <option value="All">All (Completed & Cancelled)</option>
+                        <option value="All">@L["All (Completed & Cancelled)"]</option>
                         <option value="Completed">@L["Completed"]</option>
                         <option value="Reverted">@L["Cancelled"]</option>
                     </select>
@@ -97,28 +97,10 @@
         </div>
     </form>
 
-    <!-- PAGE SIZE + EXPORT -->
-    <div class="d-flex justify-content-between mb-2">
-        <form method="get" class="d-inline">
-            <input type="hidden" name="FromDate" value="@Model.FromDate" />
-            <input type="hidden" name="ToDate" value="@Model.ToDate" />
-            <input type="hidden" name="UserId" value="@Model.UserId" />
-            <input type="hidden" name="Action" value="@Model.Action" />
-
-            <select name="PageSize"
-                    class="form-select d-inline w-auto"
-                    onchange="this.form.submit()">
-                <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
-                <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
-                <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
-                <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
-                <option value="200" selected="@(Model.PageSize == 200 ? "selected" : null)">200</option>
-                <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">@L["All"]</option>
-            </select>
-            <span class="ms-1">@L["rows"]</span>
-        </form>
-
-        <a href="~/Transactions/Index?handler=ExportFiltered&FromDate=@Model.FromDate&ToDate=@Model.ToDate&UserId=@Model.UserId&Action=@Model.Action"
+    <!-- EXPORT -->
+    <div class="d-flex justify-content-end mb-2">
+        <a asp-page-handler="ExportFiltered" asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+           asp-route-UserId="@Model.UserId" asp-route-Action="@Model.Action"
            class="btn btn-success">
             <i class="bi bi-file-earmark-excel"></i> @L["Export Filtered"]
         </a>
@@ -126,11 +108,12 @@
 
     <!-- TABLE -->
     <div class="card shadow-sm border-0">
-        <div class="card-body">
+        <div class="card-body pb-0">
             <div class="table-responsive">
                 <table class="table table-bordered table-striped align-middle">
                     <thead class="table-dark">
                         <tr>
+                            <th>@L["System ID"]</th>
                             <th>@L["Ref No"]</th>
                             <th>@L["Date"]</th>
                             <th>@L["Plate"]</th>
@@ -150,6 +133,7 @@
                         @foreach (var t in Model.Transactions)
                         {
                             <tr class="@(t.IsReverted ? "table-danger" : "")">
+                                <td class="fw-semibold">@t.Id</td>
                                 <td>@(t.ReferenceNo?.ToString() ?? "-")</td>
                                 <td>@VehicleTax.Web.AppTime.ToLocal(t.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@t.Vehicle?.PlateNumber</td>
@@ -173,11 +157,16 @@
                                 <td>@(string.IsNullOrWhiteSpace(t.RevertReason) ? "-" : t.RevertReason)</td>
                             </tr>
                         }
+                        @if (!Model.Transactions.Any())
+                        {
+                            <tr><td colspan="13" class="text-center text-muted py-4">@L["No transactions found."]</td></tr>
+                        }
                     </tbody>
 
                 </table>
             </div>
         </div>
+        <partial name="_Pager" model="Model.Pager" />
     </div>
 
 </div>

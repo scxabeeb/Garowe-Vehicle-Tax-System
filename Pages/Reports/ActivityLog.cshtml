@@ -1,0 +1,266 @@
+@page
+@model VehicleTax.Web.Pages.Reports.ActivityLogModel
+@using VehicleTax.Web.Models
+@{
+    ViewData["Title"] = L["Activity Log"];
+    ViewData["DetailCount"] = Model.Total;
+    ViewData["SummaryHint"] = L["Who did what, by user and record"];
+    (string Label, string Icon, string Fg, string Bg) look(string action) => action switch
+    {
+        ActivityActions.Login => (L["Logged in"], "bi-box-arrow-in-right", "#0b57d0", "#eef4ff"),
+        ActivityActions.LoginFailed => (L["Failed login"], "bi-shield-exclamation", "#b91c1c", "#fee2e2"),
+        ActivityActions.Logout => (L["Logged out"], "bi-box-arrow-right", "#475569", "#f1f5f9"),
+        ActivityActions.Created => (L["Created"], "bi-plus-circle", "#15803d", "#dcfce7"),
+        ActivityActions.Updated => (L["Updated"], "bi-pencil", "#b45309", "#fef3c7"),
+        ActivityActions.Deleted => (L["Deleted"], "bi-trash", "#b91c1c", "#fee2e2"),
+        _ => (action, "bi-dot", "#334155", "#f1f5f9"),
+    };
+    string when(DateTime utc) => VehicleTax.Web.AppTime.ToLocal(utc).ToString("dd MMM yyyy HH:mm:ss");
+}
+
+<style>
+    .al-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .al-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .al-card .head { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
+    .al-kpi { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 14px; display: flex; gap: 12px; align-items: center; height: 100%; }
+    .al-kpi .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 1.15rem; flex-shrink: 0; }
+    .al-kpi .v { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+    .al-kpi .l { font-size: 12px; color: #64748b; font-weight: 600; }
+    .al-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .al-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .al-table td { vertical-align: top; font-size: 14px; }
+    .al-details { font-size: 12.5px; color: #475569; max-width: 460px; word-break: break-word; }
+    .al-num { font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="container-fluid py-4" style="max-width: 1400px;">
+    <div class="al-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-activity me-2"></i>@L["Activity Log"]</h3>
+            <div style="opacity:.8">@L["Who logged in, and every record created, updated or deleted."]</div>
+        </div>
+        <a class="btn btn-light fw-semibold" asp-page-handler="ExportCsv"
+           asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+           asp-route-Username="@Model.Username" asp-route-Action="@Model.Action" asp-route-Entity="@Model.Entity" asp-route-Search="@Model.Search">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>@L["Export CSV"]
+        </a>
+    </div>
+
+    <form method="get" class="al-card mb-3">
+        <div class="p-3 row g-2 align-items-end">
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["From Date"]</label>
+                <input type="date" name="FromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["To Date"]</label>
+                <input type="date" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["User"]</label>
+                <select name="Username" class="form-select">
+                    <option value="">@L["All Users"]</option>
+                    @foreach (var u in Model.Usernames)
+                    {
+                        <option value="@u" selected="@(u == Model.Username ? "selected" : null)">@u</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Action"]</label>
+                <select name="Action" class="form-select">
+                    <option value="">@L["All Actions"]</option>
+                    <option value="SignIns" selected="@(Model.Action == "SignIns" ? "selected" : null)">@L["Sign-ins only"]</option>
+                    @foreach (var a in ActivityActions.All)
+                    {
+                        <option value="@a" selected="@(a == Model.Action ? "selected" : null)">@look(a).Label</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Record"]</label>
+                <select name="Entity" class="form-select">
+                    <option value="">@L["All Records"]</option>
+                    @foreach (var e in Model.Entities)
+                    {
+                        <option value="@e" selected="@(e == Model.Entity ? "selected" : null)">@L[e]</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Search"]</label>
+                <input name="Search" value="@Model.Search" class="form-control" placeholder="@L["ID, plate, IP…"]" />
+            </div>
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+            <div class="col-12 d-flex justify-content-end gap-2">
+                <a class="btn btn-outline-secondary" asp-page="/Reports/ActivityLog">@L["Reset"]</a>
+                <button class="btn btn-primary px-4"><i class="bi bi-funnel me-1"></i>@L["Filter"]</button>
+            </div>
+        </div>
+    </form>
+
+    <partial name="_ReportViewToggle" />
+
+    @* ---------------- SUMMARY ---------------- *@
+    <div data-report-view="summary">
+        <div class="row g-3 mb-3">
+            @{
+                var kpis = new[]
+                {
+                    (L["Total Activity"], Model.Total, "bi-activity", "#0b57d0", "#eef4ff"),
+                    (L["Logged in"], Model.Count(ActivityActions.Login), "bi-box-arrow-in-right", "#0b57d0", "#eef4ff"),
+                    (L["Failed login"], Model.Count(ActivityActions.LoginFailed), "bi-shield-exclamation", "#b91c1c", "#fee2e2"),
+                    (L["Created"], Model.Count(ActivityActions.Created), "bi-plus-circle", "#15803d", "#dcfce7"),
+                    (L["Updated"], Model.Count(ActivityActions.Updated), "bi-pencil", "#b45309", "#fef3c7"),
+                    (L["Deleted"], Model.Count(ActivityActions.Deleted), "bi-trash", "#b91c1c", "#fee2e2"),
+                };
+            }
+            @foreach (var k in kpis)
+            {
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="al-kpi">
+                        <span class="ic" style="background:@k.Item5;color:@k.Item4"><i class="bi @k.Item3"></i></span>
+                        <div><div class="v al-num">@k.Item2.ToString("N0")</div><div class="l">@k.Item1</div></div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="row g-3">
+            <div class="col-xl-7">
+                <div class="al-card h-100">
+                    <div class="head"><i class="bi bi-people text-primary"></i>@L["By User"]</div>
+                    <div class="table-responsive">
+                        <table class="table al-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@L["User"]</th>
+                                    <th class="text-end">@L["Logged in"]</th>
+                                    <th class="text-end">@L["Failed login"]</th>
+                                    <th class="text-end">@L["Created"]</th>
+                                    <th class="text-end">@L["Updated"]</th>
+                                    <th class="text-end">@L["Deleted"]</th>
+                                    <th>@L["Last Activity"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var u in Model.ByUser)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">
+                                            <a asp-route-Username="@u.Username" asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                                               asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-view="details">@u.Username</a>
+                                        </td>
+                                        <td class="text-end al-num">@u.Logins</td>
+                                        <td class="text-end al-num @(u.Failed > 0 ? "text-danger fw-bold" : "")">@u.Failed</td>
+                                        <td class="text-end al-num">@u.Created</td>
+                                        <td class="text-end al-num">@u.Updated</td>
+                                        <td class="text-end al-num">@u.Deleted</td>
+                                        <td class="small text-muted text-nowrap">@when(u.Last)</td>
+                                    </tr>
+                                }
+                                @if (!Model.ByUser.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center text-muted py-4">@L["No activity in this period."]</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="al-card mb-3">
+                    <div class="head"><i class="bi bi-database text-primary"></i>@L["By Record"]</div>
+                    <div class="table-responsive">
+                        <table class="table al-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@L["Record"]</th>
+                                    <th class="text-end">@L["Created"]</th>
+                                    <th class="text-end">@L["Updated"]</th>
+                                    <th class="text-end">@L["Deleted"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var e in Model.ByEntity)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@L[e.Entity]</td>
+                                        <td class="text-end al-num">@e.Created</td>
+                                        <td class="text-end al-num">@e.Updated</td>
+                                        <td class="text-end al-num">@e.Deleted</td>
+                                    </tr>
+                                }
+                                @if (!Model.ByEntity.Any())
+                                {
+                                    <tr><td colspan="4" class="text-center text-muted py-4">@L["No changes in this period."]</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="al-card">
+                    <div class="head"><i class="bi bi-door-open text-primary"></i>@L["Recent Sign-ins"]</div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var r in Model.RecentLogins)
+                        {
+                            var lk = look(r.Action);
+                            <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                                <div>
+                                    <span class="fw-semibold">@r.Username</span>
+                                    <div class="small text-muted">@when(r.At)@(string.IsNullOrEmpty(r.Details) ? "" : " · " + r.Details)</div>
+                                </div>
+                                <span class="al-badge" style="background:@lk.Bg;color:@lk.Fg"><i class="bi @lk.Icon"></i>@lk.Label</span>
+                            </li>
+                        }
+                        @if (!Model.RecentLogins.Any())
+                        {
+                            <li class="list-group-item text-center text-muted py-3">@L["No sign-ins in this period."]</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ---------------- DETAILS ---------------- *@
+    <div data-report-view="details">
+        <div class="al-card">
+            <div class="table-responsive">
+                <table class="table al-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["System ID"]</th>
+                            <th>@L["Date"]</th>
+                            <th>@L["User"]</th>
+                            <th>@L["Action"]</th>
+                            <th>@L["Record"]</th>
+                            <th>@L["Details"]</th>
+                            <th>@L["IP Address"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.Rows)
+                        {
+                            var lk = look(a.Action);
+                            <tr>
+                                <td class="fw-semibold al-num">@a.Id</td>
+                                <td class="text-nowrap small">@when(a.At)</td>
+                                <td class="fw-semibold">@a.Username</td>
+                                <td><span class="al-badge" style="background:@lk.Bg;color:@lk.Fg"><i class="bi @lk.Icon"></i>@lk.Label</span></td>
+                                <td class="text-nowrap">@L[a.Entity]@(string.IsNullOrEmpty(a.EntityId) ? "" : " #" + a.EntityId)</td>
+                                <td><div class="al-details">@(string.IsNullOrEmpty(a.Details) ? "—" : a.Details)</div></td>
+                                <td class="small text-muted text-nowrap" title="@a.Path">@(a.IpAddress ?? "—")</td>
+                            </tr>
+                        }
+                        @if (!Model.Rows.Any())
+                        {
+                            <tr><td colspan="7" class="text-center text-muted py-4">@L["No activity found for the selected filters."]</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pager" model="Model.Pager" />
+        </div>
+    </div>
+</div>

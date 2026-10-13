@@ -220,6 +220,7 @@
                     var canUserCreate = can("Users.Create");
                     var canManagePermissions = can("Roles.ManagePermissions");
                     var canRolesView = can("Roles.View");
+                    var canActivityLog = canUserView;
                     var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLowerInvariant();
 
                     var isDataSetup = currentPath.StartsWith("/vehicles") ||
@@ -398,7 +399,7 @@
                     </li>
                     }
 
-                    @if (canReportsView || canFinanceView)
+                    @if (canReportsView || canFinanceView || canActivityLog)
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-1 @(isReports ? "active" : "")"
@@ -499,6 +500,14 @@
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Transactions/Index">
                                         <i class="bi bi-arrow-left-right"></i> @L["Transactions Audit Log"]
+                                    </a>
+                                </li>
+                                }
+                                @if (canActivityLog)
+                                {
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/ActivityLog">
+                                        <i class="bi bi-activity"></i> @L["Activity Log"]
                                     </a>
                                 </li>
                                 }

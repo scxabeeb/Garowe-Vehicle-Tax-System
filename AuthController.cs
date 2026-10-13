@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Controllers
 {
@@ -17,20 +18,23 @@ namespace VehicleTax.Web.Controllers
         private readonly AppDbContext _context;
         private readonly JwtSettings _jwtSettings;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IActivityLogger _activity;
 
         public AuthController(
             AppDbContext context,
             IOptions<JwtSettings> jwtOptions,
-            IPasswordHasher<User> passwordHasher)
+            IPasswordHasher<User> passwordHasher,
+            IActivityLogger activity)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
             _passwordHasher = passwordHasher;
+            _activity = activity;
         }
 
         // ================= LOGIN =================
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             if (dto == null ||
                 string.IsNullOrWhiteSpace(dto.Username) ||
@@ -50,6 +54,7 @@ namespace VehicleTax.Web.Controllers
 
             if (user == null)
             {
+                await _activity.LogAsync(ActivityActions.LoginFailed, dto.Username.Trim(), details: "App: unknown username");
                 return Unauthorized(new
                 {
                     message = "Invalid username"
@@ -73,6 +78,7 @@ namespace VehicleTax.Web.Controllers
                 // Backward compatibility for legacy plain-text passwords.
                 if (!string.Equals(user.Password.Trim(), password, StringComparison.Ordinal))
                 {
+                    await _activity.LogAsync(ActivityActions.LoginFailed, user.Username, entityId: user.Id.ToString(), details: "App: wrong password");
                     return Unauthorized(new
                     {
                         message = "Invalid password"
@@ -111,6 +117,8 @@ namespace VehicleTax.Web.Controllers
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
                 signingCredentials: creds);
+
+            await _activity.LogAsync(ActivityActions.Login, user.Username, entityId: user.Id.ToString(), details: $"Mobile app · {user.Role}");
 
             return Ok(new
             {

@@ -26,9 +26,14 @@ builder.Services.Configure<JwtSettings>(
 var connectionString = ResolveConnectionString(builder.Configuration);
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<VehicleTax.Web.Services.AuditSaveChangesInterceptor>();
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseMySql(connectionString, serverVersion)
+        // Records every insert / update / delete in the activity log.
+        .AddInterceptors(sp.GetRequiredService<VehicleTax.Web.Services.AuditSaveChangesInterceptor>())
 );
+builder.Services.AddScoped<VehicleTax.Web.Services.IActivityLogger, VehicleTax.Web.Services.ActivityLogger>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 

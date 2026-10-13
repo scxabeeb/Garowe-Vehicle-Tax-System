@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using VehicleTax.Web.Models;
 using MySqlConnector;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Account;
 
@@ -17,11 +18,13 @@ public class LoginModel : PageModel
 {
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IActivityLogger _activity;
 
-    public LoginModel(AppDbContext context, IPasswordHasher<User> passwordHasher)
+    public LoginModel(AppDbContext context, IPasswordHasher<User> passwordHasher, IActivityLogger activity)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _activity = activity;
     }
 
     [BindProperty]
@@ -62,6 +65,7 @@ public class LoginModel : PageModel
         // Invalid credentials
         if (user == null || string.IsNullOrWhiteSpace(user.Password))
         {
+            await _activity.LogAsync(ActivityActions.LoginFailed, Username, details: "Web: unknown username");
             ErrorMessage = "Invalid username or password";
             return Page();
         }
@@ -82,6 +86,7 @@ public class LoginModel : PageModel
             // Backward compatibility for legacy plain-text passwords.
             if (user.Password != Password)
             {
+                await _activity.LogAsync(ActivityActions.LoginFailed, user.Username, entityId: user.Id.ToString(), details: "Web: wrong password");
                 ErrorMessage = "Invalid username or password";
                 return Page();
             }
@@ -124,6 +129,7 @@ public class LoginModel : PageModel
         // 🔒 Block locked users
         if (user.IsLocked)
         {
+            await _activity.LogAsync(ActivityActions.LoginFailed, user.Username, entityId: user.Id.ToString(), details: "Web: account locked");
             ErrorMessage = "Your account is locked. Please contact the administrator.";
             return Page();
         }
@@ -159,6 +165,8 @@ public class LoginModel : PageModel
             {
                 IsPersistent = false
             });
+
+        await _activity.LogAsync(ActivityActions.Login, user.Username, entityId: user.Id.ToString(), details: $"Web · {user.Role}");
 
         // Redirect after successful login
         if (!string.IsNullOrWhiteSpace(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))

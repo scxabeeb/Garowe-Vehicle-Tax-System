@@ -29,10 +29,17 @@ namespace VehicleTax.Web.Data
         public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
         public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
         public DbSet<PermissionAuditLog> PermissionAuditLogs => Set<PermissionAuditLog>();
+        public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ActivityLog>(e =>
+            {
+                e.HasIndex(x => x.At);
+                e.HasIndex(x => new { x.Username, x.At });
+            });
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)

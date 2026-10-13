@@ -1,0 +1,71 @@
+@model VehicleTax.Web.Services.Pager
+@*
+    Numbered pager for report tables. Links keep every current query-string
+    value (filters, view, page size) and only change the page number.
+*@
+@{
+    var p = Model;
+    string link(int page, int? size = null)
+    {
+        var q = Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
+        q.Remove("handler");
+        q[p.PageParam] = page.ToString();
+        if (size.HasValue) q["PageSize"] = size.Value.ToString();
+        return Context.Request.Path + Microsoft.AspNetCore.Http.QueryString.Create(
+            q.Where(kv => !string.IsNullOrEmpty(kv.Value)).Select(kv => new KeyValuePair<string, string?>(kv.Key, kv.Value)));
+    }
+}
+<style>
+    .vt-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 1rem; }
+    .vt-pager .info { font-size: 13px; color: #64748b; }
+    .vt-pager .info b { color: #0f172a; }
+    .vt-pager .pages { display: flex; gap: 4px; flex-wrap: wrap; }
+    .vt-pager .pg { min-width: 36px; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff;
+        display: inline-grid; place-items: center; font-weight: 700; font-size: 14px; color: #334155; text-decoration: none; }
+    .vt-pager a.pg:hover { background: #f1f5f9; }
+    .vt-pager .pg.active { background: #0b57d0; border-color: #0b57d0; color: #fff; }
+    .vt-pager .pg.disabled { opacity: .4; pointer-events: none; }
+    .vt-pager .pg.gap { border: none; background: none; }
+    .vt-pager .size { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #64748b; }
+    @@media print { .vt-pager { display: none; } }
+</style>
+<nav class="vt-pager" aria-label="@L["Pages"]">
+    <div class="info">
+        @if (p.Total == 0)
+        {
+            @L["No records"]
+        }
+        else
+        {
+            <span>@L["Showing"] <b>@p.From.ToString("N0")–@p.To.ToString("N0")</b> @L["of"] <b>@p.Total.ToString("N0")</b></span>
+        }
+    </div>
+    @if (p.TotalPages > 1)
+    {
+        <div class="pages">
+            <a class="pg @(p.Page == 1 ? "disabled" : "")" href="@link(p.Page - 1)" title="@L["Previous"]"><i class="bi bi-chevron-left"></i></a>
+            @foreach (var n in p.Window())
+            {
+                if (n == 0)
+                {
+                    <span class="pg gap">…</span>
+                }
+                else
+                {
+                    <a class="pg @(n == p.Page ? "active" : "")" href="@link(n)">@n</a>
+                }
+            }
+            <a class="pg @(p.Page == p.TotalPages ? "disabled" : "")" href="@link(p.Page + 1)" title="@L["Next"]"><i class="bi bi-chevron-right"></i></a>
+        </div>
+    }
+    <div class="size">
+        @L["Rows"]
+        <select class="form-select form-select-sm w-auto" onchange="location.href=this.value">
+            @foreach (var s in VehicleTax.Web.Services.Pager.Sizes)
+            {
+                <option value="@link(1, s)" selected="@(p.PageSize == s ? "selected" : null)">@s</option>
+            }
+            <option value="@link(1, 0)" selected="@(p.PageSize == 0 ? "selected" : null)">@L["All"]</option>
+        </select>
+    </div>
+</nav>

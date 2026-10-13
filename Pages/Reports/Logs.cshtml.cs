@@ -41,6 +41,7 @@ public class LogsModel : PageModel
     public int RevertedCount { get; set; }
     public int TotalPages { get; set; }
     public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
+    public VehicleTax.Web.Services.Pager Pager { get; set; } = new(0, 1, 10);
 
     public async Task OnGetAsync()
     {
@@ -97,30 +98,24 @@ public class LogsModel : PageModel
 
         Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
 
-        // ---- Summary (computed before paging) ----
-        var allMatching = query.AsEnumerable();
-
-        TotalTransactions = allMatching.Count();
-        CompletedCount = allMatching.Count(p => !p.IsReverted);
-        RevertedCount = allMatching.Count(p => p.IsReverted);
-        TotalCompletedAmount = allMatching.Where(p => !p.IsReverted).Sum(p => (decimal?)p.Amount) ?? 0m;
-        TotalRevertedAmount = allMatching.Where(p => p.IsReverted).Sum(p => (decimal?)p.Amount) ?? 0m;
+        // ---- Summary (whole filtered set, computed in the database) ----
+        var totals = await query
+            .GroupBy(p => p.IsReverted)
+            .Select(g => new { Reverted = g.Key, Count = g.Count(), Amount = g.Sum(p => p.Amount) })
+            .ToListAsync();
+        CompletedCount = totals.Where(t => !t.Reverted).Sum(t => t.Count);
+        RevertedCount = totals.Where(t => t.Reverted).Sum(t => t.Count);
+        TotalCompletedAmount = totals.Where(t => !t.Reverted).Sum(t => t.Amount);
+        TotalRevertedAmount = totals.Where(t => t.Reverted).Sum(t => t.Amount);
+        TotalTransactions = CompletedCount + RevertedCount;
 
         // ---- Paging ----
-        if (PageSize > 0)
-        {
-            TotalPages = (int)Math.Ceiling(TotalTransactions / (double)PageSize);
-            Transactions = await query
-                .OrderByDescending(p => p.PaidAt)
-                .Skip((CurrentPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-        }
-        else
-        {
-            TotalPages = 1;
-            Transactions = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
-        }
+        Pager = new VehicleTax.Web.Services.Pager(TotalTransactions, CurrentPage, PageSize);
+        CurrentPage = Pager.Page;
+        TotalPages = Pager.TotalPages;
+        Transactions = await Pager.Apply(query.OrderByDescending(p => p.PaidAt).ThenByDescending(p => p.Id))
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     // =======================

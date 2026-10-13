@@ -81,6 +81,9 @@ public sealed class PagePermissionFilter : IAsyncPageFilter
         // Golis audit: viewing is a report, changing it is finance work
         ["/Reports/GolisAudit"] = K.ReportsView,
         ["/Reports/GolisAudit#Export"] = K.ReportsExport,
+        // Activity log shows who signed in and changed what: user admins only.
+        ["/Reports/ActivityLog"] = K.UsersView,
+        ["/Reports/ActivityLog#ExportCsv"] = K.UsersView,
         ["/Transactions/Index"] = K.ReportsView,
         ["/Transactions/Index#ExportFiltered"] = K.ReportsExport,
     };
