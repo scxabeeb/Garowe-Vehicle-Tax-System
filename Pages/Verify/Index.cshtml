@@ -1,0 +1,14 @@
+@page
+@model VehicleTax.Web.Pages.Verify.IndexModel
+@{
+    ViewData["Title"] = L["Verify Plate"];
+}
+<div class="container py-4" style="max-width: 640px;">
+    <h3 class="fw-bold mb-1"><i class="bi bi-patch-check text-primary me-2"></i>@L["Verify Plate"]</h3>
+    <p class="text-muted mb-3">@L["Check a vehicle's tax status by plate number or receipt QR code."]</p>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <partial name="_PlateChecker" />
+        </div>
+    </div>
+</div>

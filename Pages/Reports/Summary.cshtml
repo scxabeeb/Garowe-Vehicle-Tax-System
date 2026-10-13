@@ -63,6 +63,10 @@
         </div>
     </form>
 
+    @{ ViewData["DetailCount"] = Model.TotalTransactions; }
+    <partial name="_ReportViewToggle" />
+
+    <div data-report-view="summary">
     <!-- SUMMARY KPIs -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -121,7 +125,7 @@
                                 @foreach (var s in Model.StatusSummaries)
                                 {
                                     <tr>
-                                        <td>@s.Status</td>
+                                        <td>@L[s.Status]</td>
                                         <td class="text-end">@s.Count</td>
                                         <td class="text-end">$@s.Amount.ToString("N0")</td>
                                     </tr>
@@ -238,18 +242,21 @@
         </div>
     </div>
 
+    </div>
+
+    <div data-report-view="details">
     <!-- PAYMENT DETAILS (with audit Reference No.) -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <h5 class="fw-bold mb-3">
-                <i class="bi bi-list-ul"></i> Payment Details (with Reference No.)
+                <i class="bi bi-list-ul"></i> @L["Detailed Payments"]
             </h5>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-sm mb-0">
                     <thead class="table-dark">
                         <tr>
+                            <th>@L["System ID"]</th>
                             <th>@L["Ref No"]</th>
-                            <th>@L["Payment ID"]</th>
                             <th>@L["Invoice ID"]</th>
                             <th>@L["Plate"]</th>
                             <th>@L["Traffida"]</th>
@@ -271,8 +278,8 @@
                             @foreach (var p in Model.PaymentRecords)
                             {
                                 <tr class="@(p.IsReverted ? "table-danger" : "")">
+                                    <td class="fw-semibold">@p.Id</td>
                                     <td>@(p.ReferenceNo?.ToString() ?? "-")</td>
-                                    <td>@p.Id</td>
                                     <td>@p.InvoiceId</td>
                                     <td>@p.PlateNumber</td>
                                     <td>@p.MovementType</td>
@@ -296,5 +303,6 @@
                 </table>
             </div>
         </div>
+    </div>
     </div>
 </div>

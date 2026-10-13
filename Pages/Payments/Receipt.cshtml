@@ -295,6 +295,37 @@
                         }
                     </div>
 
+                    @if (!Model.Payment.IsPaid && !Model.Payment.IsReverted)
+                    {
+                        <div class="alert alert-info d-flex align-items-center gap-2 d-print-none" id="golis-live"
+                             data-code="@Model.Payment.InvoiceNumber">
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span data-golis-text>@L["Waiting for Golis payment… this page updates automatically."]</span>
+                        </div>
+                        <script>
+                            (function () {
+                                var box = document.getElementById('golis-live');
+                                var code = box.getAttribute('data-code');
+                                var started = Date.now();
+                                var timer = setInterval(function () {
+                                    // Stop after 15 minutes; the page can be refreshed manually.
+                                    if (Date.now() - started > 15 * 60 * 1000) { clearInterval(timer); box.remove(); return; }
+                                    fetch('/api/verify/' + encodeURIComponent(code), { cache: 'no-store' })
+                                        .then(function (r) { return r.ok ? r.json() : null; })
+                                        .then(function (p) {
+                                            if (p && p.isPaid) {
+                                                clearInterval(timer);
+                                                box.className = 'alert alert-success d-flex align-items-center gap-2 d-print-none';
+                                                box.querySelector('[data-golis-text]').textContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(L["Payment received! Refreshing…"]));
+                                                setTimeout(function () { window.location.reload(); }, 1200);
+                                            }
+                                        })
+                                        .catch(function () {});
+                                }, 5000);
+                            })();
+                        </script>
+                    }
+
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <table class="table meta-table mb-0">

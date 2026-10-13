@@ -38,13 +38,42 @@
         </div>
     </div>
 
+    @{
+        ViewData["DetailCount"] = Model.Audits.Count;
+        var auditGroups = new List<VehicleTax.Web.Services.CountGroup>
+        {
+            new(L["Audits by Status"], "bi-clipboard-check",
+                VehicleTax.Web.Services.ReportDetails.CountBy(Model.Audits, a => a.Status.ToString())),
+        };
+        var golisTotal = Model.Audits.Sum(a => a.TotalGolisAmount);
+        var systemTotal = Model.Audits.Sum(a => a.TotalSystemAmount);
+    }
+    <partial name="_ReportViewToggle" />
+
+    <div data-report-view="summary">
+        <div class="row g-3 mb-3">
+            <div class="col-md-4"><div class="card shadow-sm border-0 text-center"><div class="card-body">
+                <div class="text-muted small">@L["Golis Total"]</div><div class="fs-4 fw-bold">$@golisTotal.ToString("N0")</div>
+            </div></div></div>
+            <div class="col-md-4"><div class="card shadow-sm border-0 text-center"><div class="card-body">
+                <div class="text-muted small">@L["System Total"]</div><div class="fs-4 fw-bold">$@systemTotal.ToString("N0")</div>
+            </div></div></div>
+            <div class="col-md-4"><div class="card shadow-sm border-0 text-center"><div class="card-body">
+                <div class="text-muted small">@L["Difference"]</div>
+                <div class="fs-4 fw-bold @(golisTotal - systemTotal == 0 ? "text-success" : "text-danger")">$@((golisTotal - systemTotal).ToString("N0"))</div>
+            </div></div></div>
+        </div>
+        <partial name="_CountGroups" model="auditGroups" />
+    </div>
+
+    <div data-report-view="details">
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-sm align-middle">
                     <thead class="table-dark">
                         <tr>
-                            <th>@L["Audit ID"]</th>
+                            <th>@L["System ID"]</th>
                             <th>@L["Statement Number"]</th>
                             <th>@L["Period"]</th>
                             <th class="text-end">@L["Golis Total"]</th>
@@ -104,5 +133,6 @@
                 </table>
             </div>
         </div>
+    </div>
     </div>
 </div>

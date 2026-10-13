@@ -51,6 +51,7 @@ public class ReceiptReferencesModel : PageModel
     public int PageSize { get; set; } = 10;
 
     public int TotalRecords { get; set; }
+    public List<VehicleTax.Web.Services.CountGroup> SummaryGroups { get; set; } = new();
     public int TotalPages => (int)Math.Ceiling(TotalRecords / (double)PageSize);
 
     public async Task OnGetAsync()
@@ -112,6 +113,14 @@ public class ReceiptReferencesModel : PageModel
         }
 
         TotalRecords = await query.CountAsync();
+        var summary = await query.Select(r => new { r.IsCancelled, r.IsUsed, r.UsedBy }).ToListAsync();
+        SummaryGroups = new()
+        {
+            new("References by Status", "bi-tags",
+                VehicleTax.Web.Services.ReportDetails.CountBy(summary, r => r.IsCancelled ? "Cancelled" : r.IsUsed ? "Used" : "Available")),
+            new("References by Collector", "bi-person-badge",
+                VehicleTax.Web.Services.ReportDetails.CountBy(summary.Where(r => r.IsUsed), r => r.UsedBy)),
+        };
 
         ReceiptReferences = await query
             .OrderByDescending(r => r.Id)
@@ -173,7 +182,7 @@ public class ReceiptReferencesModel : PageModel
         var data = await query.ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Id,Reference,Status,VehiclePlate,Collector,UsedAt,CancelledBy,CancelledReason");
+        sb.AppendLine("System ID,Reference,Status,VehiclePlate,Collector,UsedAt,CancelledBy,CancelledReason");
 
         foreach (var r in data)
         {

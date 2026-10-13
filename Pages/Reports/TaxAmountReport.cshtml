@@ -60,11 +60,19 @@
     <i class="bi bi-file-earmark-excel"></i> @L["Export to CSV"]
 </a>
 
+@{ ViewData["DetailCount"] = Model.TotalCount; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
+    <partial name="_CountGroups" model="Model.SummaryGroups" />
+</div>
+
+<div data-report-view="details">
 <div class="table-responsive">
     <table class="table table-bordered table-striped table-hover">
         <thead class="table-dark">
             <tr>
-                <th>#</th>
+                <th>@L["System ID"]</th>
                 <th>@L["Car Type"]</th>
                 <th>@L["Traffida"]</th>
                 <th>@L["Amount"]</th>
@@ -87,7 +95,7 @@
                 };
 
                 <tr>
-                    <td>@i</td>
+                    <td class="fw-semibold">@t.Id</td>
                     <td>@t.CarType?.Name</td>
                     <td>
                         <span class="badge @badgeClass">
@@ -127,3 +135,4 @@
         }
     </ul>
 </nav>
+</div>

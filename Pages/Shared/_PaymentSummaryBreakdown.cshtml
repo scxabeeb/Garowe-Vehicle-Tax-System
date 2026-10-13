@@ -1,0 +1,51 @@
+@model VehicleTax.Web.Services.PaymentSummaryBreakdown
+@* Summary view: paid totals grouped by traffida, collector, checkpoint, car type. *@
+@{
+    var groups = new[]
+    {
+        (Title: L["By Traffida"], Icon: "bi-signpost-split", Rows: Model.ByTraffida),
+        (Title: L["By Collector"], Icon: "bi-person-badge", Rows: Model.ByCollector),
+        (Title: L["By Checkpoint"], Icon: "bi-geo-alt", Rows: Model.ByCheckpoint),
+        (Title: L["By Car Type"], Icon: "bi-truck", Rows: Model.ByCarType),
+    };
+}
+<div class="row g-3 mb-3">
+    @foreach (var g in groups)
+    {
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold"><i class="bi @g.Icon me-1 text-primary"></i>@g.Title</div>
+                <div class="card-body p-0">
+                    @if (g.Rows.Count == 0)
+                    {
+                        <div class="text-muted small p-3">@L["No data found for the selected filters."]</div>
+                    }
+                    else
+                    {
+                        <table class="table table-sm mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr><th>@L["Name"]</th><th class="text-end">@L["Count"]</th><th class="text-end">@L["Amount"]</th><th style="width:30%"></th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in g.Rows)
+                                {
+                                    var share = Model.PaidAmount > 0 ? (double)(r.Amount / Model.PaidAmount) * 100 : 0;
+                                    <tr>
+                                        <td>@r.Name</td>
+                                        <td class="text-end">@r.Count.ToString("N0")</td>
+                                        <td class="text-end fw-semibold">$@r.Amount.ToString("N2")</td>
+                                        <td>
+                                            <div class="progress" style="height:6px;" title="@share.ToString("0")%">
+                                                <div class="progress-bar" style="width:@share.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

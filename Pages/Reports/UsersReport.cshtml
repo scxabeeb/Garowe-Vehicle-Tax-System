@@ -45,11 +45,29 @@
     <i class="bi bi-file-earmark-excel"></i> @L["Export to CSV"]
 </a>
 
+@{ ViewData["DetailCount"] = Model.TotalCount; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">@L["Total Users"]</h6>
+                    <h4 class="fw-bold mb-0">@Model.TotalCount</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <partial name="_CountGroups" model="Model.SummaryGroups" />
+</div>
+
+<div data-report-view="details">
 <div class="table-responsive">
     <table class="table table-bordered table-striped table-hover">
         <thead class="table-dark">
             <tr>
-                <th>#</th>
+                <th>@L["System ID"]</th>
                 <th>@L["Username"]</th>
                 <th>@L["Full Name"]</th>
                 <th>@L["Phone"]</th>
@@ -74,12 +92,12 @@
                 };
 
                 <tr>
-                    <td>@i</td>
+                    <td class="fw-semibold">@user.Id</td>
                     <td>@user.Username</td>
                     <td>@user.FullName</td>
                     <td>@user.Phone</td>
                     <td>
-                        <span class="badge @badgeClass">@user.Role</span>
+                        <span class="badge @badgeClass">@L[user.Role]</span>
                     </td>
                     <td>
                         <small class="text-muted">@user.Permissions</small>
@@ -123,3 +141,4 @@
         }
     </ul>
 </nav>
+</div>

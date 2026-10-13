@@ -1,0 +1,65 @@
+@*
+    Summary | Details switch for report pages. Sections are marked with
+    data-report-view="summary" or data-report-view="details"; the choice is
+    kept in the URL (?view=details) so links, exports and printing keep it.
+    ViewData: "SummaryHint" (text under Summary), "DetailCount" (int).
+*@
+@{
+    var view = Context.Request.Query["view"].ToString() == "details" ? "details" : "summary";
+    var detailCount = ViewData["DetailCount"] as int?;
+    var summaryHint = ViewData["SummaryHint"] as string ?? L["Totals and groups"];
+}
+<style>
+    .report-view-cards { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1rem; }
+    .report-view-card { border: 2px solid #e2e8f0; border-radius: 14px; background: #fff; padding: .85rem 1rem;
+        display: flex; align-items: center; gap: .75rem; cursor: pointer; transition: all .15s; text-align: left; width: 100%; }
+    .report-view-card:hover { border-color: #93b4f5; }
+    .report-view-card.active { border-color: #0b57d0; background: #eef4ff; box-shadow: 0 2px 10px rgba(11,87,208,.12); }
+    .report-view-card .rv-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+        background: #eef4ff; color: #0b57d0; font-size: 1.3rem; flex-shrink: 0; }
+    .report-view-card.active .rv-icon { background: #0b57d0; color: #fff; }
+    .report-view-card .rv-title { font-weight: 800; color: #0f172a; }
+    .report-view-card .rv-hint { font-size: .8rem; color: #64748b; }
+    [data-report-view] { display: none; }
+    [data-report-view].rv-show { display: block; }
+    @@media print { .report-view-cards { display: none; } }
+</style>
+<div class="report-view-cards" role="tablist">
+    <button type="button" class="report-view-card @(view == "summary" ? "active" : "")" data-view-btn="summary" role="tab">
+        <span class="rv-icon"><i class="bi bi-bar-chart-line"></i></span>
+        <span><span class="rv-title d-block">@L["Summary"]</span><span class="rv-hint">@summaryHint</span></span>
+    </button>
+    <button type="button" class="report-view-card @(view == "details" ? "active" : "")" data-view-btn="details" role="tab">
+        <span class="rv-icon"><i class="bi bi-list-ul"></i></span>
+        <span>
+            <span class="rv-title d-block">@L["Details"]</span>
+            <span class="rv-hint">@(detailCount.HasValue ? $"{detailCount:N0} {L["records"]}" : L["Every record"])</span>
+        </span>
+    </button>
+</div>
+<script>
+    (function () {
+        function show(view) {
+            document.querySelectorAll('[data-report-view]').forEach(function (el) {
+                el.classList.toggle('rv-show', el.getAttribute('data-report-view') === view);
+            });
+            document.querySelectorAll('[data-view-btn]').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-view-btn') === view);
+            });
+            var url = new URL(window.location.href);
+            url.searchParams.set('view', view);
+            window.history.replaceState(null, '', url);
+            // Keep the choice when filters are submitted.
+            document.querySelectorAll('form[method="get"], form[method="GET"]').forEach(function (f) {
+                var input = f.querySelector('input[name="view"]');
+                if (!input) { input = document.createElement('input'); input.type = 'hidden'; input.name = 'view'; f.appendChild(input); }
+                input.value = view;
+            });
+        }
+        document.querySelectorAll('[data-view-btn]').forEach(function (b) {
+            b.addEventListener('click', function () { show(b.getAttribute('data-view-btn')); });
+        });
+        document.addEventListener('DOMContentLoaded', function () { show('@view'); });
+        if (document.readyState !== 'loading') show('@view');
+    })();
+</script>

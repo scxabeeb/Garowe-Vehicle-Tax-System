@@ -40,6 +40,7 @@ public class LogsModel : PageModel
     public int CompletedCount { get; set; }
     public int RevertedCount { get; set; }
     public int TotalPages { get; set; }
+    public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -93,6 +94,8 @@ public class LogsModel : PageModel
             if (Action == "Reverted")
                 query = query.Where(p => p.IsReverted);
         }
+
+        Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
 
         // ---- Summary (computed before paging) ----
         var allMatching = query.AsEnumerable();
@@ -162,11 +165,12 @@ public class LogsModel : PageModel
         var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Date,Plate,Car Type,Movement,Revenue Account,Collector,Checkpoint,Payment Method,Transaction ID,Receipt No,Amount,Status,Cancelled By,Cancel Reason,Remarks,Paid By");
+        sb.AppendLine("System ID,Date,Plate,Car Type,Traffida,Revenue Account,Collector,Checkpoint,Payment Method,Transaction ID,Receipt No,Amount,Status,Cancelled By,Cancel Reason,Remarks,Paid By");
 
         foreach (var p in data)
         {
             sb.AppendLine(string.Join(",",
+                p.Id.ToString(),
                 Escape(AppTime.ToLocal(p.PaidAt).ToString("dd MMM yyyy HH:mm")),
                 Escape(p.Vehicle?.PlateNumber ?? "-"),
                 Escape(p.Vehicle?.CarType?.Name ?? "-"),

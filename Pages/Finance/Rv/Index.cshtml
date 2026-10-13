@@ -41,21 +41,21 @@
                     <label class="form-label small mb-0">@L["Status"]</label>
                     <select class="form-select" asp-for="Status">
                         <option value="">@L["All"]</option>
-                        <option>@L["Draft"]</option>
-                        <option>@L["Prepared"]</option>
-                        <option>@L["ReadyForFmis"]</option>
-                        <option>@L["Transferred"]</option>
-                        <option>@L["Cancelled"]</option>
+                        <option value="Draft">@L["Draft"]</option>
+                        <option value="Prepared">@L["Prepared"]</option>
+                        <option value="ReadyForFmis">@L["ReadyForFmis"]</option>
+                        <option value="Transferred">@L["Transferred"]</option>
+                        <option value="Cancelled">@L["Cancelled"]</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">@L["FMIS Status"]</label>
                     <select class="form-select" asp-for="FmisStatus">
                         <option value="">@L["All"]</option>
-                        <option>@L["NotTransferred"]</option>
-                        <option>@L["ReadyForFmis"]</option>
-                        <option>@L["Failed"]</option>
-                        <option>@L["Transferred"]</option>
+                        <option value="NotTransferred">@L["NotTransferred"]</option>
+                        <option value="ReadyForFmis">@L["ReadyForFmis"]</option>
+                        <option value="Failed">@L["Failed"]</option>
+                        <option value="Transferred">@L["Transferred"]</option>
                     </select>
                 </div>
                 <div class="col-md-1">

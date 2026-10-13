@@ -55,6 +55,11 @@
     </div>
 </form>
 
+@{ ViewData["DetailCount"] = Model.DetailRows.Count; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
+
 <div class="card module-kpi-card mb-3">
     <div class="card-body text-center">
         <div class="module-kpi-title">@L["Total Tax Collected"]</div>
@@ -109,5 +114,12 @@
         }
     </ul>
 </nav>
+
+<partial name="_PaymentSummaryBreakdown" model="Model.Breakdown" />
+</div>
+
+<div data-report-view="details">
+    <partial name="_PaymentDetailsTable" model="Model.DetailRows" />
+</div>
 
 </div>

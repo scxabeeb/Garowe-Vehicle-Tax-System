@@ -103,6 +103,10 @@
     </a>
 </div>
 
+@{ ViewData["DetailCount"] = Model.TotalPayments; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
 <!-- SUMMARY -->
 <div class="row g-3 mb-4">
     <div class="col-md-4">
@@ -326,6 +330,9 @@
     </div>
 </div>
 
+</div>
+
+<div data-report-view="details">
 <!-- PAGE SIZE (EXTEND ONLY) -->
 <form method="get" class="d-flex justify-content-between align-items-center mb-2">
 
@@ -386,6 +393,7 @@
         <table class="table table-bordered table-striped table-hover mb-0">
             <thead class="table-dark">
                 <tr>
+                    <th>@L["System ID"]</th>
                     <th>@L["Date"]</th>
                     <th>@L["Plate"]</th>
                     <th>@L["Owner"]</th>
@@ -406,6 +414,7 @@
                 foreach (var p in Model.Payments)
                 {
                     <tr>
+                        <td class="fw-semibold">@p.Id</td>
                         <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
                         <td>@p.Vehicle?.PlateNumber</td>
                         <td>@p.Vehicle?.OwnerName</td>
@@ -424,7 +433,7 @@
             else
             {
                 <tr>
-                    <td colspan="12" class="text-center text-muted">@L["No payments found"]</td>
+                    <td colspan="13" class="text-center text-muted">@L["No payments found"]</td>
                 </tr>
             }
             </tbody>
@@ -432,7 +441,7 @@
             {
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="10" class="fw-bold text-end">@L["TOTAL"]</td>
+                        <td colspan="11" class="fw-bold text-end">@L["TOTAL"]</td>
                         <td class="fw-bold text-center">@Model.TotalPayments</td>
                         <td class="text-end fw-bold">$@Model.TotalAmount.ToString("N0")</td>
                     </tr>
@@ -472,5 +481,6 @@
         </ul>
     </nav>
 }
+</div>
 
 </div>

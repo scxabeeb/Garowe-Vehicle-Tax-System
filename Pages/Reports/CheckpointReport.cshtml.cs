@@ -48,6 +48,8 @@ public class CheckpointReportModel : PageModel
         public decimal TotalAmount { get; set; }
     }
 
+    public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
+
     public async Task OnGetAsync()
     {
         CheckpointList = new SelectList(
@@ -126,6 +128,7 @@ public class CheckpointReportModel : PageModel
 
         TotalPayments = await query.CountAsync();
         TotalAmount = await query.SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
 
         if (PageSize > 0)
         {
@@ -172,11 +175,12 @@ public class CheckpointReportModel : PageModel
         var data = await query.OrderByDescending(p => p.PaidAt).ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Ref No,Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Payment Method,Receipt No,Golis Bill No,Amount");
+        sb.AppendLine("System ID,Ref No,Date,Plate,Owner,Mobile,Car Type,Traffida,Revenue Account,Collector,Checkpoint,Payment Method,Receipt No,Golis Bill No,Amount");
 
         foreach (var p in data)
         {
             sb.AppendLine(string.Join(",",
+                p.Id.ToString(),
                 p.ReferenceNo?.ToString() ?? "-",
                 Escape(AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm")),
                 Escape(p.Vehicle?.PlateNumber ?? "-"),

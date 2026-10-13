@@ -35,7 +35,7 @@
                         <select asp-for="Tax.MovementId"
                                 class="form-select"
                                 id="movementSelect">
-                            <option value="">-- Select Movement --</option>
+                            <option value="">-- @L["Select Traffida"] --</option>
                         </select>
                         <span asp-validation-for="Tax.MovementId" class="text-danger"></span>
                     </div>
@@ -92,14 +92,14 @@ document.getElementById("carTypeSelect").addEventListener("change", function () 
     revenueSection.style.display = 'none';
 
     if (!carTypeId) {
-        movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+        movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
         return;
     }
 
     fetch(`?handler=Movements&carTypeId=${carTypeId}`)
         .then(res => res.json())
         .then(data => {
-            movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+            movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
             data.forEach(m => {
                 movementSelect.innerHTML += `<option value="${m.id}" data-revenue="${m.revenueAccountDisplay}">${m.name}</option>`;
             });

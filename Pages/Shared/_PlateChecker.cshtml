@@ -1,0 +1,158 @@
+@*
+    Plate number | QR code checker (same behaviour as the mobile app).
+    Plate: /api/vehicles/by-plate/{plate} -> paid today or not.
+    QR:    receipt QR (/verify/{invoice}) or typed invoice -> /api/verify/{code}.
+*@
+@{
+    var id = "pc" + Guid.NewGuid().ToString("N")[..6];
+    var text = new Dictionary<string, string>
+    {
+        ["paidToday"] = L["PAID TODAY"], ["notPaidToday"] = L["NOT PAID TODAY"],
+        ["valid"] = L["VALID · PAID"], ["notPaid"] = L["NOT PAID"], ["cancelled"] = L["CANCELLED"],
+        ["notFound"] = L["Vehicle not found."], ["receiptNotFound"] = L["No receipt matches this code."],
+        ["network"] = L["Network error. Please try again."], ["enterPlate"] = L["Plate Number"],
+        ["owner"] = L["Owner"], ["traffida"] = L["Traffida"], ["amount"] = L["Amount"], ["paidAt"] = L["Paid At"],
+        ["lastPaid"] = L["Last Paid"], ["invoice"] = L["Invoice No"], ["golis"] = L["Golis Bill No"],
+        ["collector"] = L["Collector"], ["systemId"] = L["System ID"],
+        ["cameraError"] = L["Camera not available. Type the invoice number instead."],
+    };
+}
+<div class="plate-checker" id="@id">
+    <style>
+        #@id .pc-toggle { display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 12px; }
+        #@id .pc-toggle button { flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 8px; font-weight: 700; color: #64748b; }
+        #@id .pc-toggle button.active { background: #fff; color: #0b57d0; box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+        #@id .pc-result { border-radius: 14px; padding: 14px; margin-top: 14px; }
+        #@id .pc-result.ok { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        #@id .pc-result.bad { background: #fff7ed; border: 1px solid #fed7aa; }
+        #@id .pc-result.err { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+        #@id .pc-badge { font-weight: 800; font-size: 12px; padding: 5px 12px; border-radius: 999px; }
+        #@id .pc-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 14px; }
+        #@id .pc-row span:first-child { color: #64748b; }
+        #@id .pc-row span:last-child { font-weight: 700; text-align: right; }
+    </style>
+
+    <div class="pc-toggle" role="tablist">
+        <button type="button" class="active" data-pc-mode="plate"><i class="bi bi-car-front me-1"></i>@L["Plate number"]</button>
+        <button type="button" data-pc-mode="qr"><i class="bi bi-qr-code-scan me-1"></i>@L["QR code"]</button>
+    </div>
+
+    <form data-pc-panel="plate" class="d-flex gap-2">
+        <input name="plate" class="form-control" placeholder="@L["Plate Number"]" autocomplete="off" />
+        <button class="btn btn-primary text-nowrap" type="submit"><i class="bi bi-search me-1"></i>@L["Check Status"]</button>
+    </form>
+
+    <div data-pc-panel="qr" style="display:none;">
+        <button type="button" class="btn btn-primary w-100 mb-2" data-pc-scan>
+            <i class="bi bi-qr-code-scan me-1"></i>@L["Scan QR code"]
+        </button>
+        <div data-pc-reader class="mb-2" style="display:none; max-width:360px; margin:auto;"></div>
+        <div class="text-center text-muted small mb-2">@L["or enter invoice number"]</div>
+        <form class="d-flex gap-2" data-pc-code-form>
+            <input name="code" class="form-control" inputmode="numeric" placeholder="202610015663" autocomplete="off" />
+            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-arrow-right"></i></button>
+        </form>
+    </div>
+
+    <div data-pc-result></div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+    var root = document.getElementById('@id');
+    var T = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(text));
+    var result = root.querySelector('[data-pc-result]');
+    var scanner = null;
+
+    function esc(s) { return String(s == null || s === '' ? '-' : s).replace(/[&<>"]/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+    function row(label, value) { return '<div class="pc-row"><span>' + esc(label) + '</span><span>' + esc(value) + '</span></div>'; }
+    function fmt(d) { return d ? new Date(d).toLocaleString(undefined, { timeZone: 'Africa/Mogadishu', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'; }
+    function eatDay(d) { return new Date(d).toLocaleDateString('en-CA', { timeZone: 'Africa/Mogadishu' }); }
+    function show(cls, title, badge, badgeCls, rows) {
+        result.innerHTML = '<div class="pc-result ' + cls + '"><div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<strong class="fs-5">' + esc(title) + '</strong>' +
+            (badge ? '<span class="pc-badge ' + badgeCls + '">' + esc(badge) + '</span>' : '') + '</div>' + (rows || '') + '</div>';
+    }
+    function error(msg) { result.innerHTML = '<div class="pc-result err">' + esc(msg) + '</div>'; }
+
+    root.querySelectorAll('[data-pc-mode]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var mode = b.getAttribute('data-pc-mode');
+            root.querySelectorAll('[data-pc-mode]').forEach(function (x) { x.classList.toggle('active', x === b); });
+            root.querySelectorAll('[data-pc-panel]').forEach(function (p) {
+                p.style.display = p.getAttribute('data-pc-panel') === mode ? '' : 'none';
+            });
+            result.innerHTML = '';
+            stopScan();
+        });
+    });
+
+    root.querySelector('[data-pc-panel="plate"]').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var plate = this.plate.value.trim().toUpperCase();
+        if (!plate) { result.innerHTML = ''; return; }
+        fetch('/api/vehicles/by-plate/' + encodeURIComponent(plate))
+            .then(function (r) { if (r.status === 404) return null; if (!r.ok) throw 0; return r.json(); })
+            .then(function (v) {
+                if (!v) { error(T.notFound); return; }
+                var paidToday = v.isPaid && v.paidAt && eatDay(v.paidAt) === eatDay(new Date());
+                show(paidToday ? 'ok' : 'bad', v.plateNumber,
+                    paidToday ? T.paidToday : T.notPaidToday,
+                    paidToday ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning-emphasis',
+                    row(T.owner, v.ownerName) + row(T.traffida, v.movement) +
+                    row(paidToday ? T.paidAt : T.lastPaid, v.paidAt ? fmt(v.paidAt) : '-') +
+                    (v.amount != null ? row(T.amount, '$' + Number(v.amount).toFixed(2)) : '') +
+                    row(T.invoice, v.invoiceNumber) + row(T.golis, v.golisBillNo) + row(T.systemId, v.paymentId));
+            })
+            .catch(function () { error(T.network); });
+    });
+    root.querySelector('[data-pc-panel="plate"] input').addEventListener('input', function () {
+        if (!this.value.trim()) result.innerHTML = '';
+    });
+
+    function codeFrom(text) {
+        var m = /\/verify\/(\d+)/.exec(text || '') || /(\d+)/.exec(text || '');
+        return m ? m[1] : null;
+    }
+    function verify(text) {
+        var code = codeFrom(text);
+        if (!code) { error(T.receiptNotFound); return; }
+        root.querySelector('[data-pc-code-form] input').value = code;
+        fetch('/api/verify/' + encodeURIComponent(code))
+            .then(function (r) { if (r.status === 404) return null; if (!r.ok) throw 0; return r.json(); })
+            .then(function (p) {
+                if (!p) { error(T.receiptNotFound + ' (' + code + ')'); return; }
+                var valid = p.valid === true;
+                show(valid ? 'ok' : 'err', p.plateNumber,
+                    p.isReverted ? T.cancelled : (valid ? T.valid : T.notPaid),
+                    valid ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger',
+                    row(T.invoice, p.invoiceNumber) + row(T.systemId, p.paymentId) + row(T.owner, p.ownerName) +
+                    row(T.traffida, p.movement) + row(T.amount, '$' + Number(p.amount).toFixed(2)) +
+                    row(T.paidAt, fmt(p.paidAt)) + row(T.collector, p.collector) +
+                    (p.golisBillNo ? row(T.golis, p.golisBillNo) : ''));
+            })
+            .catch(function () { error(T.network); });
+    }
+    root.querySelector('[data-pc-code-form]').addEventListener('submit', function (e) {
+        e.preventDefault(); verify(this.code.value);
+    });
+
+    function stopScan() {
+        if (scanner) { scanner.stop().catch(function () {}); scanner = null; }
+        root.querySelector('[data-pc-reader]').style.display = 'none';
+    }
+    root.querySelector('[data-pc-scan]').addEventListener('click', function () {
+        if (scanner) { stopScan(); return; }
+        if (typeof Html5Qrcode === 'undefined') { error(T.cameraError); return; }
+        var box = root.querySelector('[data-pc-reader]');
+        box.id = box.id || '@(id)-reader';
+        box.style.display = '';
+        scanner = new Html5Qrcode(box.id);
+        scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 },
+            function (decoded) { stopScan(); verify(decoded); },
+            function () {})
+            .catch(function () { stopScan(); error(T.cameraError); });
+    });
+})();
+</script>

@@ -111,6 +111,10 @@
             </div>
         </div>
 
+        ViewData["DetailCount"] = Model.GolisRows.Count + Model.SystemOnlyRows.Count;
+        <partial name="_ReportViewToggle" />
+
+        <div data-report-view="summary">
         <!-- DASHBOARD -->
         <div class="row g-3 mb-3">
             <div class="col-md-3">
@@ -206,6 +210,8 @@
             </div>
         </div>
 
+        </div>
+
         @if (!Model.IsReadOnly)
         {
             <!-- UPLOAD + ADD TRANSACTION -->
@@ -287,6 +293,7 @@
             </div>
         </div>
 
+        <div data-report-view="details">
         <!-- GOLIS TRANSACTIONS TABLE -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
@@ -299,6 +306,7 @@
                                 <th>@L["Date"]</th>
                                 <th>@L["Mobile"]</th>
                                 <th class="text-end">@L["Golis Amount"]</th>
+                                <th>@L["System ID"]</th>
                                 <th>@L["System Receipt"]</th>
                                 <th class="text-end">@L["System Amount"]</th>
                                 <th class="text-end">@L["Difference"]</th>
@@ -315,6 +323,7 @@
                                     <td>@row.Date.ToString("dd MMM yyyy") @(string.IsNullOrEmpty(row.Time) ? "" : $"{@row.Time}")</td>
                                     <td>@row.Mobile</td>
                                     <td class="text-end">$@row.Amount.ToString("N0")</td>
+                                    <td class="fw-semibold">@(row.SystemId?.ToString() ?? "-")</td>
                                     <td>@row.SystemReceipt</td>
                                     <td class="text-end">$@row.SystemAmount.ToString("N0")</td>
                                     <td class="text-end">$@row.Difference.ToString("N0")</td>
@@ -343,6 +352,8 @@
                     </table>
                 </div>
             </div>
+        </div>
+
         </div>
 
         <!-- EDIT MODALS -->
@@ -401,6 +412,7 @@
             }
         }
 
+        <div data-report-view="details">
         <!-- SYSTEM-ONLY TRANSACTIONS -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
@@ -409,6 +421,7 @@
                     <table class="table table-bordered table-striped table-sm align-middle">
                         <thead class="table-dark">
                             <tr>
+                                <th>@L["System ID"]</th>
                                 <th>@L["System Receipt"]</th>
                                 <th>@L["Date"]</th>
                                 <th>@L["Plate"]</th>
@@ -421,6 +434,7 @@
                             @foreach (var row in Model.SystemOnlyRows)
                             {
                                 <tr>
+                                    <td class="fw-semibold">@row.SystemId</td>
                                     <td>@row.ReceiptNumber</td>
                                     <td>@row.Date.ToString("dd MMM yyyy HH:mm")</td>
                                     <td>@row.Plate</td>
@@ -433,6 +447,7 @@
                     </table>
                 </div>
             </div>
+        </div>
         </div>
     }
 </div>

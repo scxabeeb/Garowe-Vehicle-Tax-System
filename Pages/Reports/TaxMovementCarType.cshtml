@@ -1,7 +1,7 @@
 @page
 @model VehicleTax.Web.Pages.Reports.TaxMovementCarTypeModel
 
-<h3 class="fw-bold mb-4">Tax Amount by Movement & Car Type</h3>
+<h3 class="fw-bold mb-4">@L["Tax Amount by Traffida & Car Type"]</h3>
 
 <form method="get" class="card p-3 mb-3 shadow-sm">
     <div class="row g-2">
@@ -47,6 +47,11 @@
         </div>
     </div>
 </form>
+
+@{ ViewData["DetailCount"] = Model.DetailRows.Count; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
 
 <div class="card shadow-sm mb-3">
     <div class="card-body text-center">
@@ -105,3 +110,10 @@
         }
     </ul>
 </nav>
+
+<partial name="_PaymentSummaryBreakdown" model="Model.Breakdown" />
+</div>
+
+<div data-report-view="details">
+    <partial name="_PaymentDetailsTable" model="Model.DetailRows" />
+</div>

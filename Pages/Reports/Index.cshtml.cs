@@ -381,11 +381,12 @@ namespace VehicleTax.Web.Pages.Reports
             TotalAmount = payments.Sum(p => p.Amount);
 
             var sb = new StringBuilder();
-            sb.AppendLine("Date,Plate,Owner,Mobile,Car Type,Movement,Revenue Account,Collector,Checkpoint,Receipt No,Golis Bill No,Amount");
+            sb.AppendLine("System ID,Date,Plate,Owner,Mobile,Car Type,Traffida,Revenue Account,Collector,Checkpoint,Receipt No,Golis Bill No,Amount");
 
             foreach (var p in payments)
             {
                 sb.AppendLine(string.Join(",",
+                    p.Id.ToString(),
                     AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm"),
                     p.Vehicle?.PlateNumber ?? "-",
                     p.Vehicle?.OwnerName ?? "-",
@@ -406,7 +407,7 @@ namespace VehicleTax.Web.Pages.Reports
             }
 
             // Add total row to the exported CSV (11 columns to match header)
-            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,,,{TotalAmount:N0}");
+            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,,,,{TotalAmount:N0}");
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "text/csv", $"Payments_{AppTime.Now:yyyyMMddHHmmss}.csv");

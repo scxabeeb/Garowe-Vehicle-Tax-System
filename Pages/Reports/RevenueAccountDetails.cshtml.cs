@@ -11,6 +11,7 @@ namespace VehicleTax.Web.Pages.Reports
 {
     public class TransactionDetail
     {
+            public int SystemId { get; set; }
         public int? ReferenceNo { get; set; }
         public DateTime Date { get; set; }
         public string ReceiptNumber { get; set; } = "";
@@ -38,6 +39,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         public RevenueAccount? Account { get; set; }
         public List<TransactionDetail> Transactions { get; set; } = new();
+        public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
         public decimal TotalAmount { get; set; }
         public int TotalTransactions { get; set; }
 
@@ -75,11 +77,11 @@ namespace VehicleTax.Web.Pages.Reports
             sb.AppendLine($"Revenue Account Details: {Account.AccountCode} - {Account.AccountName}");
             sb.AppendLine($"From: {FromDate?.ToString("dd-MMM-yyyy") ?? "All"}  To: {ToDate?.ToString("dd-MMM-yyyy") ?? "All"}");
             sb.AppendLine("");
-            sb.AppendLine("Ref No,Date,Receipt No,Plate,Owner,Car Type,Movement,Amount");
+            sb.AppendLine("System ID,Ref No,Date,Receipt No,Plate,Owner,Car Type,Traffida,Amount");
 
             foreach (var t in Transactions)
             {
-                sb.AppendLine($"{(t.ReferenceNo?.ToString() ?? "-")},{t.Date:yyyy-MM-dd HH:mm},{t.ReceiptNumber},{t.PlateNumber},{t.OwnerName},{t.CarTypeName},{t.MovementName},{t.Amount:N0}");
+                sb.AppendLine($"{t.SystemId},{(t.ReferenceNo?.ToString() ?? "-")},{t.Date:yyyy-MM-dd HH:mm},{t.ReceiptNumber},{t.PlateNumber},{t.OwnerName},{t.CarTypeName},{t.MovementName},{t.Amount:N0}");
             }
 
             sb.AppendLine($"TOTAL,{TotalTransactions},{TotalAmount:N0}");
@@ -131,10 +133,13 @@ namespace VehicleTax.Web.Pages.Reports
             if (CarTypeId.HasValue)
                 query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);
 
+            Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
+
             Transactions = await query
                 .OrderByDescending(p => p.PaidAt)
                 .Select(p => new TransactionDetail
                 {
+                    SystemId = p.Id,
                     ReferenceNo = p.ReferenceNo,
                     Date = p.PaidAt,
                     ReceiptNumber = p.InvoiceNumber,

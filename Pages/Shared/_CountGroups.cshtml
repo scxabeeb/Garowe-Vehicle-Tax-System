@@ -1,0 +1,39 @@
+@model IReadOnlyList<VehicleTax.Web.Services.CountGroup>
+@* Summary view for record reports: counts per group with a share bar. *@
+<div class="row g-3 mb-3">
+    @foreach (var g in Model)
+    {
+        var total = g.Rows.Sum(r => r.Count);
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold"><i class="bi @g.Icon me-1 text-primary"></i>@g.Title</div>
+                <div class="card-body p-0">
+                    @if (g.Rows.Count == 0)
+                    {
+                        <div class="text-muted small p-3">@L["No data found for the selected filters."]</div>
+                    }
+                    else
+                    {
+                        <table class="table table-sm mb-0 align-middle">
+                            <tbody>
+                                @foreach (var r in g.Rows)
+                                {
+                                    var share = total > 0 ? r.Count * 100.0 / total : 0;
+                                    <tr>
+                                        <td>@L[r.Name]</td>
+                                        <td class="text-end fw-semibold" style="width:70px;">@r.Count.ToString("N0")</td>
+                                        <td style="width:40%;">
+                                            <div class="progress" style="height:6px;">
+                                                <div class="progress-bar" style="width:@share.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -41,6 +41,8 @@ namespace VehicleTax.Web.Pages.Reports
 
         // Results
         public List<RevenueAccountReportItem> ReportItems { get; set; } = new();
+        public List<VehicleTax.Web.Services.PaymentDetailRow> DetailRows { get; set; } = new();
+        public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
         public decimal GrandTotalAmount { get; set; }
         public int GrandTotalPayments { get; set; }
 
@@ -124,6 +126,9 @@ namespace VehicleTax.Web.Pages.Reports
 
             if (CarTypeId.HasValue)
                 query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);
+
+            Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
+            DetailRows = await VehicleTax.Web.Services.ReportDetails.LoadAsync(query);
 
             ReportItems = await query
                 .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)

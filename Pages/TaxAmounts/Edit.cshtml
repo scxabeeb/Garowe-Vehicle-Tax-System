@@ -120,14 +120,14 @@ document.getElementById("carTypeSelect").addEventListener("change", function () 
     movementSelect.innerHTML = '<option value="">Loading...</option>';
 
     if (!carTypeId) {
-        movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+        movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
         return;
     }
 
     fetch(`?handler=Movements&carTypeId=${carTypeId}`)
         .then(res => res.json())
         .then(data => {
-            movementSelect.innerHTML = '<option value="">-- Select Movement --</option>';
+            movementSelect.innerHTML = '<option value="">-- @L["Select Traffida"] --</option>';
             const currentVal = "@Model.Tax.MovementId";
             data.forEach(m => {
                 const selected = m.id == currentVal ? " selected" : "";

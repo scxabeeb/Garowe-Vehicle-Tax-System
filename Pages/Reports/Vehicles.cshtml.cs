@@ -43,6 +43,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         // Data
         public List<Vehicle> Vehicles { get; set; } = new();
+        public List<VehicleTax.Web.Services.CountGroup> SummaryGroups { get; set; } = new();
         public SelectList CarTypes { get; set; } = null!;
 
         public async Task OnGetAsync()
@@ -70,6 +71,12 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(v => v.CarTypeId == CarTypeId.Value);
 
             TotalRecords = await query.CountAsync();
+            var carTypeNames = await query.Select(v => v.CarType != null ? v.CarType.Name : null).ToListAsync();
+            SummaryGroups = new()
+            {
+                new("Vehicles by Car Type", "bi-truck",
+                    VehicleTax.Web.Services.ReportDetails.CountBy(carTypeNames, n => n)),
+            };
 
             if (PageSize != -1)
             {
@@ -113,11 +120,11 @@ namespace VehicleTax.Web.Pages.Reports
             var data = await query.OrderBy(v => v.PlateNumber).ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("PlateNumber,OwnerName,Mobile,CarType");
+            sb.AppendLine("System ID,PlateNumber,OwnerName,Mobile,CarType");
 
             foreach (var v in data)
             {
-                sb.AppendLine($"{v.PlateNumber},{v.OwnerName},{v.Mobile},{v.CarType?.Name}");
+                sb.AppendLine($"{v.Id},{v.PlateNumber},{v.OwnerName},{v.Mobile},{v.CarType?.Name}");
             }
 
             return File(

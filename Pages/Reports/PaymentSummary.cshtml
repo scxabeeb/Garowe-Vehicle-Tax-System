@@ -9,7 +9,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
             <h2 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>@L["Payment Summary Report"]</h2>
-            <div class="text-muted">@L["Payments grouped by System ID and Status"]</div>
+            <div class="text-muted">@L["Payments grouped by Golis transaction and status"]</div>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-primary" onclick="window.print()">
@@ -34,9 +34,9 @@
                     <label class="form-label small mb-0">@L["Status"]</label>
                     <select class="form-select" asp-for="Status">
                         <option value="">@L["All"]</option>
-                        <option>@L["Paid"]</option>
-                        <option>@L["Pending"]</option>
-                        <option>@L["Reverted"]</option>
+                        <option value="Paid">@L["Paid"]</option>
+                        <option value="Pending">@L["Pending"]</option>
+                        <option value="Reverted">@L["Reverted"]</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -59,6 +59,10 @@
         <div class="alert alert-danger">@Model.ErrorMessage</div>
     }
 
+    @{ ViewData["DetailCount"] = Model.TotalTransactions; }
+    <partial name="_ReportViewToggle" />
+
+    <div data-report-view="summary">
     <!-- Summary Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -75,7 +79,7 @@
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">@L["Unique System IDs"]</div>
+                <div class="text-muted small">@L["Unique Golis Transactions"]</div>
                 <div class="fs-3 fw-bold">@Model.UniqueSystemIds</div>
             </div></div>
         </div>
@@ -89,11 +93,11 @@
 
     <!-- Detail Table -->
     <div class="card shadow-sm">
-        <div class="card-header bg-white fw-semibold">@L["Payment Summary by System ID and Status"]</div>
+        <div class="card-header bg-white fw-semibold">@L["Payments grouped by Golis transaction and status"]</div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr>
-                    <th>@L["System ID"]</th>
+                    <th>@L["Golis Transaction ID"]</th>
                     <th>@L["Status"]</th>
                     <th class="text-end">@L["Transactions"]</th>
                     <th class="text-end">@L["Total Amount"]</th>
@@ -115,7 +119,7 @@
                         </td>
                         <td>
                             <span class="badge @(r.Status == "Paid" ? "bg-success" : r.Status == "Reverted" ? "bg-danger" : r.Status == "Pending" ? "bg-warning text-dark" : "bg-secondary")">
-                                @r.Status
+                                @L[r.Status]
                             </span>
                         </td>
                         <td class="text-end">@r.Transactions</td>
@@ -139,6 +143,11 @@
                 }
             </table>
         </div>
+    </div>
+    </div>
+
+    <div data-report-view="details">
+        <partial name="_PaymentDetailsTable" model="Model.DetailRows" />
     </div>
 </div>
     </div>

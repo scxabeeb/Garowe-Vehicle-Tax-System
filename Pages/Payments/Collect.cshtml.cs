@@ -39,6 +39,9 @@ public class CollectModel : PageModel
 
     public List<Payment> Payments { get; set; } = new();
 
+    /// <summary>This vehicle's paid (not cancelled) payment today (EAT), if any.</summary>
+    public Payment? PaidToday { get; set; }
+
     // =======================
     // GET
     // =======================
@@ -324,6 +327,9 @@ public class CollectModel : PageModel
                 .Where(p => p.VehicleId == Vehicle.Id)
                 .OrderByDescending(p => p.PaidAt)
                 .ToList();
+
+            PaidToday = Payments.FirstOrDefault(p =>
+                p.IsPaid && !p.IsReverted && AppTime.ToLocal(p.PaidAt).Date == AppTime.Today);
         }
     }
 

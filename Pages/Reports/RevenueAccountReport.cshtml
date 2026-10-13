@@ -77,9 +77,13 @@
         <i class="bi bi-info-circle me-2"></i>
         @L["From"] <strong>@(Model.FromDate?.ToString("dd-MMM-yyyy") ?? "All")</strong>
         &nbsp;|&nbsp;
-        To <strong>@(Model.ToDate?.ToString("dd-MMM-yyyy") ?? "All")</strong>
+        @L["To"] <strong>@(Model.ToDate?.ToString("dd-MMM-yyyy") ?? L["All"])</strong>
     </div>
 
+    @{ ViewData["DetailCount"] = Model.Breakdown.PaidCount; }
+    <partial name="_ReportViewToggle" />
+
+    <div data-report-view="summary">
     <!-- RESULT TABLE -->
     <div class="card module-table-card">
         <div class="card-body p-0">
@@ -136,6 +140,15 @@
                 </tfoot>
             </table>
         </div>
+    </div>
+
+    <div class="mt-3">
+        <partial name="_PaymentSummaryBreakdown" model="Model.Breakdown" />
+    </div>
+    </div>
+
+    <div data-report-view="details">
+        <partial name="_PaymentDetailsTable" model="Model.DetailRows" />
     </div>
 
 </div>

@@ -24,6 +24,8 @@
         </div>
     }
 
+    <div class="row g-4">
+    <div class="col-lg-8">
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
 
@@ -59,6 +61,19 @@
                         <strong>@L["Car Type:"]</strong> @Model.Vehicle.CarType?.Name
                     </div>
 
+                    @if (Model.PaidToday != null)
+                    {
+                        <div class="alert alert-warning d-flex align-items-start gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                            <div>
+                                <strong>@L["Already paid today"]</strong><br />
+                                @L["This vehicle already has a paid payment today at"]
+                                <strong>@VehicleTax.Web.AppTime.ToLocal(Model.PaidToday.PaidAt).ToString("HH:mm")</strong>
+                                (@L["Invoice No"] @Model.PaidToday.InvoiceNumber, $@Model.PaidToday.Amount.ToString("N2")).
+                            </div>
+                        </div>
+                    }
+
                     <div class="row g-3">
 
                         <!-- Movement -->
@@ -69,7 +84,7 @@
                                     class="form-select"
                                     onchange="document.getElementById('calcBtn').click()"
                                     required>
-                                <option value="">-- Select Movement --</option>
+                                <option value="">-- @L["Select Traffida"] --</option>
                             </select>
                         </div>
 
@@ -109,7 +124,10 @@
                         <div class="text-end">
                             <button asp-page-handler="GenerateInvoice"
                                     type="submit"
-                                    class="btn btn-success btn-lg">
+                                    class="btn btn-success btn-lg"
+                                    onclick="@(Model.PaidToday != null
+                                        ? "return confirm('" + System.Web.HttpUtility.JavaScriptStringEncode(L["This vehicle was already paid today. Generate another invoice anyway?"]) + "');"
+                                        : null)">
                                 <i class="bi bi-receipt"></i> @L["Generate Invoice"]
                             </button>
                         </div>
@@ -118,6 +136,20 @@
 
             </form>
         </div>
+    </div>
+    </div>
+
+    <!-- Plate / QR checker (same as the mobile app) -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-bold">
+                <i class="bi bi-patch-check text-primary me-1"></i>@L["Verify Plate"]
+            </div>
+            <div class="card-body">
+                <partial name="_PlateChecker" />
+            </div>
+        </div>
+    </div>
     </div>
 
     @if (Model.Payments.Any())
@@ -134,7 +166,7 @@
                     <table class="table table-bordered table-striped">
                         <thead class="table-dark">
                             <tr>
-                                <th>@L["Payment ID"]</th>
+                                <th>@L["System ID"]</th>
                                 <th>@L["Date"]</th>
                                 <th>@L["Traffida"]</th>
                                 <th>@L["Amount"]</th>

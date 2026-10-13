@@ -16,6 +16,8 @@ namespace VehicleTax.Web.Pages.Reports
         }
 
         public List<User> Users { get; set; } = new();
+        public List<VehicleTax.Web.Services.CountGroup> SummaryGroups { get; set; } = new();
+        public int TotalCount { get; set; }
 
         // Filters
         [BindProperty(SupportsGet = true)]
@@ -65,7 +67,16 @@ namespace VehicleTax.Web.Pages.Reports
             }
 
             int totalCount = query.Count();
+            TotalCount = totalCount;
             TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+            var summary = query.Select(u => new { u.Role, u.IsLocked }).ToList();
+            SummaryGroups = new()
+            {
+                new("Users by Role", "bi-person-badge",
+                    VehicleTax.Web.Services.ReportDetails.CountBy(summary, u => u.Role)),
+                new("Users by Status", "bi-shield-lock",
+                    VehicleTax.Web.Services.ReportDetails.CountBy(summary, u => u.IsLocked ? "Locked" : "Active")),
+            };
 
             Users = query
                 .OrderBy(u => u.Username)
@@ -102,7 +113,7 @@ namespace VehicleTax.Web.Pages.Reports
 
             var users = query.ToList();
 
-            var csv = "Id,Username,Full Name,Phone,Role,Permissions,Status\n";
+            var csv = "System ID,Username,Full Name,Phone,Role,Permissions,Status\n";
             foreach (var u in users)
             {
                 var state = u.IsLocked ? "Locked" : "Active";

@@ -31,6 +31,7 @@ namespace VehicleTax.Web.Pages.Reports
         public int PageSize { get; set; } = 10;
 
         public int TotalRecords { get; set; }
+        public List<VehicleTax.Web.Services.CountGroup> SummaryGroups { get; set; } = new();
         public int TotalPages =>
             PageSize == -1 ? 1 : (int)Math.Ceiling((double)TotalRecords / PageSize);
 
@@ -56,6 +57,12 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(m => m.CarTypeId == CarTypeId);
 
             TotalRecords = await query.CountAsync();
+            var carTypeNames = await query.Select(m => m.CarType != null ? m.CarType.Name : null).ToListAsync();
+            SummaryGroups = new()
+            {
+                new("Traffida by Car Type", "bi-truck",
+                    VehicleTax.Web.Services.ReportDetails.CountBy(carTypeNames, n => n)),
+            };
 
             if (PageSize != -1)
             {
@@ -88,11 +95,11 @@ namespace VehicleTax.Web.Pages.Reports
             var data = await query.OrderBy(m => m.Name).ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Movement,CarType");
+            sb.AppendLine("System ID,Traffida,CarType");
 
             foreach (var m in data)
             {
-                sb.AppendLine($"{m.Name},{m.CarType?.Name}");
+                sb.AppendLine($"{m.Id},{m.Name},{m.CarType?.Name}");
             }
 
             return File(

@@ -242,14 +242,14 @@ public class SummaryModel : PageModel
 
         // Per-payment detail — include the audit Reference No. (or blank/for unrecorded)
         sb.AppendLine();
-        sb.AppendLine("Ref No,Payment ID,Invoice ID,Plate,Movement,Collector,Amount,Date,Status");
+        sb.AppendLine("System ID,Ref No,Invoice ID,Plate,Traffida,Collector,Amount,Date,Status");
 
         foreach (var p in PaymentRecords)
         {
             var refNo = p.ReferenceNo?.ToString() ?? "";
             var status = p.IsReverted ? "Cancelled" : "Completed";
             var date = p.PaidAt.ToString("yyyy-MM-dd HH:mm");
-            sb.AppendLine($"{refNo},{p.Id},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{p.Amount:N0},{date},{status}");
+            sb.AppendLine($"{p.Id},{refNo},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{p.Amount:N0},{date},{status}");
         }
 
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());

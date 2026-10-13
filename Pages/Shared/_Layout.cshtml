@@ -226,6 +226,7 @@
                     var isPayments = currentPath.StartsWith("/payments") ||
                                      currentPath.StartsWith("/receiptreferences");
                     var isReports = currentPath.StartsWith("/reports") ||
+                                    currentPath.StartsWith("/finance") ||
                                     currentPath.StartsWith("/transactions");
                     var isAdministration = currentPath.StartsWith("/account/users") ||
                                            currentPath.StartsWith("/account/register") ||
@@ -238,7 +239,7 @@
                                href="#"
                                role="button"
                                data-bs-toggle="dropdown">
-                                <i class="bi bi-grid-1x2"></i> Data & Setup
+                                <i class="bi bi-grid-1x2"></i> @L["Data & Setup"]
                             </a>
                             <ul class="dropdown-menu shadow border-0">
                                 <li class="menu-category">@L["Registry"]</li>
@@ -382,6 +383,13 @@
                         </li>
                     }
 
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-1 @(currentPath.StartsWith("/verify") ? "active" : "")"
+                           asp-page="/Verify/Index">
+                            <i class="bi bi-patch-check"></i> @L["Verify Plate"]
+                        </a>
+                    </li>
+
                     @if (canReportsView)
                     {
                         <li class="nav-item dropdown">
@@ -393,135 +401,101 @@
                             </a>
 
                             <ul class="dropdown-menu shadow border-0" style="max-height: 75vh; overflow-y: auto;">
-                                <li class="menu-category">@L["Operations Reports"]</li>
+                                <li class="menu-category">@L["Collections"]</li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/vehicles">
-                                        <i class="bi bi-truck"></i>
-                                        @L["Vehicle Registry Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Index">
+                                        <i class="bi bi-speedometer2"></i> @L["Collections Dashboard"]
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/movements">
-                                        <i class="bi bi-arrow-left-right"></i>
-                                        @L["Traffida Catalog Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Summary">
+                                        <i class="bi bi-file-earmark-bar-graph"></i> @L["Summary Report"]
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/taxmovement">
-                                        <i class="bi bi-bar-chart"></i>
-                                        @L["Tax by Traffida Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/CheckpointReport">
+                                        <i class="bi bi-geo-alt"></i> @L["Checkpoint Collection Report"]
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/taxmovementcartype">
-                                        <i class="bi bi-diagram-3"></i>
-                                        Tax by Movement & Car Type
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/TaxAmountReport">
-                                        <i class="bi bi-currency-dollar"></i>
-                                        @L["Tax Amount Schedule"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/ReceiptReferences">
-                                        <i class="bi bi-receipt"></i>
-                                        @L["Receipt References Report"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/usersreport">
-                                        <i class="bi bi-people"></i>
-                                        @L["User Activity Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/PaymentSummary">
+                                        <i class="bi bi-bar-chart-line"></i> @L["Payment Summary Report"]
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
-                                <li class="menu-category">Revenue & Audit</li>
+                                <li class="menu-category">@L["Finance & Accounts"]</li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/Summary">
-                                        <i class="bi bi-file-earmark-bar-graph"></i>
-                                        @L["Summary Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/RevenueAccountReport">
+                                        <i class="bi bi-wallet2"></i> @L["Revenue Account Report"]
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/Index">
-                                        <i class="bi bi-graph-up-arrow"></i>
-                                        @L["Payment Summary Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Index">
+                                        <i class="bi bi-cash-stack"></i> @L["Finance Dashboard"]
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/RevenueAccountReport">
-                                        <i class="bi bi-wallet2"></i>
-                                        @L["Revenue Account Report"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/CheckpointReport">
-                                        <i class="bi bi-geo-alt"></i>
-                                        @L["Checkpoint Collection Report"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/GolisAudit">
-                                        <i class="bi bi-shield-check"></i>
-                                        @L["Golis Audit"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/GolisAuditHistory">
-                                        <i class="bi bi-clock-history"></i>
-                                        @L["Golis Audit History"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/Logs">
-                                        <i class="bi bi-journal-text"></i>
-                                        Logs & Audit Report
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Transactions/Index">
-                                        <i class="bi bi-arrow-left-right"></i>
-                                        @L["Transactions Audit Log"]
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Reports/PaymentSummary">
-                                        <i class="bi bi-bar-chart-line"></i>
-                                        @L["Payment Summary Report"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Rv/Index">
+                                        <i class="bi bi-file-earmark-text"></i> @L["RV History"]
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
-                                <li class="menu-category">Finance &amp; RV</li>
+                                <li class="menu-category">@L["Audit"]</li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Finance/Index">
-                                        <i class="bi bi-cash-stack"></i>
-                                        @L["Finance Dashboard"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/GolisAudit">
+                                        <i class="bi bi-shield-check"></i> @L["Golis Audit"]
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2"
-                                       asp-page="/Finance/Rv/Index">
-                                        <i class="bi bi-file-earmark-text"></i>
-                                        @L["RV History"]
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/GolisAuditHistory">
+                                        <i class="bi bi-clock-history"></i> @L["Golis Audit History"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Logs">
+                                        <i class="bi bi-journal-text"></i> @L["Logs & Audit Report"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Transactions/Index">
+                                        <i class="bi bi-arrow-left-right"></i> @L["Transactions Audit Log"]
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li class="menu-category">@L["Registry & Setup"]</li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Vehicles">
+                                        <i class="bi bi-truck"></i> @L["Vehicle Registry Report"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Movements">
+                                        <i class="bi bi-signpost-split"></i> @L["Traffida Catalog Report"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxMovement">
+                                        <i class="bi bi-bar-chart"></i> @L["Tax by Traffida Report"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxMovementCarType">
+                                        <i class="bi bi-diagram-3"></i> @L["Tax Amount by Traffida & Car Type"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxAmountReport">
+                                        <i class="bi bi-currency-dollar"></i> @L["Tax Amount Schedule"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/ReceiptReferences">
+                                        <i class="bi bi-receipt"></i> @L["Receipt References Report"]
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/UsersReport">
+                                        <i class="bi bi-people"></i> @L["User Activity Report"]
                                     </a>
                                 </li>
                              </ul>

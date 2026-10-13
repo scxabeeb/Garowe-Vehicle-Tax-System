@@ -27,6 +27,7 @@ public class PaymentSummaryModel : PageModel
     [BindProperty(SupportsGet = true)] public string? SystemId { get; set; }
 
     public List<SummaryRow> Rows { get; set; } = new();
+    public List<VehicleTax.Web.Services.PaymentDetailRow> DetailRows { get; set; } = new();
     public int TotalTransactions { get; set; }
     public decimal TotalAmount { get; set; }
     public int UniqueSystemIds { get; set; }
@@ -70,8 +71,15 @@ public class PaymentSummaryModel : PageModel
         if (!string.IsNullOrWhiteSpace(SystemId))
         {
             var sysId = SystemId.Trim();
-            query = query.Where(p => p.TransactionId.Contains(sysId) || p.InvoiceNumber.Contains(sysId));
+            // System ID is the payment ID; also match Golis transaction or invoice number.
+            // An invoice number is yyyyMM + payment ID; read the ID from it.
+            var idText = sysId.Length >= 12 && sysId.All(char.IsDigit) ? sysId.Substring(6) : sysId;
+            var isId = int.TryParse(idText, out var paymentId);
+            query = query.Where(p => (isId && p.Id == paymentId) ||
+                (p.TransactionId != null && p.TransactionId.Contains(sysId)));
         }
+
+        DetailRows = await VehicleTax.Web.Services.ReportDetails.LoadAsync(query);
 
         var payments = await query
             .OrderBy(p => p.TransactionId)

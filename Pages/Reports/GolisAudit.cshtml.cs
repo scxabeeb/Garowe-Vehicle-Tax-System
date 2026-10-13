@@ -285,18 +285,18 @@ public class GolisAuditModel : PageModel
         var sb = new StringBuilder();
         if (type == "golis")
         {
-            sb.AppendLine("Golis Reference,Date,Time,Mobile,Amount,Description,System Receipt,System Amount,Difference,Status,Notes");
+            sb.AppendLine("Golis Reference,Date,Time,Mobile,Amount,Description,System ID,System Receipt,System Amount,Difference,Status,Notes");
             foreach (var row in GolisRows)
             {
-                sb.AppendLine($"{row.Reference},{row.Date:yyyy-MM-dd},{row.Time},{row.Mobile},{row.Amount},{Escape(row.Description)},{row.SystemReceipt},{row.SystemAmount},{row.Difference},{row.Status},{Escape(row.Notes)}");
+                sb.AppendLine($"{row.Reference},{row.Date:yyyy-MM-dd},{row.Time},{row.Mobile},{row.Amount},{Escape(row.Description)},{row.SystemId},{row.SystemReceipt},{row.SystemAmount},{row.Difference},{row.Status},{Escape(row.Notes)}");
             }
         }
         else
         {
-            sb.AppendLine("System Receipt,Date,Plate,Amount,Golis Reference,Status");
+            sb.AppendLine("System ID,System Receipt,Date,Plate,Amount,Golis Reference,Status");
             foreach (var row in SystemOnlyRows)
             {
-                sb.AppendLine($"{row.ReceiptNumber},{row.Date:yyyy-MM-dd},{row.Plate},{row.Amount},{row.GolisReference},{row.Status}");
+                sb.AppendLine($"{row.SystemId},{row.ReceiptNumber},{row.Date:yyyy-MM-dd},{row.Plate},{row.Amount},{row.GolisReference},{row.Status}");
             }
         }
 
@@ -476,6 +476,7 @@ public class GolisAuditModel : PageModel
                 Amount = t.Amount,
                 Description = t.Description,
                 SystemReceipt = t.MatchedReceiptNumber ?? "",
+                SystemId = t.MatchedPaymentId,
                 SystemAmount = t.MatchedSystemAmount ?? 0,
                 Difference = t.Amount - (t.MatchedSystemAmount ?? 0),
                 Status = t.ReconciliationStatus.ToString(),
@@ -510,6 +511,7 @@ public class GolisAuditModel : PageModel
             .OrderByDescending(p => p.PaidAt)
             .Select(p => new SystemOnlyViewModel
             {
+                SystemId = p.Id,
                 ReceiptNumber = p.InvoiceNumber,
                 Date = AppTime.ToLocal(p.PaidAt),
                 Plate = p.Vehicle?.PlateNumber ?? "",
@@ -575,6 +577,7 @@ public class GolisAuditModel : PageModel
         public decimal Amount { get; set; }
         public string? Description { get; set; }
         public string SystemReceipt { get; set; } = "";
+        public int? SystemId { get; set; }
         public decimal SystemAmount { get; set; }
         public decimal Difference { get; set; }
         public string Status { get; set; } = "";
@@ -583,6 +586,7 @@ public class GolisAuditModel : PageModel
 
     public class SystemOnlyViewModel
     {
+        public int SystemId { get; set; }
         public string ReceiptNumber { get; set; } = "";
         public DateTime Date { get; set; }
         public string Plate { get; set; } = "";

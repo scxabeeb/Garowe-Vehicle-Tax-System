@@ -48,6 +48,10 @@
     </div>
 </form>
 
+@{ ViewData["DetailCount"] = Model.TotalRecords; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
 <div class="row mb-3">
     <div class="col-md-4">
         <div class="card text-center shadow-sm">
@@ -59,9 +63,14 @@
     </div>
 </div>
 
+<partial name="_CountGroups" model="Model.SummaryGroups" />
+</div>
+
+<div data-report-view="details">
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
+            <th>@L["System ID"]</th>
             <th>@L["Traffida"]</th>
             <th>@L["Car Type"]</th>
         </tr>
@@ -70,7 +79,7 @@
         @if (!Model.Movements.Any())
         {
             <tr>
-                <td colspan="2" class="text-center text-muted">
+                <td colspan="3" class="text-center text-muted">
                     @L["No traffida records found."]
                 </td>
             </tr>
@@ -80,6 +89,7 @@
             foreach (var m in Model.Movements)
             {
                 <tr>
+                    <td class="fw-semibold">@m.Id</td>
                     <td>@m.Name</td>
                     <td>@m.CarType?.Name</td>
                 </tr>
@@ -129,3 +139,4 @@
         </ul>
     </nav>
 }
+</div>

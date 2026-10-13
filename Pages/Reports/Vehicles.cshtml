@@ -60,6 +60,10 @@
     </div>
 </form>
 
+@{ ViewData["DetailCount"] = Model.TotalRecords; }
+<partial name="_ReportViewToggle" />
+
+<div data-report-view="summary">
 <div class="row mb-3">
     <div class="col-md-4">
         <div class="card text-center shadow-sm">
@@ -71,9 +75,14 @@
     </div>
 </div>
 
+<partial name="_CountGroups" model="Model.SummaryGroups" />
+</div>
+
+<div data-report-view="details">
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
+            <th>@L["System ID"]</th>
             <th>@L["Plate"]</th>
             <th>@L["Owner"]</th>
             <th>@L["Mobile"]</th>
@@ -84,7 +93,7 @@
         @if (!Model.Vehicles.Any())
         {
             <tr>
-                <td colspan="4" class="text-center text-muted">
+                <td colspan="5" class="text-center text-muted">
                     @L["No vehicles found for the selected filters."]
                 </td>
             </tr>
@@ -94,6 +103,7 @@
             foreach (var v in Model.Vehicles)
             {
                 <tr>
+                    <td class="fw-semibold">@v.Id</td>
                     <td>@v.PlateNumber</td>
                     <td>@v.OwnerName</td>
                     <td>@v.Mobile</td>
@@ -151,3 +161,4 @@
         </ul>
     </nav>
 }
+</div>

@@ -1,0 +1,65 @@
+@model IReadOnlyList<VehicleTax.Web.Services.PaymentDetailRow>
+@* Payment-level Details view shared by the payment reports. *@
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (Model.Count == 0)
+        {
+            <div class="text-center text-muted p-4">@L["No records found."]</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@L["System ID"]</th>
+                            <th>@L["Date"]</th>
+                            <th>@L["Plate"]</th>
+                            <th>@L["Owner"]</th>
+                            <th>@L["Traffida"]</th>
+                            <th>@L["Car Type"]</th>
+                            <th>@L["Collector"]</th>
+                            <th>@L["Checkpoint"]</th>
+                            <th>@L["Invoice / Receipt No"]</th>
+                            <th>@L["Golis Bill No"]</th>
+                            <th class="text-end">@L["Amount"]</th>
+                            <th>@L["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.SystemId</td>
+                                <td class="text-nowrap">@r.PaidAt.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@r.Plate</td>
+                                <td>@r.Owner</td>
+                                <td>@r.Traffida</td>
+                                <td>@r.CarType</td>
+                                <td>@r.Collector</td>
+                                <td>@r.Checkpoint</td>
+                                <td><a asp-page="/Payments/Receipt" asp-route-paymentId="@r.SystemId">@r.InvoiceNumber</a></td>
+                                <td>@(string.IsNullOrWhiteSpace(r.GolisBillNo) ? "-" : r.GolisBillNo)</td>
+                                <td class="text-end">$@r.Amount.ToString("N2")</td>
+                                <td>
+                                    <span class="badge @(r.Status == "Paid" ? "bg-success" : r.Status == "Cancelled" ? "bg-danger" : "bg-warning text-dark")">@L[r.Status]</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th colspan="10">@L["Total"] (@Model.Count)</th>
+                            <th class="text-end">$@Model.Where(r => r.Status == "Paid").Sum(r => r.Amount).ToString("N2")</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            @if (Model.Count >= VehicleTax.Web.Services.ReportDetails.MaxRows)
+            {
+                <div class="small text-muted p-2">@L["Showing the latest 2,000 records. Narrow the filters or export for the full list."]</div>
+            }
+        }
+    </div>
+</div>

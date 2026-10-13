@@ -59,6 +59,10 @@
         </div>
     </form>
 
+    @{ ViewData["DetailCount"] = Model.TotalPayments; }
+    <partial name="_ReportViewToggle" />
+
+    <div data-report-view="summary">
     <!-- SUMMARY CARDS -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -167,6 +171,10 @@
         </div>
     </div>
 
+    <partial name="_PaymentSummaryBreakdown" model="Model.Breakdown" />
+    </div>
+
+    <div data-report-view="details">
     <!-- DETAILED PAYMENTS TABLE -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
@@ -205,6 +213,7 @@
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
+                            <th>@L["System ID"]</th>
                             <th>@L["Ref No."]</th>
                             <th>@L["Date"]</th>
                             <th>@L["Plate"]</th>
@@ -222,6 +231,7 @@
                         @foreach (var p in Model.Payments)
                         {
                             <tr class="@(p.IsReverted ? "table-danger" : "")">
+                                <td class="fw-semibold">@p.Id</td>
                                 <td>@(p.ReferenceNo?.ToString() ?? "-")</td>
                                 <td>@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@p.Vehicle?.PlateNumber</td>
@@ -238,7 +248,7 @@
                         @if (!Model.Payments.Any())
                         {
                             <tr>
-                                <td colspan="11" class="text-center text-muted">@L["No payments found for the selected filters."]</td>
+                                <td colspan="12" class="text-center text-muted">@L["No payments found for the selected filters."]</td>
                             </tr>
                         }
                     </tbody>
@@ -268,6 +278,7 @@
                 </nav>
             }
         </div>
+    </div>
     </div>
 </div>
 

@@ -38,6 +38,8 @@ namespace VehicleTax.Web.Pages.Reports
         // Data
         public decimal TotalTax { get; set; }
         public List<TaxByMovement> MovementTotals { get; set; } = new();
+        public List<VehicleTax.Web.Services.PaymentDetailRow> DetailRows { get; set; } = new();
+        public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
         public SelectList Movements { get; set; } = null!;
 
         public async Task OnGetAsync()
@@ -66,6 +68,8 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Total Tax
             TotalTax = await query.SumAsync(p => p.Amount);
+            Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
+            DetailRows = await VehicleTax.Web.Services.ReportDetails.LoadAsync(query);
 
             // Grouping
             var groupedQuery = query
@@ -117,7 +121,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Movement,Total Payments,Total Amount");
+            sb.AppendLine("Traffida,Total Payments,Total Amount");
 
             foreach (var item in data)
             {
