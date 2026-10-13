@@ -675,15 +675,22 @@ namespace VehicleTax.Web.Controllers
                 query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
             }
 
-            var items = query
-                .GroupBy(p => p.Checkpoint != null
-                    ? p.Checkpoint.Name
-                    : "Unassigned")
-                .Select(g => new
+            // Only registered checkpoints (all of them, even with no payments).
+            var totals = query
+                .Where(p => p.CheckpointId != null)
+                .GroupBy(p => p.CheckpointId!.Value)
+                .Select(g => new { Id = g.Key, Count = g.Count(), Amount = g.Sum(x => x.Amount) })
+                .ToList();
+            var items = _context.Checkpoints.AsNoTracking().ToList()
+                .Select(c =>
                 {
-                    checkpoint = g.Key,
-                    totalPayments = g.Count(),
-                    totalAmount = g.Sum(x => x.Amount)
+                    var t = totals.FirstOrDefault(x => x.Id == c.Id);
+                    return new
+                    {
+                        checkpoint = c.Name,
+                        totalPayments = t?.Count ?? 0,
+                        totalAmount = t?.Amount ?? 0m
+                    };
                 })
                 .OrderByDescending(x => x.totalAmount)
                 .ToList();

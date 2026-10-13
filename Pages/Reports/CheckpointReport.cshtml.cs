@@ -71,23 +71,26 @@ public class CheckpointReportModel : PageModel
         if (ToDate.HasValue)
             summaryQuery = summaryQuery.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
 
-        var checkpointSummaries = summaryQuery
+        // Only registered checkpoints are listed (all of them, even with no
+        // payments); payments with no checkpoint are not shown as a group.
+        // Attribution: the payment's checkpoint snapshot, else the collector's.
+        var totalsByCheckpoint = summaryQuery
             .AsEnumerable()
-            .GroupBy(p =>
+            .Select(p => new { CheckpointId = p.CheckpointId ?? p.Collector?.CheckpointId, p.Amount })
+            .Where(x => x.CheckpointId.HasValue)
+            .GroupBy(x => x.CheckpointId!.Value)
+            .ToDictionary(g => g.Key, g => (Count: g.Count(), Amount: g.Sum(x => x.Amount)));
+
+        var checkpointSummaries = (await _context.Checkpoints.AsNoTracking().ToListAsync())
+            .Select(c => new CheckpointSummaryRow
             {
-                // Use the snapshot if set; otherwise fall back to the collector's current checkpoint
-                if (p.Checkpoint != null) return p.Checkpoint;
-                if (p.Collector?.Checkpoint != null) return p.Collector.Checkpoint;
-                return new Checkpoint { Id = 0, Name = "Unassigned" };
-            })
-            .Select(g => new CheckpointSummaryRow
-            {
-                Id = g.Key.Id,
-                Name = g.Key.Name,
-                TotalPayments = g.Count(),
-                TotalAmount = g.Sum(x => x.Amount)
+                Id = c.Id,
+                Name = c.Name,
+                TotalPayments = totalsByCheckpoint.TryGetValue(c.Id, out var t) ? t.Count : 0,
+                TotalAmount = totalsByCheckpoint.TryGetValue(c.Id, out var t2) ? t2.Amount : 0m
             })
             .OrderByDescending(x => x.TotalAmount)
+            .ThenBy(x => x.Name)
             .ToList();
 
         CheckpointSummaries = checkpointSummaries;

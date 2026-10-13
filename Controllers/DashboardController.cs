@@ -215,19 +215,19 @@ namespace VehicleTax.Web.Controllers
             // Use the snapshot Payment.Checkpoint first; if null, fall back
             // to the collector's current checkpoint so historical payments
             // without a snapshot are still attributed.
-            var items = query
+            // Only registered checkpoints; payments with no checkpoint are not grouped.
+            var totals = query
                 .AsEnumerable()
-                .GroupBy(p =>
+                .Select(p => new { CheckpointId = p.CheckpointId ?? p.Collector?.CheckpointId, p.Amount })
+                .Where(x => x.CheckpointId.HasValue)
+                .GroupBy(x => x.CheckpointId!.Value)
+                .ToDictionary(g => g.Key, g => (Count: g.Count(), Amount: g.Sum(x => x.Amount)));
+            var items = _context.Checkpoints.AsNoTracking().ToList()
+                .Select(c => new
                 {
-                    if (p.Checkpoint != null) return p.Checkpoint.Name;
-                    if (p.Collector?.Checkpoint != null) return p.Collector.Checkpoint.Name;
-                    return "Unassigned";
-                })
-                .Select(g => new
-                {
-                    checkpoint = g.Key,
-                    totalPayments = g.Count(),
-                    totalAmount = g.Sum(x => x.Amount)
+                    checkpoint = c.Name,
+                    totalPayments = totals.TryGetValue(c.Id, out var t) ? t.Count : 0,
+                    totalAmount = totals.TryGetValue(c.Id, out var t2) ? t2.Amount : 0m
                 })
                 .OrderByDescending(x => x.totalAmount)
                 .Take(limit)

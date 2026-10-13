@@ -218,18 +218,26 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Checkpoint summary — group by the snapshot checkpoint so that
             // payments stay attributed to the checkpoint they were collected under.
-            CheckpointSummaries = await query
-                .GroupBy(p => p.Checkpoint != null
-                    ? p.Checkpoint.Name
-                    : "Unassigned")
-                .Select(g => new CheckpointSummary
+            // Only registered checkpoints (all of them, even with no payments).
+            var checkpointTotals = await query
+                .Where(p => p.CheckpointId != null)
+                .GroupBy(p => p.CheckpointId!.Value)
+                .Select(g => new { Id = g.Key, Count = g.Count(), Amount = g.Sum(x => x.Amount) })
+                .ToListAsync();
+            CheckpointSummaries = (await _context.Checkpoints.AsNoTracking().ToListAsync())
+                .Select(c =>
                 {
-                    CheckpointName = g.Key,
-                    TotalPayments = g.Count(),
-                    TotalAmount = g.Sum(x => x.Amount)
+                    var t = checkpointTotals.FirstOrDefault(x => x.Id == c.Id);
+                    return new CheckpointSummary
+                    {
+                        CheckpointName = c.Name,
+                        TotalPayments = t?.Count ?? 0,
+                        TotalAmount = t?.Amount ?? 0m
+                    };
                 })
                 .OrderByDescending(x => x.TotalAmount)
-                .ToListAsync();
+                .ThenBy(x => x.CheckpointName)
+                .ToList();
 
             // Movement infographic summary
             MovementSummaries = await query

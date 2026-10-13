@@ -20,10 +20,14 @@
     .report-view-card.active .rv-icon { background: #0b57d0; color: #fff; }
     .report-view-card .rv-title { font-weight: 800; color: #0f172a; }
     .report-view-card .rv-hint { font-size: .8rem; color: #64748b; }
+    /* The chosen view is set on <html> right away, so it is visible before
+       charts in it are drawn (a hidden canvas would be sized 0). */
     [data-report-view] { display: none; }
-    [data-report-view].rv-show { display: block; }
+    html[data-rv="summary"] [data-report-view="summary"],
+    html[data-rv="details"] [data-report-view="details"] { display: block; }
     @@media print { .report-view-cards { display: none; } }
 </style>
+<script>document.documentElement.setAttribute('data-rv', '@view');</script>
 <div class="report-view-cards" role="tablist">
     <button type="button" class="report-view-card @(view == "summary" ? "active" : "")" data-view-btn="summary" role="tab">
         <span class="rv-icon"><i class="bi bi-bar-chart-line"></i></span>
@@ -40,9 +44,9 @@
 <script>
     (function () {
         function show(view) {
-            document.querySelectorAll('[data-report-view]').forEach(function (el) {
-                el.classList.toggle('rv-show', el.getAttribute('data-report-view') === view);
-            });
+            document.documentElement.setAttribute('data-rv', view);
+            // Let charts in the newly shown view resize to their real width.
+            window.dispatchEvent(new Event('resize'));
             document.querySelectorAll('[data-view-btn]').forEach(function (b) {
                 b.classList.toggle('active', b.getAttribute('data-view-btn') === view);
             });

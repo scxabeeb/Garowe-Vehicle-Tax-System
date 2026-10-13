@@ -186,17 +186,22 @@ public class SummaryModel : PageModel
             .OrderByDescending(x => x.CompletedAmount)
             .ToList();
 
-        CheckpointSummaries = data
-            .GroupBy(p => p.Checkpoint?.Name ?? "Unassigned")
-            .Select(g => new CheckpointSummary
+        // Only registered checkpoints (all of them, even with no payments).
+        CheckpointSummaries = _context.Checkpoints.AsNoTracking().ToList()
+            .Select(c =>
             {
-                CheckpointName = g.Key,
-                Completed = g.Count(p => !p.IsReverted),
-                CompletedAmount = g.Where(p => !p.IsReverted).Sum(p => p.Amount),
-                Cancelled = g.Count(p => p.IsReverted),
-                CancelledAmount = g.Where(p => p.IsReverted).Sum(p => p.Amount)
+                var rows = data.Where(p => p.CheckpointId == c.Id).ToList();
+                return new CheckpointSummary
+                {
+                    CheckpointName = c.Name,
+                    Completed = rows.Count(p => !p.IsReverted),
+                    CompletedAmount = rows.Where(p => !p.IsReverted).Sum(p => p.Amount),
+                    Cancelled = rows.Count(p => p.IsReverted),
+                    CancelledAmount = rows.Where(p => p.IsReverted).Sum(p => p.Amount)
+                };
             })
             .OrderByDescending(x => x.CompletedAmount)
+            .ThenBy(x => x.CheckpointName)
             .ToList();
 // Per-payment detail records — include the audit Reference No. (or NULL for unrecorded)
         PaymentRecords = data
