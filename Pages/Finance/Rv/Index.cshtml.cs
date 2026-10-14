@@ -1,101 +1,73 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using VehicleTax.Web;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Finance.Rv;
 
 /// <summary>
-/// RF History — searchable list of all RF documents (Finance batches) with status,
-/// FMIS status, account, totals and prepared-by. RF numbers are Finance document
-/// numbers and are entirely separate from Payment Reference Numbers.
+/// RV History: every RV document with one plain status (being prepared,
+/// ready to send, sent to FMIS, sending failed, cancelled). Access follows
+/// the Finance permissions (PagePermissionFilter).
 /// </summary>
 public class IndexModel : PageModel
 {
     private readonly AppDbContext _context;
-    public IndexModel(AppDbContext context) { _context = context; }
+    public IndexModel(AppDbContext context) => _context = context;
 
-    public bool IsFinance { get; private set; }
-
-    [BindProperty(SupportsGet = true)] public string? RvNumber { get; set; }
-    [BindProperty(SupportsGet = true)] public DateTime? Date { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Search { get; set; }
+    [BindProperty(SupportsGet = true)] public DateTime? FromDate { get; set; }
+    [BindProperty(SupportsGet = true)] public DateTime? ToDate { get; set; }
     [BindProperty(SupportsGet = true)] public int? AccountId { get; set; }
-    [BindProperty(SupportsGet = true)] public string? Status { get; set; }
-    [BindProperty(SupportsGet = true)] public string? FmisStatus { get; set; }
+    [BindProperty(SupportsGet = true)] public RvStage? Stage { get; set; }
+    [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
+    [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
-    public List<RvRow> Rows { get; set; } = new();
+    public record Row(RvDocument Rv, RvStage Stage);
+
+    public List<Row> Rows { get; set; } = new();
     public List<RevenueAccount> Accounts { get; set; } = new();
+    public Pager Pager { get; set; } = new(0, 1, 20);
 
-    public class RvRow
+    /// <summary>Count and amount per stage, for the chips (before the stage filter).</summary>
+    public Dictionary<RvStage, (int Count, decimal Amount)> ByStage { get; set; } = new();
+    public int Total => ByStage.Values.Sum(v => v.Count);
+    public decimal FilteredAmount { get; set; }
+
+    public async Task OnGetAsync()
     {
-        public int Id { get; set; }
-        public string RvNumber { get; set; } = "";
-        public string? SystemId { get; set; }
-        public DateTime RvDate { get; set; }
-        public string? Account { get; set; }
-        public int TotalTransactions { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string? PreparedBy { get; set; }
-        public string Status { get; set; } = "";
-        public string FmisStatus { get; set; } = "";
-        public string? FmisBatchNumber { get; set; }
-        public DateTime? TransferredAt { get; set; }
-    }
+        Accounts = await _context.RevenueAccounts.AsNoTracking().OrderBy(a => a.AccountCode).ToListAsync();
 
-    public async Task<IActionResult> OnGetAsync()
-    {
-        IsFinance = User.IsInRole("Admin") || User.HasClaim("permission", "finance.manage");
-        if (!IsFinance) return RedirectToPage("/Index");
-
-        Accounts = await _context.RevenueAccounts
-            .Where(a => a.IsActive)
-            .OrderBy(a => a.AccountName)
-            .ToListAsync();
-
-        var query = _context.RvDocuments
+        var q = _context.RvDocuments.AsNoTracking()
             .Include(r => r.RevenueAccount)
             .Include(r => r.PreparedBy)
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(RvNumber))
-            query = query.Where(r => r.RvNumber.Contains(RvNumber.Trim()));
-        if (Date.HasValue)
+        if (!string.IsNullOrWhiteSpace(Search))
         {
-            var d = Date.Value.Date;
-            query = query.Where(r => r.RvDate >= d && r.RvDate < d.AddDays(1));
+            var s = Search.Trim();
+            q = q.Where(r => r.RvNumber.Contains(s) || (r.FmisBatchNumber != null && r.FmisBatchNumber.Contains(s)));
         }
-        if (AccountId.HasValue && AccountId.Value > 0)
-            query = query.Where(r => r.RevenueAccountId == AccountId.Value);
-        if (!string.IsNullOrWhiteSpace(Status) && Enum.TryParse<RvStatus>(Status, out var st))
-            query = query.Where(r => r.Status == st);
-        if (!string.IsNullOrWhiteSpace(FmisStatus) && Enum.TryParse<FmisTransferStatus>(FmisStatus, out var fs))
-            query = query.Where(r => r.FmisStatus == fs);
+        // RvDate holds the local day the RV was made.
+        if (FromDate.HasValue) q = q.Where(r => r.RvDate >= FromDate.Value.Date);
+        if (ToDate.HasValue) q = q.Where(r => r.RvDate < ToDate.Value.Date.AddDays(1));
+        if (AccountId.HasValue) q = q.Where(r => r.RevenueAccountId == AccountId);
 
-        Rows = await query
-            .OrderByDescending(r => r.Id)
-            .Select(r => new RvRow
-            {
-                Id = r.Id,
-                RvNumber = r.RvNumber,
-                SystemId = r.SystemId,
-                RvDate = r.RvDate,
-                Account = r.RevenueAccount == null
-                    ? null
-                    : r.RevenueAccount.AccountCode + " - " + r.RevenueAccount.AccountName,
-                TotalTransactions = r.TotalTransactions,
-                TotalAmount = r.TotalAmount,
-                PreparedBy = r.PreparedBy != null
-                    ? (r.PreparedBy.FullName ?? r.PreparedBy.Username)
-                    : null,
-                Status = r.Status.ToString(),
-                FmisStatus = r.FmisStatus.ToString(),
-                FmisBatchNumber = r.FmisBatchNumber,
-                TransferredAt = r.TransferredAt
-            })
-            .ToListAsync();
+        // RV counts are small; work out each one's plain stage in memory.
+        var all = (await q.OrderByDescending(r => r.RvDate).ThenByDescending(r => r.Id).ToListAsync())
+            .Select(r => new Row(r, RvStages.Of(r.Status, r.FmisStatus)))
+            .ToList();
 
-        return Page();
+        ByStage = all.GroupBy(r => r.Stage)
+            .ToDictionary(g => g.Key, g => (g.Count(), g.Sum(r => r.Rv.TotalAmount)));
+
+        if (Stage.HasValue) all = all.Where(r => r.Stage == Stage).ToList();
+        FilteredAmount = all.Where(r => r.Stage != RvStage.Cancelled).Sum(r => r.Rv.TotalAmount);
+
+        Pager = new Pager(all.Count, CurrentPage, PageSize);
+        CurrentPage = Pager.Page;
+        Rows = all.Skip(Pager.Skip).Take(Pager.Take).ToList();
     }
 }

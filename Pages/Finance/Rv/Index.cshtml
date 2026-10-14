@@ -1,111 +1,153 @@
 @page
 @model VehicleTax.Web.Pages.Finance.Rv.IndexModel
+@using VehicleTax.Web.Services
 @{
     ViewData["Title"] = L["RV History"];
-    Layout = "_Layout";
+    string money(decimal m) => "$" + m.ToString("N2");
+    var stages = new[] { RvStage.Preparing, RvStage.Ready, RvStage.Sent, RvStage.Failed, RvStage.Cancelled };
+    string? fd = Model.FromDate?.ToString("yyyy-MM-dd"), td = Model.ToDate?.ToString("yyyy-MM-dd");
 }
+<style>
+    .rh-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .rh-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .rh-chip { display: inline-flex; align-items: center; gap: 6px; border: 2px solid #e2e8f0; background: #fff; border-radius: 999px;
+        padding: 6px 14px; font-size: 13px; font-weight: 700; color: #334155; text-decoration: none; }
+    .rh-chip:hover { border-color: #93b4f5; color: #334155; }
+    .rh-chip.active { border-color: #0b57d0; background: #eef4ff; color: #0b57d0; }
+    .rh-chip .c { background: #f1f5f9; border-radius: 999px; padding: 0 8px; font-size: 12px; }
+    .rh-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .rh-table td { vertical-align: middle; }
+    .rh-badge { display: inline-flex; gap: 5px; align-items: center; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .rh-steps { font-size: 13px; color: #475569; }
+    .rh-steps b { color: #0f172a; }
+    @@media print { .rh-noprint { display: none !important; } }
+</style>
 
-<div class="container-fluid py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h2 class="mb-0">@L["RV History"]</h2>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" onclick="window.print()">
-                <i class="bi bi-printer"></i> @L["Print"]
-            </button>
-            <a class="btn btn-outline-secondary" asp-page="/Finance/Index">← Finance Dashboard</a>
+<div class="container py-4">
+    <div class="rh-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-clock-history me-2"></i>@L["RV History"]</h3>
+            <div style="opacity:.85">@L["Every RV: one revenue account's payments grouped into one document for the finance system (FMIS)."]</div>
+        </div>
+        <div class="d-flex gap-2 rh-noprint">
+            <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="bi bi-printer"></i></button>
+            <a class="btn btn-light fw-semibold" asp-page="/Finance/Index"><i class="bi bi-cash-stack me-1"></i>@L["Finance Dashboard"]</a>
         </div>
     </div>
 
-    <form method="get" class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small mb-0">@L["RV Number"]</label>
-                    <input class="form-control" asp-for="RvNumber" placeholder="RV-000001" />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-0">@L["RV Date"]</label>
-                    <input type="date" class="form-control" asp-for="Date" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small mb-0">@L["Account"]</label>
-                    <select class="form-select" asp-for="AccountId">
-                        <option value="">@L["All accounts"]</option>
-                        @foreach (var a in Model.Accounts)
-                        {
-                            <option value="@a.Id">@a.AccountCode - @a.AccountName</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-0">@L["Status"]</label>
-                    <select class="form-select" asp-for="Status">
-                        <option value="">@L["All"]</option>
-                        <option value="Draft">@L["Draft"]</option>
-                        <option value="Prepared">@L["Prepared"]</option>
-                        <option value="ReadyForFmis">@L["ReadyForFmis"]</option>
-                        <option value="Transferred">@L["Transferred"]</option>
-                        <option value="Cancelled">@L["Cancelled"]</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-0">@L["FMIS Status"]</label>
-                    <select class="form-select" asp-for="FmisStatus">
-                        <option value="">@L["All"]</option>
-                        <option value="NotTransferred">@L["NotTransferred"]</option>
-                        <option value="ReadyForFmis">@L["ReadyForFmis"]</option>
-                        <option value="Failed">@L["Failed"]</option>
-                        <option value="Transferred">@L["Transferred"]</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <button class="btn btn-primary w-100" type="submit">@L["Search"]</button>
-                </div>
+    <div class="rh-card p-3 mb-3 rh-steps">
+        <i class="bi bi-info-circle text-primary me-1"></i>
+        @L["How an RV moves:"]
+        <b>@L["Being prepared"]</b> <i class="bi bi-arrow-right"></i>
+        <b>@L["Ready to send"]</b> <i class="bi bi-arrow-right"></i>
+        <b>@L["Sent to FMIS"]</b>.
+        @L["Open an RV to move it to the next step, or to cancel it."]
+    </div>
+
+    <form method="get" class="rh-card mb-3 rh-noprint">
+        <div class="p-3 row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Search"]</label>
+                <input name="Search" value="@Model.Search" class="form-control" placeholder="@L["RV number or FMIS batch"]" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["From Date"]</label>
+                <input type="date" name="FromDate" value="@fd" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["To Date"]</label>
+                <input type="date" name="ToDate" value="@td" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Revenue Account"]</label>
+                <select name="AccountId" class="form-select">
+                    <option value="">@L["All accounts"]</option>
+                    @foreach (var a in Model.Accounts)
+                    {
+                        <option value="@a.Id" selected="@(a.Id == Model.AccountId ? "selected" : null)">@a.DisplayName</option>
+                    }
+                </select>
+            </div>
+            @if (Model.Stage.HasValue) { <input type="hidden" name="Stage" value="@Model.Stage" /> }
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+            <div class="col-md-2 d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>@L["Search"]</button>
+                <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index" title="@L["Reset"]"><i class="bi bi-x-lg"></i></a>
             </div>
         </div>
     </form>
 
-    <div class="card shadow-sm">
+    <div class="d-flex flex-wrap gap-2 mb-3 rh-noprint">
+        <a class="rh-chip @(Model.Stage == null ? "active" : "")" asp-route-Search="@Model.Search" asp-route-FromDate="@fd" asp-route-ToDate="@td" asp-route-AccountId="@Model.AccountId">
+            @L["All"] <span class="c">@Model.Total</span>
+        </a>
+        @foreach (var s in stages)
+        {
+            var lk = RvStages.Look(s);
+            var n = Model.ByStage.TryGetValue(s, out var v) ? v.Count : 0;
+            <a class="rh-chip @(Model.Stage == s ? "active" : "")" asp-route-Stage="@s"
+               asp-route-Search="@Model.Search" asp-route-FromDate="@fd" asp-route-ToDate="@td" asp-route-AccountId="@Model.AccountId">
+                <i class="bi @lk.Icon" style="color:@lk.Fg"></i>@L[lk.Label] <span class="c">@n</span>
+            </a>
+        }
+    </div>
+
+    <div class="rh-card">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr>
-                    <th>@L["RV Number"]</th><th>@L["System ID"]</th><th>@L["Date"]</th><th>@L["Account"]</th>
-                    <th class="text-end">@L["Transactions"]</th><th class="text-end">@L["Amount"]</th>
-                    <th>@L["Prepared By"]</th><th>@L["Status"]</th><th>FMIS</th>
-                </tr></thead>
-                <tbody>
-                @foreach (var r in Model.Rows)
-                {
+            <table class="table rh-table mb-0">
+                <thead>
                     <tr>
-                        <td><a asp-page="/Finance/Rv/Details" asp-route-number="@r.RvNumber" class="fw-semibold">@r.RvNumber</a></td>
-                        <td><small class="text-muted font-monospace">@(r.SystemId?.Length > 12 ? r.SystemId[..12] + "…" : r.SystemId)</small></td>
-                        <td>@AppTime.ToLocal(r.RvDate).ToString("dd MMM yyyy")</td>
-                        <td>@(r.Account ?? "-")</td>
-                        <td class="text-end">@r.TotalTransactions</td>
-                        <td class="text-end">$@r.TotalAmount.ToString("N2")</td>
-                        <td>@(r.PreparedBy ?? "-")</td>
-                        <td>
-                            <span class="badge @(r.Status == "Transferred" ? "bg-success" : r.Status == "Cancelled" ? "bg-danger" : r.Status == "ReadyForFmis" ? "bg-info text-dark" : "bg-warning text-dark")">
-                                @r.Status
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge @(r.FmisStatus == "Transferred" ? "bg-success" : r.FmisStatus == "Failed" ? "bg-danger" : "bg-secondary")">
-                                @r.FmisStatus
-                            </span>
-                            @if (!string.IsNullOrEmpty(r.FmisBatchNumber))
-                            {
-                                <div class="small text-muted">@r.FmisBatchNumber</div>
-                            }
-                        </td>
+                        <th>@L["RV Number"]</th>
+                        <th>@L["Date"]</th>
+                        <th>@L["Revenue Account"]</th>
+                        <th class="text-end">@L["Payments"]</th>
+                        <th class="text-end">@L["Amount"]</th>
+                        <th>@L["Prepared By"]</th>
+                        <th>@L["Status"]</th>
+                        <th class="rh-noprint"></th>
                     </tr>
-                }
-                @if (!Model.Rows.Any())
-                {
-                    <tr><td colspan="9" class="text-center text-muted py-4">@L["No RV documents found."]</td></tr>
-                }
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        var rv = r.Rv;
+                        var lk = RvStages.Look(r.Stage);
+                        <tr class="@(r.Stage == RvStage.Cancelled ? "text-muted" : "")">
+                            <td class="fw-bold">@rv.RvNumber</td>
+                            <td class="text-nowrap">@rv.RvDate.ToString("dd MMM yyyy")</td>
+                            <td class="small">@(rv.RevenueAccount?.DisplayName ?? "—")</td>
+                            <td class="text-end">@rv.TotalTransactions</td>
+                            <td class="text-end fw-semibold">@money(rv.TotalAmount)</td>
+                            <td>@(rv.PreparedBy?.FullName ?? rv.PreparedBy?.Username ?? "—")</td>
+                            <td>
+                                <span class="rh-badge" style="background:@lk.Bg;color:@lk.Fg"><i class="bi @lk.Icon"></i>@L[lk.Label]</span>
+                                @if (!string.IsNullOrEmpty(rv.FmisBatchNumber))
+                                {
+                                    <div class="small text-muted">@L["FMIS batch"] @rv.FmisBatchNumber</div>
+                                }
+                            </td>
+                            <td class="text-end rh-noprint">
+                                <a class="btn btn-sm btn-outline-primary" asp-page="/Finance/Rv/Details" asp-route-number="@rv.RvNumber">@L["Open"]</a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">@L["No RV documents found."]</td></tr>
+                    }
                 </tbody>
+                @if (Model.Rows.Any())
+                {
+                    <tfoot>
+                        <tr class="fw-bold" style="background:#f8fafc">
+                            <td colspan="4">@L["Total (not counting cancelled)"]</td>
+                            <td class="text-end">@money(Model.FilteredAmount)</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                }
             </table>
         </div>
+        <partial name="_Pager" model="Model.Pager" />
     </div>
 </div>

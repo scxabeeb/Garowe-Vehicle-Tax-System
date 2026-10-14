@@ -1,170 +1,215 @@
 @page
 @model VehicleTax.Web.Pages.Finance.IndexModel
+@using Step = VehicleTax.Web.Pages.Finance.IndexModel.Step
 @{
     ViewData["Title"] = L["Finance Dashboard"];
-    Layout = "_Layout";
+    var day = Model.Date!.Value;
+    string d(DateTime x) => x.ToString("yyyy-MM-dd");
+    string money(decimal m) => "$" + m.ToString("N2");
+    (string Label, string Icon, string Fg, string Bg) look(Step s) => s switch
+    {
+        Step.NeedsRv => (L["Needs RV"], "bi-hourglass-split", "#b45309", "#fef3c7"),
+        Step.InRv => (L["In RV"], "bi-file-earmark-text", "#0b57d0", "#eef4ff"),
+        Step.Sent => (L["Sent to FMIS"], "bi-check-circle-fill", "#15803d", "#dcfce7"),
+        _ => (L["Sending failed"], "bi-exclamation-triangle-fill", "#b91c1c", "#fee2e2"),
+    };
 }
+<style>
+    .fd-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .fd-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .fd-card .head { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
+    .fd-step { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 16px; height: 100%; position: relative; }
+    .fd-step .n { width: 30px; height: 30px; border-radius: 50%; display: inline-grid; place-items: center; font-weight: 800; font-size: 14px; }
+    .fd-step .v { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+    .fd-step .l { font-weight: 700; }
+    .fd-step .h { font-size: 12.5px; color: #64748b; }
+    .fd-arrow { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem; z-index: 2; }
+    .fd-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .fd-table td { vertical-align: middle; }
+    .fd-badge { display: inline-flex; gap: 5px; align-items: center; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    @@media (max-width: 991px) { .fd-arrow { display: none; } }
+    @@media print { .fd-noprint { display: none !important; } }
+</style>
 
-<div class="container-fluid py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+<div class="container py-4">
+    <div class="fd-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <h2 class="mb-0">@L["Finance Dashboard"]</h2>
-            <div class="text-muted">@L["Today's Payments · Account Summary · RV Management · FMIS Transfers"]</div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-cash-stack me-2"></i>@L["Finance Dashboard"]</h3>
+            <div style="opacity:.85">@L["Money collected on the chosen day. Put each account's payments into an RV, then send the RV to FMIS."]</div>
         </div>
-        <div class="d-flex gap-2 align-items-end">
-            <form method="get" class="d-flex gap-2 align-items-end mb-0">
-                <div>
-                    <label class="form-label mb-0 small">@L["Payment Date"]</label>
-                    <input type="date" class="form-control" asp-for="Date" />
-                </div>
-                <button class="btn btn-primary" type="submit">@L["Apply"]</button>
-            </form>
-            <button class="btn btn-outline-primary" onclick="window.print()">
-                <i class="bi bi-printer"></i> @L["Print"]
-            </button>
-            <a class="btn btn-outline-secondary" asp-page="/Finance/Rv/Index">@L["RV History"]</a>
-        </div>
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-center fd-noprint">
+            <a class="btn btn-sm @(Model.IsToday ? "btn-light" : "btn-outline-light")" asp-route-Date="@d(VehicleTax.Web.AppTime.Today)">@L["Today"]</a>
+            <a class="btn btn-sm btn-outline-light" asp-route-Date="@d(day.AddDays(-1))"><i class="bi bi-chevron-left"></i></a>
+            <input type="date" name="Date" value="@d(day)" class="form-control form-control-sm" style="width:auto" onchange="this.form.submit()" />
+            <a class="btn btn-sm btn-outline-light @(Model.IsToday ? "disabled" : "")" asp-route-Date="@d(day.AddDays(1))"><i class="bi bi-chevron-right"></i></a>
+            <button type="button" class="btn btn-sm btn-outline-light" onclick="window.print()"><i class="bi bi-printer"></i></button>
+            <a class="btn btn-sm btn-light fw-semibold" asp-page="/Finance/Rv/Index"><i class="bi bi-clock-history me-1"></i>@L["RV History"]</a>
+        </form>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-3">
-            <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">@L["Total Paid Transactions"]</div>
-                <div class="fs-3 fw-bold">@Model.TotalPayments</div>
-                <div class="text-muted small">@Model.Date?.ToString("dd MMMM yyyy")</div>
-            </div></div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">@L["Total Paid Amount"]</div>
-                <div class="fs-3 fw-bold">$@Model.TotalAmount.ToString("N2")</div>
-            </div></div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="card shadow-sm h-100"><div class="card-body">
-                <div class="text-muted small">RVs (Prepared / Ready / Transferred)</div>
-                <div class="fs-3 fw-bold">@Model.RfPrepared / @Model.RfReadyForFmis / @Model.RfTransferred</div>
-                @if (Model.RfFailed > 0)
-                {
-                    <div class="small text-danger">@Model.RfFailed FMIS transfer failure(s)</div>
-                }
-            </div></div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="card shadow-sm h-100 border-warning"><div class="card-body">
-                <div class="text-muted small">@L["Not Yet Included in RV"]</div>
-                <div class="fs-3 fw-bold text-warning">@Model.NotYetInRf</div>
-                <div class="text-muted small">$@Model.NotYetInRfAmount.ToString("N2") remaining</div>
-            </div></div>
-        </div>
-    </div>
+    <div class="fw-semibold text-muted mb-2">@day.ToString("dddd, dd MMMM yyyy")</div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-semibold">@L["TODAY'S ACCOUNT SUMMARY"]</div>
-                <div class="card-body p-0">
-                    @if (!Model.AccountSummary.Any())
-                    {
-                        <div class="p-4 text-center text-muted">@L["No paid payments for this date."]</div>
-                    }
-                    else
-                    {
-                        <table class="table mb-0 align-middle">
-                            <thead class="table-light"><tr>
-                                <th>@L["Financial Account"]</th><th class="text-end">@L["Transactions"]</th><th class="text-end">@L["Total"]</th><th></th>
-                            </tr></thead>
-                            <tbody>
-                            @foreach (var a in Model.AccountSummary)
-                            {
-                                <tr>
-                                    <td>@a.AccountName</td>
-                                    <td class="text-end">@a.Transactions</td>
-                                    <td class="text-end">$@a.Total.ToString("N2")</td>
-                                    <td class="text-end">
-                                        <a class="btn btn-sm btn-outline-primary"
-                                           asp-page="/Finance/Account"
-                                           asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
-                                           asp-route-accountId="@a.RevenueAccountId">@L["View →"]</a>
-                                    </td>
-                                </tr>
-                            }
-                            </tbody>
-                            <tfoot class="table-light fw-bold"><tr>
-                                <td>@L["TOTAL"]</td>
-                                <td class="text-end">@Model.TotalPayments</td>
-                                <td class="text-end">$@Model.TotalAmount.ToString("N2")</td>
-                                <td></td>
-                            </tr></tfoot>
-                        </table>
-                    }
+    @* ---- The three steps ---- *@
+    <div class="row g-3 mb-3">
+        @{
+            var steps = new[]
+            {
+                (1, L["Collected"].ToString(), Model.Collected, Model.CollectedAmount, L["Paid payments on this day"].ToString(), "#15803d", "#dcfce7"),
+                (2, L["In an RV"].ToString(), Model.InRv, Model.InRvAmount, L["Grouped into RV documents"].ToString(), "#0b57d0", "#eef4ff"),
+                (3, L["Sent to FMIS"].ToString(), Model.Sent, Model.SentAmount, L["Received by the finance system"].ToString(), "#7c3aed", "#ede9fe"),
+            };
+        }
+        @foreach (var s in steps)
+        {
+            <div class="col-lg-4">
+                <div class="fd-step">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="n" style="background:@s.Item7;color:@s.Item6">@s.Item1</span>
+                        <span class="l">@s.Item2</span>
+                    </div>
+                    <div class="v" style="color:@s.Item6">@money(s.Item4)</div>
+                    <div class="h">@s.Item3 @L["payments"] · @s.Item5</div>
+                    @if (s.Item1 < 3) { <i class="bi bi-arrow-right-circle-fill fd-arrow"></i> }
                 </div>
             </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-semibold">@L["Reconciliation — Paid → RV → FMIS"]</div>
-                <div class="card-body p-0">
-                    <table class="table mb-0 align-middle">
-                        <thead class="table-light"><tr><th>@L["Stage"]</th><th class="text-end">@L["Count"]</th><th class="text-end">@L["Amount"]</th></tr></thead>
-                        <tbody>
-                            <tr><td>@L["Paid Payments"]</td><td class="text-end">@Model.TotalPayments</td><td class="text-end">$@Model.TotalAmount.ToString("N2")</td></tr>
-                            <tr><td>@L["Included in RV"]</td><td class="text-end">@Model.IncludedInRf</td><td class="text-end">$@Model.IncludedInRfAmount.ToString("N2")</td></tr>
-                            <tr><td>@L["Transferred to FMIS"]</td><td class="text-end">@Model.TransferredTo_Fmis</td><td class="text-end">$@Model.TransferredTo_FmisAmount.ToString("N2")</td></tr>
-                            <tr class="table-warning fw-bold"><td>Remaining (needs RV)</td><td class="text-end">@Model.NotYetInRf</td><td class="text-end">$@Model.NotYetInRfAmount.ToString("N2")</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-white fw-semibold">TODAY'S PAYMENTS (@Model.Date?.ToString("dd MMMM yyyy"))</div>
+    @* ---- What to do next ---- *@
+    @if (Model.Collected == 0)
+    {
+        <div class="alert alert-light border d-flex gap-2 align-items-center"><i class="bi bi-info-circle"></i>@L["No money was collected on this day."]</div>
+    }
+    else if (Model.NeedsRv > 0)
+    {
+        <div class="alert alert-warning d-flex gap-2 align-items-center">
+            <i class="bi bi-hourglass-split fs-5"></i>
+            <div><b>@money(Model.NeedsRvAmount)</b> @L["from"] <b>@Model.NeedsRv</b> @L["payments still needs an RV."] @L["Press Create RV next to each account below."]</div>
+        </div>
+    }
+    else if (Model.Sent < Model.Collected)
+    {
+        <div class="alert alert-info d-flex gap-2 align-items-center">
+            <i class="bi bi-send fs-5"></i>
+            <div>@L["All payments are in an RV."] @L["Open the RV in RV History to send it to FMIS."]</div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill fs-5"></i>@L["All done for this day: every payment was sent to FMIS."]</div>
+    }
+    @if (Model.Failed > 0)
+    {
+        <div class="alert alert-danger d-flex gap-2 align-items-center"><i class="bi bi-exclamation-triangle-fill"></i>@Model.Failed @L["payments are in an RV that failed to send. Open it in RV History and try again."]</div>
+    }
+
+    @* ---- By account ---- *@
+    <div class="fd-card mb-3">
+        <div class="head"><i class="bi bi-wallet2 text-primary"></i>@L["By Revenue Account"]</div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr>
-                    <th>@L["Payment ID"]</th><th>@L["Ref No."]</th><th>@L["Invoice ID"]</th><th>@L["Receipt"]</th><th>@L["Golis/Bill No."]</th>
-                    <th>@L["Vehicle"]</th><th>@L["Account"]</th><th class="text-end">@L["Amount"]</th><th>@L["Collector"]</th>
-                    <th>@L["Paid At"]</th><th>@L["Status"]</th><th>@L["FMIS Transfer Status"]</th>
-                </tr></thead>
-                <tbody>
-                @foreach (var p in Model.Payments)
-                {
+            <table class="table fd-table mb-0">
+                <thead>
                     <tr>
-                        <td>@p.PaymentId</td>
-                        <td>@(p.ReferenceNo?.ToString() ?? "-")</td>
-                        <td>@p.InvoiceNumber</td>
-                        <td>@(p.ReceiptNo ?? "-")</td>
-                        <td>@(p.GolisBillNo ?? "-")</td>
-                        <td>@p.Vehicle</td>
-                        <td>@(p.Account ?? "-")</td>
-                        <td class="text-end">$@p.Amount.ToString("N2")</td>
-                        <td>@(p.Collector ?? "-")</td>
-                        <td>@AppTime.ToLocal(p.PaidAt).ToString("dd MMM HH:mm")</td>
-                        <td><span class="badge bg-success">@p.Status</span></td>
-                        <td>
-                            @if (p.RvNumber != null)
-                            {
-                                <span class="badge @(p.FmisStatus == "Transferred" ? "bg-success" : p.FmisStatus == "FMIS Failed" ? "bg-danger" : "bg-info text-dark")">
-                                    @p.FmisStatus
-                                </span>
-                                <a class="small" asp-page="/Finance/Rv/Details" asp-route-number="@p.RvNumber">@p.RvNumber</a>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">@L["Not Included"]</span>
-                            }
-                        </td>
+                        <th>@L["Revenue Account"]</th>
+                        <th class="text-end">@L["Payments"]</th>
+                        <th class="text-end">@L["Collected"]</th>
+                        <th class="text-end">@L["Needs RV"]</th>
+                        <th class="text-end fd-noprint"></th>
                     </tr>
-                }
-                @if (!Model.Payments.Any())
-                {
-                    <tr><td colspan="12" class="text-center text-muted py-4">@L["No paid payments found for this date."]</td></tr>
-                }
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Accounts)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@L[a.Account]</td>
+                            <td class="text-end">@a.Payments</td>
+                            <td class="text-end fw-semibold">@money(a.Total)</td>
+                            <td class="text-end">@(a.Done ? "—" : $"{money(a.WaitingAmount)} ({a.Waiting})")</td>
+                            <td class="text-end fd-noprint">
+                                @if (a.Done)
+                                {
+                                    <span class="fd-badge" style="background:#dcfce7;color:#15803d"><i class="bi bi-check2"></i>@L["Done"]</span>
+                                }
+                                else if (a.AccountId.HasValue)
+                                {
+                                    <a class="btn btn-sm btn-primary" asp-page="/Finance/Account" asp-route-date="@d(day)" asp-route-accountId="@a.AccountId">
+                                        <i class="bi bi-plus-lg me-1"></i>@L["Create RV"]
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="small text-muted">@L["Link the tariff to an account first"]</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Accounts.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">@L["No paid payments for this date."]</td></tr>
+                    }
                 </tbody>
+                @if (Model.Accounts.Any())
+                {
+                    <tfoot>
+                        <tr class="fw-bold" style="background:#f8fafc">
+                            <td>@L["Total"]</td>
+                            <td class="text-end">@Model.Collected</td>
+                            <td class="text-end">@money(Model.CollectedAmount)</td>
+                            <td class="text-end">@(Model.NeedsRv == 0 ? "—" : $"{money(Model.NeedsRvAmount)} ({Model.NeedsRv})")</td>
+                            <td class="fd-noprint"></td>
+                        </tr>
+                    </tfoot>
+                }
             </table>
         </div>
     </div>
-</div>
 
+    @* ---- Payments ---- *@
+    <div class="fd-card">
+        <div class="head"><i class="bi bi-receipt text-primary"></i>@L["Payments"] <span class="text-muted fw-normal small">(@Model.Collected)</span></div>
+        <div class="table-responsive">
+            <table class="table fd-table mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["System ID"]</th>
+                        <th>@L["Invoice No"]</th>
+                        <th>@L["Time"]</th>
+                        <th>@L["Plate"]</th>
+                        <th>@L["Revenue Account"]</th>
+                        <th>@L["Collector"]</th>
+                        <th class="text-end">@L["Amount"]</th>
+                        <th>@L["Status"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        var p = r.Payment;
+                        var lk = look(r.Step);
+                        <tr>
+                            <td class="fw-semibold">@p.Id</td>
+                            <td>@p.InvoiceNumber</td>
+                            <td class="small">@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("HH:mm")</td>
+                            <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
+                            <td class="small">@(r.Account ?? "—")</td>
+                            <td>@(p.Collector?.Username ?? "—")</td>
+                            <td class="text-end fw-semibold">@money(p.Amount)</td>
+                            <td>
+                                <span class="fd-badge" style="background:@lk.Bg;color:@lk.Fg"><i class="bi @lk.Icon"></i>@lk.Label</span>
+                                @if (r.RvNumber != null)
+                                {
+                                    <a class="small ms-1" asp-page="/Finance/Rv/Details" asp-route-number="@r.RvNumber">@r.RvNumber</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">@L["No paid payments for this date."]</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_Pager" model="Model.Pager" />
+    </div>
+</div>

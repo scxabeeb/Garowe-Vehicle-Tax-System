@@ -1,180 +1,99 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using VehicleTax.Web;
 using VehicleTax.Web.Data;
 using VehicleTax.Web.Models;
+using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Finance;
 
 /// <summary>
-/// Finance / Accountant dashboard — Today's (or selected date) successfully PAID
-/// payments, grouped by financial (revenue) account, with RF / FMIS reconciliation.
-/// Pending / Failed / unrecorded / cancelled-before-recording payments are NEVER shown.
+/// Finance dashboard for one day: money collected (paid payments only),
+/// by revenue account, and how much of it is already in an RV and sent to
+/// FMIS. Access follows the Finance permissions (PagePermissionFilter).
 /// </summary>
 public class IndexModel : PageModel
 {
     private readonly AppDbContext _context;
-    public IndexModel(AppDbContext context) { _context = context; }
-
-    public bool IsFinance { get; private set; }
+    public IndexModel(AppDbContext context) => _context = context;
 
     [BindProperty(SupportsGet = true)] public DateTime? Date { get; set; }
+    [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
+    [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
-    // ── Today's payments ──────────────────────────────────────────
-    public List<FinancePaymentRow> Payments { get; set; } = new();
-    public int TotalPayments { get; set; }
-    public decimal TotalAmount { get; set; }
+    /// <summary>Where a paid payment is in the finance process.</summary>
+    public enum Step { NeedsRv, InRv, Sent, Failed }
 
-    // ── Account summary ───────────────────────────────────────────
-    public List<AccountGroup> AccountSummary { get; set; } = new();
+    public record PaymentRow(Payment Payment, string? Account, Step Step, string? RvNumber);
 
-    // ── RF / FMIS reconciliation ──────────────────────────────────
-    public int RfPrepared { get; set; }
-    public int RfReadyForFmis { get; set; }
-    public int RfTransferred { get; set; }
-    public int RfFailed { get; set; }
-    public int NotYetInRf { get; set; }
-    public decimal NotYetInRfAmount { get; set; }
-    public int IncludedInRf { get; set; }
-    public decimal IncludedInRfAmount { get; set; }
-    public int TransferredTo_Fmis { get; set; }
-    public decimal TransferredTo_FmisAmount { get; set; }
-
-    public class FinancePaymentRow
+    public record AccountRow(int? AccountId, string Account, int Payments, decimal Total, int Waiting, decimal WaitingAmount)
     {
-        public int PaymentId { get; set; }
-        public int? ReferenceNo { get; set; }
-        public string InvoiceNumber { get; set; } = "";
-        public string? ReceiptNo { get; set; }
-        public string? GolisBillNo { get; set; }
-        public string Vehicle { get; set; } = "";
-        public string? Account { get; set; }
-        public int? RevenueAccountId { get; set; }
-        public decimal Amount { get; set; }
-        public string? Collector { get; set; }
-        public DateTime PaidAt { get; set; }
-        public string Status { get; set; } = "Paid";
-        public string FmisStatus { get; set; } = "Not Included";
-        public string? RvNumber { get; set; }
+        public bool Done => Waiting == 0;
     }
 
-    public class AccountGroup
+    public List<AccountRow> Accounts { get; set; } = new();
+    public List<PaymentRow> Rows { get; set; } = new();
+    public Pager Pager { get; set; } = new(0, 1, 20);
+
+    public int Collected { get; set; }
+    public decimal CollectedAmount { get; set; }
+    public int InRv { get; set; }
+    public decimal InRvAmount { get; set; }
+    public int Sent { get; set; }
+    public decimal SentAmount { get; set; }
+    public int NeedsRv => Collected - InRv;
+    public decimal NeedsRvAmount => CollectedAmount - InRvAmount;
+    public int Failed { get; set; }
+
+    public bool IsToday => Date!.Value.Date == AppTime.Today;
+
+    public async Task OnGetAsync()
     {
-        public int? RevenueAccountId { get; set; }
-        public string AccountName { get; set; } = "";
-        public int Transactions { get; set; }
-        public decimal Total { get; set; }
-    }
+        Date = (Date ?? AppTime.Today).Date;
+        var (start, end) = AppTime.GetUtcDayRange(Date.Value);
 
-    private bool ComputeIsFinance() =>
-        User.IsInRole("Admin") || User.HasClaim("permission", "finance.manage");
-
-    private IActionResult? CheckFinance()
-    {
-        IsFinance = ComputeIsFinance();
-        if (!IsFinance)
-        {
-            return RedirectToPage("/Index");
-        }
-        return null;
-    }
-
-    public async Task<IActionResult> OnGetAsync()
-    {
-        var denied = CheckFinance();
-        if (denied != null) return denied;
-
-        Date ??= AppTime.Today;
-
-        var dayStart = Date.Value.Date;
-        var dayEnd = dayStart.AddDays(1);
-
-        // ONLY successfully recorded (Paid) payments — never pending/failed/unrecorded.
-        var payments = await _context.Payments
+        // Only money actually collected: paid and not cancelled.
+        var payments = await _context.Payments.AsNoTracking()
             .Include(p => p.Vehicle)
-            .Include(p => p.Movement).ThenInclude(m => m!.RevenueAccount)
             .Include(p => p.Collector)
-            .Include(p => p.ReceiptReference)
-            .Where(p => p.IsPaid && !p.IsReverted)
-            .Where(p => p.PaidAt >= dayStart && p.PaidAt < dayEnd)
-            .OrderByDescending(p => p.Id)
+            .Include(p => p.Movement).ThenInclude(m => m!.RevenueAccount)
+            .Where(p => p.IsPaid && !p.IsReverted && p.PaidAt >= start && p.PaidAt < end)
+            .OrderByDescending(p => p.PaidAt).ThenByDescending(p => p.Id)
             .ToListAsync();
 
-        // Which payments are already included in an RF / transferred to FMIS?
-        var paymentIds = payments.Select(p => p.Id).ToList();
-        var rfLinks = await _context.RvPayments
-            .Include(rp => rp.RvDocument)
-            .Where(rp => paymentIds.Contains(rp.PaymentId))
-            .ToDictionaryAsync(rp => rp.PaymentId, rp => rp.RvDocument!);
+        var ids = payments.Select(p => p.Id).ToList();
+        var rvs = (await _context.RvPayments.AsNoTracking()
+                .Where(r => ids.Contains(r.PaymentId) && r.RvDocument != null && r.RvDocument.Status != RvStatus.Cancelled)
+                .Select(r => new { r.PaymentId, r.RvDocument!.RvNumber, r.RvDocument.Status, r.RvDocument.FmisStatus })
+                .ToListAsync())
+            .GroupBy(r => r.PaymentId).ToDictionary(g => g.Key, g => g.First());
 
-        foreach (var p in payments)
+        var all = payments.Select(p =>
         {
-            var row = new FinancePaymentRow
-            {
-                PaymentId = p.Id,
-                ReferenceNo = p.ReferenceNo,
-                InvoiceNumber = p.InvoiceNumber,
-                ReceiptNo = p.ReceiptReference != null ? $"RCT{p.ReceiptReference.Id}" : null,
-                GolisBillNo = p.TransactionId,
-                Vehicle = p.Vehicle?.PlateNumber ?? $"Vehicle #{p.VehicleId}",
-                RevenueAccountId = p.Movement?.RevenueAccountId,
-                Account = p.Movement?.RevenueAccount == null
-                    ? null
-                    : $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}",
-                Amount = p.Amount,
-                Collector = p.Collector?.FullName ?? p.Collector?.Username,
-                PaidAt = p.PaidAt,
-                Status = "Paid"
-            };
+            var account = p.Movement?.RevenueAccount?.DisplayName;
+            if (!rvs.TryGetValue(p.Id, out var rv)) return new PaymentRow(p, account, Step.NeedsRv, null);
+            var stage = RvStages.Of(rv.Status, rv.FmisStatus);
+            var step = stage == RvStage.Sent ? Step.Sent : stage == RvStage.Failed ? Step.Failed : Step.InRv;
+            return new PaymentRow(p, account, step, rv.RvNumber);
+        }).ToList();
 
-            if (rfLinks.TryGetValue(p.Id, out var rf) && rf.Status != RvStatus.Cancelled)
-            {
-                row.RvNumber = rf.RvNumber;
-                row.FmisStatus = rf.Status == RvStatus.Transferred
-                    ? "Transferred"
-                    : rf.FmisStatus == FmisTransferStatus.Failed
-                        ? "FMIS Failed"
-                        : "Included in RF";
-            }
+        Collected = all.Count;
+        CollectedAmount = all.Sum(r => r.Payment.Amount);
+        InRv = all.Count(r => r.Step != Step.NeedsRv);
+        InRvAmount = all.Where(r => r.Step != Step.NeedsRv).Sum(r => r.Payment.Amount);
+        Sent = all.Count(r => r.Step == Step.Sent);
+        SentAmount = all.Where(r => r.Step == Step.Sent).Sum(r => r.Payment.Amount);
+        Failed = all.Count(r => r.Step == Step.Failed);
 
-            Payments.Add(row);
-        }
-
-        TotalPayments = Payments.Count;
-        TotalAmount = Payments.Sum(x => x.Amount);
-
-        // Group by financial account
-        AccountSummary = Payments
-            .GroupBy(x => x.RevenueAccountId ?? 0)
-            .Select(g => new AccountGroup
-            {
-                RevenueAccountId = g.Key == 0 ? null : g.Key,
-                AccountName = g.First().Account ?? "Unmapped Account",
-                Transactions = g.Count(),
-                Total = g.Sum(x => x.Amount)
-            })
+        Accounts = all
+            .GroupBy(r => r.Payment.Movement?.RevenueAccountId)
+            .Select(g => new AccountRow(g.Key, g.First().Account ?? "No revenue account", g.Count(), g.Sum(r => r.Payment.Amount),
+                g.Count(r => r.Step == Step.NeedsRv), g.Where(r => r.Step == Step.NeedsRv).Sum(r => r.Payment.Amount)))
             .OrderByDescending(a => a.Total)
             .ToList();
 
-        // RF status counters for the selected date
-        var rfs = await _context.RvDocuments
-            .Where(r => r.RvDate >= dayStart && r.RvDate < dayEnd)
-            .ToListAsync();
-        RfPrepared = rfs.Count(r => r.Status == RvStatus.Prepared);
-        RfReadyForFmis = rfs.Count(r => r.Status == RvStatus.ReadyForFmis);
-        RfTransferred = rfs.Count(r => r.Status == RvStatus.Transferred);
-        RfFailed = rfs.Count(r => r.FmisStatus == FmisTransferStatus.Failed);
-
-        // Reconciliation — Paid → Included in RF → Transferred to FMIS
-        IncludedInRf = Payments.Count(x => x.RvNumber != null);
-        IncludedInRfAmount = Payments.Where(x => x.RvNumber != null).Sum(x => x.Amount);
-        TransferredTo_Fmis = Payments.Count(x => x.FmisStatus == "Transferred");
-        TransferredTo_FmisAmount = Payments.Where(x => x.FmisStatus == "Transferred").Sum(x => x.Amount);
-        NotYetInRf = TotalPayments - IncludedInRf;
-        NotYetInRfAmount = TotalAmount - IncludedInRfAmount;
-
-        return Page();
+        Pager = new Pager(all.Count, CurrentPage, PageSize);
+        CurrentPage = Pager.Page;
+        Rows = all.Skip(Pager.Skip).Take(Pager.Take).ToList();
     }
 }
-

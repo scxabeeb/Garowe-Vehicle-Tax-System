@@ -71,8 +71,8 @@ public class AccountModel : PageModel
 
     private async Task LoadAsync()
     {
-        var dayStart = Date!.Value.Date;
-        var dayEnd = dayStart.AddDays(1);
+        // The chosen local day, as a UTC range (PaidAt is stored in UTC).
+        var (dayStart, dayEnd) = AppTime.GetUtcDayRange(Date!.Value);
 
         var query = _context.Payments
             .Include(p => p.Collector)
@@ -142,8 +142,8 @@ public class AccountModel : PageModel
             return Page();
         }
 
-        var dayStart = Date.Value.Date;
-        var dayEnd = dayStart.AddDays(1);
+        // The chosen local day, as a UTC range (PaidAt is stored in UTC).
+        var (dayStart, dayEnd) = AppTime.GetUtcDayRange(Date!.Value);
 
         // Re-validate every selected payment SERVER-SIDE (never trust the client):
         // must be Paid, not reverted, within the date period, matching the account,
