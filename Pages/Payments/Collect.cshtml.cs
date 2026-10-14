@@ -139,6 +139,12 @@ public class CollectModel : PageModel
                 return Page();
             }
 
+            if (tax.Movement is { IsActive: false })
+            {
+                ErrorMessage = "This tariff is inactive and cannot be collected.";
+                return Page();
+            }
+
             if (Quantity < 1)
             {
                 ErrorMessage = "Quantity must be at least 1.";
@@ -349,7 +355,7 @@ public class CollectModel : PageModel
 
         Movements = new SelectList(
             _context.Movements
-                .Where(m => movementIds.Contains(m.Id))
+                .Where(m => movementIds.Contains(m.Id) && m.IsActive)
                 .OrderBy(m => m.Name),
             "Id",
             "Name"

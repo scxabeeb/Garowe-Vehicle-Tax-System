@@ -896,5 +896,11 @@ public static class LangSo
         ["Select Car Type"] = "Dooro nooca gaariga",
         ["Select Revenue Account"] = "Dooro xisaabta dakhliga",
         ["payments use this tariff. Changing the revenue account also moves them to the new account in reports."] = "lacag-bixin ayaa isticmaala tariff-kan. Beddelka xisaabta dakhligu wuxuu sidoo kale warbixinnada ugu wareejinayaa xisaabta cusub.",
+        // Tariff status
+        ["Inactive tariffs do not appear when collecting tax. Invoices already issued stay valid."] = "Tariff-yada aan firfircoonayn kama muuqdaan marka canshuurta la qaadayo. Qaansheegyadii hore la bixiyay way ansax yihiin.",
+        ["Search tariff, car type or account..."] = "Raadi tariff, nooca gaariga ama xisaabta...",
+        ["This tariff is inactive and cannot be collected."] = "Tariff-kan ma firfircoona lagumana qaadi karo.",
+        ["Tick at least one tariff."] = "Calaamadee ugu yaraan hal tariff.",
+        ["selected"] = "la doortay",
     };
 }

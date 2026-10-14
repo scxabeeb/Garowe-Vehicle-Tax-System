@@ -71,7 +71,7 @@ public class ReceiptModel : PageModel
         var movement = _context.Movements
             .FirstOrDefault(m => m.Id == MovementId.Value);
 
-        if (vehicle == null || movement == null)
+        if (vehicle == null || movement == null || !movement.IsActive)
         {
             return RedirectToPage("/Payments/Collect");
         }
@@ -209,9 +209,11 @@ public class ReceiptModel : PageModel
             .FirstOrDefault(v => v.Id == vehicleId);
 
         var movement = _context.Movements.FirstOrDefault(m => m.Id == movementId);
-        if (vehicle == null || movement == null)
+        if (vehicle == null || movement == null || !movement.IsActive)
         {
-            TempData["ErrorMessage"] = "Invalid vehicle or movement.";
+            TempData["ErrorMessage"] = movement is { IsActive: false }
+                ? "This tariff is inactive and cannot be collected."
+                : "Invalid vehicle or movement.";
             return RedirectToPage("/Payments/Collect");
         }
 

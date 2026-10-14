@@ -23,7 +23,9 @@ namespace VehicleTax.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMovements()
         {
+            // Only active tariffs can be collected.
             var movements = await _context.Movements
+                .Where(m => m.IsActive)
                 .GroupBy(m => new { m.CarTypeId, m.Name })
                 .Select(g => new
                 {
@@ -50,7 +52,7 @@ namespace VehicleTax.Web.Controllers
         public async Task<IActionResult> GetByCarType(int carTypeId)
         {
             var movements = await _context.Movements
-                .Where(m => m.CarTypeId == carTypeId)
+                .Where(m => m.CarTypeId == carTypeId && m.IsActive)
                 .GroupBy(m => m.Name)
                 .Select(g => new
                 {

@@ -142,10 +142,14 @@ namespace VehicleTax.Web.Controllers
             }
 
             var movement = _context.Movements
-                .FirstOrDefault(m => m.Name == dto.Movement);
+                .Where(m => m.Name == dto.Movement)
+                .OrderByDescending(m => m.IsActive)
+                .FirstOrDefault();
 
             if (movement == null)
                 return BadRequest(new { status = "error", message = "Invalid movement" });
+            if (!movement.IsActive)
+                return BadRequest(new { status = "error", message = "This tariff is inactive and cannot be collected." });
 
             var collector = _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId);
             if (collector == null)
@@ -252,6 +256,8 @@ namespace VehicleTax.Web.Controllers
 
             if (movement == null)
                 return BadRequest(new { status = "error", message = "Invalid movement" });
+            if (!movement.IsActive)
+                return BadRequest(new { status = "error", message = "This tariff is inactive and cannot be collected." });
 
             var tax = _context.TaxAmounts
                 .FirstOrDefault(t => t.CarTypeId == vehicle.CarTypeId && t.MovementId == movement.Id);

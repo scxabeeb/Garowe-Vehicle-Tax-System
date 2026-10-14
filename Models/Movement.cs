@@ -18,5 +18,8 @@ namespace VehicleTax.Web.Models
         public int? RevenueAccountId { get; set; }
 
         public RevenueAccount? RevenueAccount { get; set; }
+
+        /// <summary>Inactive tariffs are hidden when collecting; existing invoices stay valid.</summary>
+        public bool IsActive { get; set; } = true;
     }
 }

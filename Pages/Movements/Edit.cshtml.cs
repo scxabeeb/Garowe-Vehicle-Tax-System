@@ -116,6 +116,7 @@ public class EditModel : PageModel
         db.Name = name;
         db.CarTypeId = Movement.CarTypeId;
         db.RevenueAccountId = Movement.RevenueAccountId;
+        db.IsActive = Movement.IsActive;
 
         var others = 0;
         if (ApplyToAll)
