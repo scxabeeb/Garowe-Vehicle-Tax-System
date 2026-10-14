@@ -25,9 +25,18 @@ public class EditModel : PageModel
     public List<SelectListItem> CarTypes { get; set; } = new();
     public List<SelectListItem> RevenueAccounts { get; set; } = new();
 
-    private bool HasPermission(string permission)
+    /// <summary>Also set the revenue account on this tariff's other car types.</summary>
+    [BindProperty] public bool ApplyToAll { get; set; } = true;
+
+    /// <summary>Rows with the same tariff name (one per car type).</summary>
+    public int SiblingCount { get; set; }
+    public int PaymentCount { get; set; }
+
+    private void LoadInfo(Movement m)
     {
-        return User.IsInRole("Admin") || User.HasClaim("permission", permission);
+        var name = m.Name.ToLower();
+        SiblingCount = _context.Movements.Count(x => x.Name.ToLower() == name);
+        PaymentCount = _context.Payments.Count(p => p.MovementId == m.Id);
     }
 
     private void LoadCarTypes()
@@ -55,63 +64,75 @@ public class EditModel : PageModel
             .ToList();
     }
 
+    // Access: Settings.View to open, Settings.Edit to save (Security/PagePermissionFilter).
     public IActionResult OnGet(int id)
     {
-        if (!HasPermission("movement.edit"))
-            return Forbid();
-
-        Movement = _context.Movements.FirstOrDefault(m => m.Id == id)!;
-        if (Movement == null)
+        var movement = _context.Movements.FirstOrDefault(m => m.Id == id);
+        if (movement == null)
             return NotFound();
 
+        Movement = movement;
         LoadCarTypes();
         LoadRevenueAccounts();
+        LoadInfo(movement);
         return Page();
     }
 
     public IActionResult OnPost()
     {
-        if (!HasPermission("movement.edit"))
-            return Forbid();
-
         LoadCarTypes();
         LoadRevenueAccounts();
 
-        if (!ModelState.IsValid)
-            return Page();
+        var db = _context.Movements.FirstOrDefault(m => m.Id == Movement.Id);
+        if (db == null)
+            return NotFound();
+        LoadInfo(db);
 
-        // Validate Revenue Account
-        if (Movement.RevenueAccountId == null || Movement.RevenueAccountId == 0)
-        {
+        var name = (Movement.Name ?? "").Trim();
+        if (string.IsNullOrEmpty(name))
+            ModelState.AddModelError("Movement.Name", "Tariff name is required.");
+        if (Movement.RevenueAccountId == null || Movement.RevenueAccountId == 0 ||
+            !_context.RevenueAccounts.Any(r => r.Id == Movement.RevenueAccountId && r.IsActive))
             ModelState.AddModelError("Movement.RevenueAccountId", "Please select a Revenue Account.");
-            return Page();
-        }
 
-        // Block update if used in payments
-        bool isUsed = _context.Payments.Any(p => p.MovementId == Movement.Id);
-        if (isUsed)
-        {
+        // Once payments use this tariff, its name and car type stay as they
+        // were collected; the revenue account can still be corrected.
+        var renamed = !string.Equals(name, db.Name, StringComparison.Ordinal);
+        var carTypeChanged = Movement.CarTypeId != db.CarTypeId;
+        if (PaymentCount > 0 && (renamed || carTypeChanged))
             ModelState.AddModelError("",
-                "This movement is already used in payments and cannot be edited.");
+                "This tariff already has payments, so its name and car type cannot be changed. You can still change its revenue account.");
+
+        // A duplicate is the same tariff name for the same car type.
+        if (_context.Movements.Any(m => m.Id != db.Id &&
+                                        m.Name.ToLower() == name.ToLower() &&
+                                        m.CarTypeId == Movement.CarTypeId))
+            ModelState.AddModelError("Movement.Name", "This tariff already exists for this car type.");
+
+        if (ModelState.ErrorCount > 0)
             return Page();
-        }
 
-        // Prevent duplicate name
-        bool exists = _context.Movements.Any(m =>
-            m.Name.ToLower() == Movement.Name.ToLower() &&
-            m.Id != Movement.Id);
+        var oldName = db.Name;
+        db.Name = name;
+        db.CarTypeId = Movement.CarTypeId;
+        db.RevenueAccountId = Movement.RevenueAccountId;
 
-        if (exists)
+        var others = 0;
+        if (ApplyToAll)
         {
-            ModelState.AddModelError("Movement.Name",
-                "This movement name already exists.");
-            return Page();
+            var lower = oldName.ToLower();
+            foreach (var m in _context.Movements.Where(m => m.Id != db.Id && m.Name.ToLower() == lower).ToList())
+            {
+                m.RevenueAccountId = Movement.RevenueAccountId;
+                others++;
+            }
         }
 
-        _context.Update(Movement);
         _context.SaveChanges();
 
-        TempData["Success"] = "Movement updated successfully.";
+        TempData["Success"] = others > 0
+            ? $"Tariff '{db.Name}' updated, and its revenue account was also set on {others} other car type(s)."
+            : $"Tariff '{db.Name}' updated.";
         return RedirectToPage("Index");
     }
 }

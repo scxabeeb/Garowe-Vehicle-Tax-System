@@ -53,7 +53,7 @@
                     <select asp-for="Movement.CarTypeId"
                             class="form-select"
                             asp-items="Model.CarTypes">
-                        <option value="">-- Select Car Type --</option>
+                        <option value="">@L["Select Car Type"]</option>
                     </select>
                     <span asp-validation-for="Movement.CarTypeId"
                           class="text-danger small"></span>
@@ -65,11 +65,27 @@
                     <select asp-for="Movement.RevenueAccountId"
                             class="form-select"
                             asp-items="Model.RevenueAccounts">
-                        <option value="">-- Select Revenue Account --</option>
+                        <option value="">@L["Select Revenue Account"]</option>
                     </select>
                     <span asp-validation-for="Movement.RevenueAccountId"
                           class="text-danger small"></span>
                 </div>
+
+                @if (Model.SiblingCount > 1)
+                {
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" asp-for="ApplyToAll" id="applyAll" />
+                        <label class="form-check-label" for="applyAll">
+                            @L["Apply this revenue account to all car types of this tariff"] (@Model.SiblingCount)
+                        </label>
+                    </div>
+                }
+                @if (Model.PaymentCount > 0)
+                {
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>@Model.PaymentCount @L["payments use this tariff. Changing the revenue account also moves them to the new account in reports."]
+                    </div>
+                }
 
             </div>
 

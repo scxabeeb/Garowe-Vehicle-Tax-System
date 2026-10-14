@@ -891,5 +891,10 @@ public static class LangSo
         ["payments"] = "lacag-bixin",
         ["payments are in an RV that failed to send. Open it in RV History and try again."] = "lacag-bixin waxay ku jiraan RV aan la dirin. Ka fur Taariikhda RV oo isku day mar kale.",
         ["payments still needs an RV."] = "lacag-bixin weli waxay u baahan tahay RV.",
+        // Tariff edit
+        ["Apply this revenue account to all car types of this tariff"] = "Xisaabtan dakhliga ku dabaq dhammaan noocyada gaadiidka ee tariff-kan",
+        ["Select Car Type"] = "Dooro nooca gaariga",
+        ["Select Revenue Account"] = "Dooro xisaabta dakhliga",
+        ["payments use this tariff. Changing the revenue account also moves them to the new account in reports."] = "lacag-bixin ayaa isticmaala tariff-kan. Beddelka xisaabta dakhligu wuxuu sidoo kale warbixinnada ugu wareejinayaa xisaabta cusub.",
     };
 }
