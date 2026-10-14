@@ -902,5 +902,9 @@ public static class LangSo
         ["This tariff is inactive and cannot be collected."] = "Tariff-kan ma firfircoona lagumana qaadi karo.",
         ["Tick at least one tariff."] = "Calaamadee ugu yaraan hal tariff.",
         ["selected"] = "la doortay",
+        // Tax amount create
+        ["All tariffs for this car type already have an amount"] = "Dhammaan tariff-yada nooca gaarigan horay ayay qaddar u leeyihiin",
+        ["Only tariffs without an amount for this car type are listed."] = "Waxaa la soo bandhigayaa oo kaliya tariff-yada aan qaddar u lahayn nooca gaarigan.",
+        ["This tariff already has a tax amount for this car type. Edit the existing amount instead."] = "Tariff-kan horay ayuu qaddar canshuur ugu leeyahay nooca gaarigan. Wax ka beddel qaddarka jira.",
     };
 }

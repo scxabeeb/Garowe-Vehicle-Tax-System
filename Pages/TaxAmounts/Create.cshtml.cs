@@ -47,7 +47,7 @@ public class CreateModel : PageModel
 
         if (exists)
         {
-            ModelState.AddModelError("", "This tax amount already exists.");
+            ModelState.AddModelError("", "This tariff already has a tax amount for this car type. Edit the existing amount instead.");
             LoadCarTypes();
             LoadMovements(Tax.CarTypeId);
             return Page();
@@ -67,12 +67,20 @@ public class CreateModel : PageModel
         return RedirectToPage("Index");
     }
 
-    // Ajax endpoint - now includes Revenue Account info
+    /// <summary>
+    /// Tariffs that can still get an amount for this car type: active, and
+    /// without a tax amount for it yet.
+    /// </summary>
+    private IQueryable<Movement> Available(int carTypeId) =>
+        _context.Movements.AsNoTracking()
+            .Where(m => m.CarTypeId == carTypeId && m.IsActive)
+            .Where(m => !_context.TaxAmounts.Any(t => t.CarTypeId == carTypeId && t.MovementId == m.Id));
+
+    // Ajax endpoint - includes Revenue Account info
     public JsonResult OnGetMovements(int carTypeId)
     {
-        var data = _context.Movements
+        var data = Available(carTypeId)
             .Include(m => m.RevenueAccount)
-            .Where(m => m.CarTypeId == carTypeId)
             .OrderBy(m => m.Name)
             .Select(m => new
             {
@@ -101,9 +109,7 @@ public class CreateModel : PageModel
     private void LoadMovements(int carTypeId)
     {
         Movements = new SelectList(
-            _context.Movements.AsNoTracking()
-                .Where(m => m.CarTypeId == carTypeId)
-                .OrderBy(m => m.Name),
+            Available(carTypeId).OrderBy(m => m.Name),
             "Id",
             "Name"
         );

@@ -24,7 +24,7 @@
                                 asp-items="Model.CarTypes"
                                 class="form-select"
                                 id="carTypeSelect">
-                            <option value="">-- Select Car Type --</option>
+                            <option value="">@L["Select Car Type"]</option>
                         </select>
                         <span asp-validation-for="Tax.CarTypeId" class="text-danger"></span>
                     </div>
@@ -38,6 +38,7 @@
                             <option value="">-- @L["Select Tariff"] --</option>
                         </select>
                         <span asp-validation-for="Tax.MovementId" class="text-danger"></span>
+                        <div class="form-text">@L["Only tariffs without an amount for this car type are listed."]</div>
                     </div>
 
                     <!-- Revenue Account (read-only, determined by Movement) -->
@@ -99,6 +100,10 @@ document.getElementById("carTypeSelect").addEventListener("change", function () 
     fetch(`?handler=Movements&carTypeId=${carTypeId}`)
         .then(res => res.json())
         .then(data => {
+            if (!data.length) {
+                movementSelect.innerHTML = '<option value="">@L["All tariffs for this car type already have an amount"]</option>';
+                return;
+            }
             movementSelect.innerHTML = '<option value="">-- @L["Select Tariff"] --</option>';
             data.forEach(m => {
                 movementSelect.innerHTML += `<option value="${m.id}" data-revenue="${m.revenueAccountDisplay}">${m.name}</option>`;
