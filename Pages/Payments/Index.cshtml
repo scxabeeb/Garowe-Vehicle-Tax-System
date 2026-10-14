@@ -1,277 +1,251 @@
 @page
 @model VehicleTax.Web.Pages.Payments.IndexModel
+@{
+    ViewData["Title"] = L["Payments List"];
+    string when(DateTime utc) => VehicleTax.Web.AppTime.ToLocal(utc).ToString("dd MMM yyyy HH:mm");
+    var statuses = new[]
+    {
+        ("all", L["All"], Model.PaidCount + Model.PendingCount + Model.CancelledCount, Model.PaidAmount + Model.PendingAmount + Model.CancelledAmount, "#0b57d0", "#eef4ff", "bi-list-ul"),
+        ("paid", L["Paid"], Model.PaidCount, Model.PaidAmount, "#15803d", "#dcfce7", "bi-check-circle"),
+        ("pending", L["Pending"], Model.PendingCount, Model.PendingAmount, "#b45309", "#fef3c7", "bi-hourglass-split"),
+        ("cancelled", L["Cancelled"], Model.CancelledCount, Model.CancelledAmount, "#b91c1c", "#fee2e2", "bi-x-circle"),
+    };
+}
+<style>
+    .pl-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .pl-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .pl-stat { display: flex; gap: 12px; align-items: center; border: 2px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 12px 14px;
+        text-decoration: none; color: inherit; height: 100%; transition: all .15s; }
+    .pl-stat:hover { border-color: #93b4f5; color: inherit; }
+    .pl-stat.active { border-color: #0b57d0; box-shadow: 0 2px 10px rgba(11,87,208,.12); }
+    .pl-stat .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 1.15rem; flex-shrink: 0; }
+    .pl-stat .v { font-size: 1.3rem; font-weight: 800; line-height: 1.1; }
+    .pl-stat .l { font-size: 12px; color: #64748b; font-weight: 600; }
+    .pl-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .pl-table td { vertical-align: middle; font-size: 14px; }
+    .pl-acc { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: #eef4ff; color: #0b57d0; white-space: nowrap; }
+    .pl-act { width: 34px; height: 34px; border-radius: 10px; display: inline-grid; place-items: center; border: 1px solid #e2e8f0; background: #fff; color: #334155; }
+    .pl-act:hover { background: #f1f5f9; }
+    .pl-act.danger { color: #dc2626; }
+    .pl-act.disabled { opacity: .35; pointer-events: none; }
+</style>
 
-<div class="module-page">
-<div class="module-header mb-3">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+<div class="container-fluid py-4" style="max-width: 1440px;">
+    <div class="pl-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <h3 class="mb-1 fw-bold">@L["Payment History"]</h3>
-            <div class="sub">@L["Review payment records with status and date filters."]</div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-receipt-cutoff me-2"></i>@L["Payments List"]</h3>
+            <div style="opacity:.85">@(Model.IsPersonal ? L["The payments you collected."] : L["Search any payment, open its receipt, transfer or cancel it."])</div>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.IsAdmin)
+            {
+                <a class="btn btn-outline-light" asp-page="/Finance/TransferPayments"><i class="bi bi-arrow-left-right me-1"></i>@L["Transfer Payments"]</a>
+            }
+            <a class="btn btn-light fw-semibold" asp-page="/Payments/Collect"><i class="bi bi-wallet2 me-1"></i>@L["Collect Tax"]</a>
         </div>
     </div>
-</div>
 
-<!-- Filters Section -->
-<div class="card module-filter-card mb-3">
-    <div class="card-body">
-        <form method="get" class="row g-2 align-items-end">
-            <!-- System No./ID Search -->
-            <div class="col-md-2">
-                <label class="form-label">@L["System No./ID"]</label>
-                <input type="text" name="searchSystemNo" class="form-control"
-                       placeholder="e.g. 1547" value="@Model.SearchSystemNo" />
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill"></i>@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning d-flex gap-2 align-items-center"><i class="bi bi-exclamation-triangle-fill"></i>@L[TempData["Error"]!.ToString()!]</div>
+    }
+
+    <form method="get" class="pl-card mb-3">
+        <div class="p-3 row g-2 align-items-end">
+            <div class="col-md-4 col-xl-3">
+                <label class="form-label small fw-semibold mb-1">@L["Search"]</label>
+                <input name="Search" value="@Model.Search" class="form-control" placeholder="@L["System ID, invoice no, plate, owner, Golis bill"]" autofocus />
             </div>
-
-            <!-- Ref No. Search -->
-            <div class="col-md-2">
-                <label class="form-label">@L["Ref No."]</label>
-                <input type="text" name="searchRefNo" class="form-control"
-                       placeholder="e.g. 125" value="@Model.SearchRefNo" />
+            <div class="col-6 col-md-2 col-xl-2">
+                <label class="form-label small fw-semibold mb-1">@L["From Date"]</label>
+                <input type="date" name="FromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" />
             </div>
-
-            <!-- Invoice ID Search -->
-            <div class="col-md-2">
-                <label class="form-label">@L["Invoice ID"]</label>
-                <input type="text" name="searchInvoice" class="form-control"
-                       placeholder="INV-..." value="@Model.SearchInvoice" />
+            <div class="col-6 col-md-2 col-xl-2">
+                <label class="form-label small fw-semibold mb-1">@L["To Date"]</label>
+                <input type="date" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control" />
             </div>
-
-            <!-- Receipt No. Search -->
-            <div class="col-md-2">
-                <label class="form-label">@L["Receipt No."]</label>
-                <input type="text" name="searchReceipt" class="form-control"
-                       placeholder="260901..." value="@Model.SearchReceipt" />
-            </div>
-
-            <!-- Golis/Bill No. Search -->
-            <div class="col-md-2">
-                <label class="form-label">@L["Golis/Bill No."]</label>
-                <input type="text" name="searchGolis" class="form-control"
-                       placeholder="84739..." value="@Model.SearchGolis" />
-            </div>
-
-            <!-- Collector Search -->
-            <div class="col-md-2">
-                <label class="form-label">@L["Collector"]</label>
-                <input type="text" name="searchCollector" class="form-control"
-                       placeholder="@L["Name..."]" value="@Model.SearchCollector" />
-            </div>
-
-            <!-- Plate Number Search -->
-            <div class="col-md-3">
-                <label class="form-label">@L["Plate Number"]</label>
-                <input type="text" 
-                       name="searchPlate" 
-                       class="form-control" 
-                       placeholder="@L["Search plate..."]" 
-                       value="@Model.SearchPlate" />
-            </div>
-
-            <!-- Payment Status Filter -->
-            <div class="col-md-2">
-                <label class="form-label">@L["Status"]</label>
-                <select name="paymentStatus" class="form-select">
-                    <option value="all" selected="@(Model.PaymentStatus == "all" ? "selected" : null)">@L["All"]</option>
-                    <option value="paid" selected="@(Model.PaymentStatus == "paid" ? "selected" : null)">@L["Paid"]</option>
-                    <option value="pending" selected="@(Model.PaymentStatus == "pending" ? "selected" : null)">@L["Pending"]</option>
-                    <option value="reverted" selected="@(Model.PaymentStatus == "reverted" ? "selected" : null)">@L["Cancelled"]</option>
+            @if (!Model.IsPersonal)
+            {
+                <div class="col-6 col-md-2 col-xl-1">
+                    <label class="form-label small fw-semibold mb-1">@L["Collector"]</label>
+                    <select name="CollectorId" class="form-select">
+                        <option value="">@L["All"]</option>
+                        @foreach (var u in Model.Collectors)
+                        {
+                            <option value="@u.Id" selected="@(u.Id == Model.CollectorId ? "selected" : null)">@u.Username</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="col-6 col-md-2 col-xl-1">
+                <label class="form-label small fw-semibold mb-1">@L["Checkpoint"]</label>
+                <select name="CheckpointId" class="form-select">
+                    <option value="">@L["All"]</option>
+                    @foreach (var c in Model.Checkpoints)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CheckpointId ? "selected" : null)">@c.Name</option>
+                    }
                 </select>
             </div>
-
-            <!-- Date From -->
-            <div class="col-md-2">
-                <label class="form-label">@L["From Date"]</label>
-                <input type="date" 
-                       name="dateFrom" 
-                       class="form-control" 
-                       value="@Model.DateFrom?.ToString("yyyy-MM-dd")" />
-            </div>
-
-            <!-- Date To -->
-            <div class="col-md-2">
-                <label class="form-label">@L["To Date"]</label>
-                <input type="date" 
-                       name="dateTo" 
-                       class="form-control" 
-                       value="@Model.DateTo?.ToString("yyyy-MM-dd")" />
-            </div>
-
-            <!-- Search Button -->
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100 module-action-btn">@L["Search"]</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Statistics Section -->
-<div class="row mb-3">
-    <div class="col-md-3">
-        <div class="card module-kpi-card text-center">
-            <div class="card-body">
-                <div class="module-kpi-title">@L["Total Records"]</div>
-                <h4 class="module-kpi-value text-primary">@Model.TotalRecords</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card module-kpi-card text-center">
-            <div class="card-body">
-                <div class="module-kpi-title mb-2">@L["Page Size"]</div>
-                <select class="form-select text-center" onchange="changePageSize(this.value)">
-                    <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
-                    <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
-                    <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
-                    <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
-                    <option value="-1" selected="@(Model.PageSize == -1 ? "selected" : null)">@L["All"]</option>
+            <div class="col-6 col-md-2 col-xl-2">
+                <label class="form-label small fw-semibold mb-1">@L["Tariff"]</label>
+                <select name="MovementId" class="form-select">
+                    <option value="">@L["All Tariffs"]</option>
+                    @foreach (var m in Model.Movements)
+                    {
+                        <option value="@m.Id" selected="@(m.Id == Model.MovementId ? "selected" : null)">@m.Name@(m.CarType == null ? "" : " · " + m.CarType.Name)</option>
+                    }
                 </select>
             </div>
+            <input type="hidden" name="Status" value="@Model.Status" />
+            <input type="hidden" name="PageSize" value="@Model.PageSize" />
+            <div class="col-md-auto d-flex gap-2">
+                <button class="btn btn-primary px-3"><i class="bi bi-search me-1"></i>@L["Search"]</button>
+                <a class="btn btn-outline-secondary" asp-page="/Payments/Index">@L["Reset"]</a>
+            </div>
         </div>
-    </div>
-</div>
+    </form>
 
-<!-- Payments Table -->
-<div class="card module-table-card">
-    <div class="card-body">
+    <div class="row g-3 mb-3">
+        @foreach (var s in statuses)
+        {
+            <div class="col-6 col-lg-3">
+                <a class="pl-stat @(Model.Status == s.Item1 ? "active" : "")"
+                   asp-route-Status="@s.Item1" asp-route-Search="@Model.Search"
+                   asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                   asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId"
+                   asp-route-PageSize="@Model.PageSize">
+                    <span class="ic" style="background:@s.Item6;color:@s.Item5"><i class="bi @s.Item7"></i></span>
+                    <div>
+                        <div class="v">@s.Item3.ToString("N0") <span class="fs-6 text-muted fw-semibold">· $@s.Item4.ToString("N2")</span></div>
+                        <div class="l">@s.Item2</div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="pl-card">
         <div class="table-responsive">
-            <table class="table table-hover table-bordered align-middle">
-                <thead class="table-light">
+            <table class="table pl-table mb-0">
+                <thead>
                     <tr>
-                        <th>@L["System No./ID"]</th>
-                        <th>@L["Ref No."]</th>
-                        <th>@L["Invoice ID"]</th>
-                        <th>@L["Receipt No."]</th>
-                        <th>@L["Golis/Bill No."]</th>
-                        <th>@L["Plate Number"]</th>
-                        <th>@L["Owner Name"]</th>
-                        <th>@L["Account"]</th>
-                        <th>@L["Tariff Type"]</th>
-                        <th class="text-end">@L["Amount"]</th>
+                        <th>@L["System ID"]</th>
+                        <th>@L["Invoice No"]</th>
+                        <th>@L["Date"]</th>
+                        <th>@L["Plate"]</th>
+                        <th>@L["Owner"]</th>
+                        <th>@L["Tariff"]</th>
+                        <th>@L["Revenue Account"]</th>
                         <th>@L["Collector"]</th>
-                        <th>@L["Payment Date"]</th>
+                        <th>@L["Checkpoint"]</th>
+                        <th>@L["Golis Bill No"]</th>
+                        <th class="text-end">@L["Amount"]</th>
                         <th>@L["Status"]</th>
+                        <th class="text-end">@L["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Payments.Count == 0)
+                    @foreach (var r in Model.Rows)
                     {
-                        <tr>
-                            <td colspan="13" class="text-center text-muted py-4">@L["No payment records found"]</td>
+                        var p = r.Payment;
+                        <tr class="@(p.IsReverted ? "table-danger" : "")">
+                            <td class="fw-semibold">@p.Id</td>
+                            <td class="text-nowrap">@p.InvoiceNumber</td>
+                            <td class="text-nowrap small">@when(p.PaidAt)</td>
+                            <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
+                            <td>@p.Vehicle?.OwnerName</td>
+                            <td>@(p.Movement?.Name ?? p.MovementType)</td>
+                            <td><span class="pl-acc">@(r.Account ?? "—")</span></td>
+                            <td>@(p.Collector?.Username ?? "—")</td>
+                            <td>@(p.Checkpoint?.Name ?? "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "—" : p.TransactionId)</td>
+                            <td class="text-end fw-semibold">$@p.Amount.ToString("N2")</td>
+                            <td>
+                                @if (p.IsReverted)
+                                {
+                                    <span class="badge bg-danger" title="@p.RevertReason">@L["Cancelled"]</span>
+                                    <div class="small text-muted">@p.RevertedByUser?.Username</div>
+                                }
+                                else if (p.IsPaid)
+                                {
+                                    <span class="badge bg-success">@L["Paid"]</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">@L["Pending"]</span>
+                                }
+                                @if (r.RvNumber != null)
+                                {
+                                    <div class="small text-muted"><i class="bi bi-lock"></i> RV @r.RvNumber</div>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="pl-act" title="@L["Open receipt"]" asp-page="/Payments/Receipt" asp-route-paymentId="@p.Id"><i class="bi bi-receipt"></i></a>
+                                @if (Model.IsAdmin && !p.IsReverted)
+                                {
+                                    <a class="pl-act @(r.RvNumber != null ? "disabled" : "")" title="@L["Transfer"]"
+                                       asp-page="/Finance/TransferPayments" asp-route-Search="@p.InvoiceNumber"><i class="bi bi-arrow-left-right"></i></a>
+                                    @if (Model.CanCancel)
+                                    {
+                                        <button type="button" class="pl-act danger @(r.RvNumber != null ? "disabled" : "")" title="@L["Cancel payment"]"
+                                                data-bs-toggle="modal" data-bs-target="#plCancel"
+                                                data-id="@p.Id" data-label="#@p.Id · @p.InvoiceNumber · @p.Vehicle?.PlateNumber · $@p.Amount.ToString("N2")">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    }
+                                }
+                            </td>
                         </tr>
                     }
-                    else
+                    @if (!Model.Rows.Any())
                     {
-                        @foreach (var payment in Model.Payments)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@payment.Id</td>
-                                <td>@(payment.ReferenceNo?.ToString() ?? "-")</td>
-                                <td>@payment.InvoiceId</td>
-                                <td>
-                                    <span class="badge bg-info">@payment.ReceiptNumber</span>
-                                </td>
-                                <td>@(string.IsNullOrWhiteSpace(payment.GolisBillNo) ? "-" : payment.GolisBillNo)</td>
-                                <td>@payment.PlateNumber</td>
-                                <td>@payment.OwnerName</td>
-                                <td>@(payment.Account ?? "-")</td>
-                                <td>@payment.MovementType</td>
-                                <td class="text-end fw-bold">$@payment.Amount.ToString("N0")</td>
-                                <td>@payment.CollectorName</td>
-                                <td>@payment.PaidAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td>
-                                    @if (payment.IsReverted)
-                                    {
-                                        <span class="badge bg-danger">@(payment.ReferenceNo != null ? "Cancelled" : "Cancelled")</span>
-                                    }
-                                    else if (payment.IsPaid)
-                                    {
-                                        <span class="badge bg-success">@L["Paid"]</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning">@L["Pending"]</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
+                        <tr><td colspan="13" class="text-center text-muted py-4">@L["No payments found."]</td></tr>
                     }
                 </tbody>
             </table>
         </div>
-
-        <!-- Pagination -->
-        @if (Model.TotalPages > 1)
-        {
-            <nav aria-label="@L["Page navigation"]" class="mt-3">
-                <ul class="pagination justify-content-center">
-                    @if (Model.PageIndex > 1)
-                    {
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
-                                @L["First"]
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = Model.PageIndex - 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
-                                @L["Previous"]
-                            </a>
-                        </li>
-                    }
-
-                    @for (int i = 1; i <= Model.TotalPages; i++)
-                    {
-                        @if (i == Model.PageIndex)
-                        {
-                            <li class="page-item active">
-                                <span class="page-link">@i</span>
-                            </li>
-                        }
-                        else if (i >= Model.PageIndex - 2 && i <= Model.PageIndex + 2)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" 
-                                   href="@Url.Page(null, new { pageIndex = i, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
-                                    @i
-                                </a>
-                            </li>
-                        }
-                    }
-
-                    @if (Model.PageIndex < Model.TotalPages)
-                    {
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = Model.PageIndex + 1, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
-                                @L["Next"]
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="@Url.Page(null, new { pageIndex = Model.TotalPages, pageSize = Model.PageSize, searchPlate = Model.SearchPlate, paymentStatus = Model.PaymentStatus, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd"), searchSystemNo = Model.SearchSystemNo, searchRefNo = Model.SearchRefNo, searchInvoice = Model.SearchInvoice, searchReceipt = Model.SearchReceipt, searchGolis = Model.SearchGolis, searchCollector = Model.SearchCollector })">
-                                @L["Last"]
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </nav>
-        }
+        <partial name="_Pager" model="Model.Pager" />
     </div>
 </div>
 
-</div>
-
-<script>
-function changePageSize(pageSize) {
-    const params = new URLSearchParams();
-    params.append('pageIndex', 1);
-    params.append('pageSize', pageSize);
-    const names = ['searchPlate','paymentStatus','dateFrom','dateTo','searchSystemNo','searchRefNo','searchInvoice','searchReceipt','searchGolis','searchCollector'];
-    names.forEach(function (n) {
-        const el = document.querySelector('[name="' + n + '"]');
-        if (el && el.value) params.append(n, el.value);
-    });
-    window.location.href = `?${params.toString()}`;
+@if (Model.IsAdmin && Model.CanCancel)
+{
+    <div class="modal fade" id="plCancel" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="post" asp-page-handler="Cancel" class="modal-content"
+                  asp-route-Search="@Model.Search" asp-route-Status="@Model.Status"
+                  asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                  asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId"
+                  asp-route-PageSize="@Model.PageSize" asp-route-CurrentPage="@Model.CurrentPage">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>@L["Cancel payment"]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="paymentId" id="plCancelId" />
+                    <div class="fw-semibold mb-2" id="plCancelLabel"></div>
+                    <label class="form-label small fw-semibold">@L["Reason"] <span class="text-danger">*</span></label>
+                    <textarea name="reason" class="form-control" rows="3" required minlength="3" maxlength="500"></textarea>
+                    <div class="form-text">@L["The payment will no longer count as paid. This is recorded in the Activity Log."]</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@L["Close"]</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle me-1"></i>@L["Cancel payment"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('plCancel').addEventListener('show.bs.modal', function (e) {
+            var b = e.relatedTarget;
+            document.getElementById('plCancelId').value = b.dataset.id;
+            document.getElementById('plCancelLabel').textContent = b.dataset.label;
+            this.querySelector('textarea').value = '';
+        });
+    </script>
 }
-</script>

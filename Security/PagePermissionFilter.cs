@@ -65,6 +65,7 @@ public sealed class PagePermissionFilter : IAsyncPageFilter
 
         // Payments
         ["/Payments/Index"] = K.PaymentsView,
+        ["/Payments/Index#Cancel"] = K.PaymentsCancel,
         ["/Payments/Collect"] = K.PaymentsView,
         ["/Payments/Collect#GenerateInvoice"] = K.PaymentsCreate,
         ["/Payments/Collect#CollectInvoice"] = K.PaymentsApprove,

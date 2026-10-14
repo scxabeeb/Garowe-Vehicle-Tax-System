@@ -828,5 +828,17 @@ public static class LangSo
         ["Transfer"] = "Wareeji",
         ["Transfer Payments"] = "Wareejinta Lacag-bixinnada",
         ["e.g. Collector selected the wrong Tariff"] = "tusaale: Qaadaha ayaa doortay Tariff khaldan",
+        // Payments list
+        ["Cancel payment"] = "Jooji lacag-bixinta",
+        ["Cancel reason is required."] = "Sababta joojinta waa qasab.",
+        ["Cancelled Payments"] = "Lacag-bixinnada la joojiyay",
+        ["Open receipt"] = "Fur rasiidka",
+        ["Payments List"] = "Liiska Lacag-bixinnada",
+        ["Pending Invoices"] = "Qaansheegyada sugaya",
+        ["Search any payment, open its receipt, transfer or cancel it."] = "Raadi lacag-bixin kasta, fur rasiidkeeda, wareeji ama jooji.",
+        ["System ID, invoice no, plate, owner, Golis bill"] = "Aqoonsiga nidaamka, lambarka qaansheegta, taarikada, milkiilaha, biilka Golis",
+        ["The payment will no longer count as paid. This is recorded in the Activity Log."] = "Lacag-bixintu mar dambe looma tirin doono mid la bixiyay. Tan waxaa lagu diiwaangeliyaa Diiwaanka Dhaqdhaqaaqa.",
+        ["The payments you collected."] = "Lacag-bixinnada aad qaadday.",
+        ["This payment is already cancelled."] = "Lacag-bixintan horay ayaa loo joojiyay.",
     };
 }
