@@ -563,6 +563,14 @@
                                 @if (canReportsView)
                                 {
                                 <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/AccountTariffs">
+                                        <i class="bi bi-wallet2"></i> @L["Revenue Account Tariffs"]
+                                    </a>
+                                </li>
+                                }
+                                @if (canReportsView)
+                                {
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Movements">
                                         <i class="bi bi-signpost-split"></i> @L["Tariff Catalog Report"]
                                     </a>

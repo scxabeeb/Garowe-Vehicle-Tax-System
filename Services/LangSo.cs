@@ -906,5 +906,21 @@ public static class LangSo
         ["All tariffs for this car type already have an amount"] = "Dhammaan tariff-yada nooca gaarigan horay ayay qaddar u leeyihiin",
         ["Only tariffs without an amount for this car type are listed."] = "Waxaa la soo bandhigayaa oo kaliya tariff-yada aan qaddar u lahayn nooca gaarigan.",
         ["This tariff already has a tax amount for this car type. Edit the existing amount instead."] = "Tariff-kan horay ayuu qaddar canshuur ugu leeyahay nooca gaarigan. Wax ka beddel qaddarka jira.",
+        // Revenue account tariffs report
+        ["Car types priced"] = "Noocyada qiimaysan",
+        ["Each revenue account with its tariffs and the tax amount per car type."] = "Xisaab dakhli kasta iyo tariff-yadeeda iyo qaddarka canshuurta nooc gaari kasta.",
+        ["Highest"] = "Ugu sarreeya",
+        ["Link these tariffs to an account in Data & Setup → Tariff."] = "Tariff-yadan ku xir xisaab gudaha Xogta & Habaynta → Tariff.",
+        ["Lowest"] = "Ugu hooseeya",
+        ["Missing amount"] = "Qaddar ka maqan",
+        ["No tariffs linked to this account."] = "Tariff kuma xirna xisaabtan.",
+        ["Revenue Account Tariffs"] = "Tariff-yada Xisaabaha Dakhliga",
+        ["Tariff or car type"] = "Tariff ama nooca gaariga",
+        ["Tariffs"] = "Tariff-yada",
+        ["Tariffs and amounts per account"] = "Tariff-yada iyo qaddarrada xisaab kasta",
+        ["car types"] = "nooc gaari",
+        ["no amount"] = "qaddar ma leh",
+        ["tariffs"] = "tariff",
+        ["without amount"] = "qaddar la'aan",
     };
 }
