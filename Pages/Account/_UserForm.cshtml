@@ -1,4 +1,9 @@
 @model VehicleTax.Web.Pages.Account.UserFormModel
+@inject VehicleTax.Web.Services.IPermissionService Perms
+@{
+    var canCreateRole = await Perms.HasAsync(User, VehicleTax.Web.Security.AppPermissions.Keys.RolesCreate);
+    var selectedRole = Model.Roles.FirstOrDefault(r => string.Equals(r.Name, Model.Role, StringComparison.OrdinalIgnoreCase));
+}
 @* Shared create / edit user form (Register.cshtml, EditUser.cshtml). *@
 <style>
     .uf-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 22px 24px; }
@@ -6,13 +11,9 @@
     .uf-card .uf-head { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
     .uf-card .uf-head i { color: #0b57d0; }
     .uf-card .uf-body { padding: 18px; }
-    .uf-role { display: block; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; cursor: pointer; height: 100%; transition: all .15s; }
-    .uf-role:hover { border-color: #93b4f5; }
-    .uf-role input { display: none; }
-    .uf-role.sel { border-color: #0b57d0; background: #eef4ff; }
-    .uf-role .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #eef4ff; color: #0b57d0; }
-    .uf-role.sel .ic { background: #0b57d0; color: #fff; }
-    .uf-role .d { font-size: 12px; color: #64748b; }
+    .uf-role-info { display: flex; gap: 10px; align-items: center; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 12px; padding: 10px 12px; }
+    .uf-role-info .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #0b57d0; color: #fff; flex-shrink: 0; }
+    .uf-role-info .d { font-size: 12px; color: #64748b; }
 </style>
 
 <div class="container py-4" style="max-width: 1040px;">
@@ -86,23 +87,27 @@
                 <div class="uf-card h-100">
                     <div class="uf-head"><i class="bi bi-shield-lock"></i>@L["Access"]</div>
                     <div class="uf-body">
-                        <label class="form-label fw-semibold">@L["Role"] <span class="text-danger">*</span></label>
-                        <div class="row g-2 mb-3" id="ufRoles">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold mb-0" for="ufRole">@L["Role"] <span class="text-danger">*</span></label>
+                            @if (canCreateRole)
+                            {
+                                <a class="small fw-semibold" asp-page="/Account/Roles"><i class="bi bi-plus-circle me-1"></i>@L["New role"]</a>
+                            }
+                        </div>
+                        <select name="Role" id="ufRole" class="form-select mb-2" required>
+                            <option value="">@L["Choose a role…"]</option>
                             @foreach (var r in Model.Roles)
                             {
-                                var sel = string.Equals(r.Name, Model.Role, StringComparison.OrdinalIgnoreCase);
-                                <div class="col-sm-6">
-                                    <label class="uf-role @(sel ? "sel" : "")">
-                                        <input type="radio" name="Role" value="@r.Name" checked="@sel" />
-                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                            <span class="ic"><i class="bi @r.Icon"></i></span>
-                                            <span class="fw-bold flex-grow-1">@L[r.Name]</span>
-                                            <span class="badge bg-light text-secondary border">@r.PermissionCount @L["permissions"]</span>
-                                        </div>
-                                        <div class="d">@L[r.Description]</div>
-                                    </label>
-                                </div>
+                                <option value="@r.Name" data-desc="@L[r.Description]" data-icon="@r.Icon" data-count="@r.PermissionCount"
+                                        selected="@(string.Equals(r.Name, Model.Role, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@L[r.Name]</option>
                             }
+                        </select>
+                        <div class="uf-role-info mb-3" id="ufRoleInfo" style="@(selectedRole == null ? "display:none" : "")">
+                            <span class="ic"><i class="bi @(selectedRole?.Icon ?? "bi-person-badge")"></i></span>
+                            <div class="flex-grow-1">
+                                <div class="d" id="ufRoleDesc">@(selectedRole == null ? "" : L[selectedRole.Description])</div>
+                            </div>
+                            <span class="badge bg-light text-secondary border"><span id="ufRoleCount">@selectedRole?.PermissionCount</span> @L["permissions"]</span>
                         </div>
 
                         <label class="form-label fw-semibold">@L["Checkpoint"]</label>
@@ -136,10 +141,15 @@
 </div>
 
 <script>
-    document.querySelectorAll('#ufRoles input[name=Role]').forEach(function (r) {
-        r.addEventListener('change', function () {
-            document.querySelectorAll('#ufRoles .uf-role').forEach(function (l) { l.classList.remove('sel'); });
-            r.closest('.uf-role').classList.add('sel');
+    (function () {
+        var sel = document.getElementById('ufRole'), box = document.getElementById('ufRoleInfo');
+        sel.addEventListener('change', function () {
+            var o = sel.options[sel.selectedIndex];
+            if (!o.value) { box.style.display = 'none'; return; }
+            box.style.display = '';
+            box.querySelector('.ic i').className = 'bi ' + o.dataset.icon;
+            document.getElementById('ufRoleDesc').textContent = o.dataset.desc;
+            document.getElementById('ufRoleCount').textContent = o.dataset.count;
         });
-    });
+    })();
 </script>

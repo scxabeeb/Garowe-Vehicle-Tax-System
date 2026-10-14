@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using VehicleTax.Web.Data;
+using VehicleTax.Web.Models;
 using VehicleTax.Web.Services;
 
 namespace VehicleTax.Web.Pages.Account;
@@ -28,38 +29,38 @@ public static class UserFormSupport
 {
     public const int MinPasswordLength = 6;
 
-    private static readonly Dictionary<string, (string Description, string Icon)> Known = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, string> Icons = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Admin"] = ("Full access to everything, including users and permissions.", "bi-shield-fill-check"),
-        ["Collector"] = ("Collects tax: invoices, receipts, vehicles and their own dashboard.", "bi-cash-coin"),
-        ["Viewer"] = ("Read-only: dashboard and reports.", "bi-eye"),
-        ["Auditor"] = ("Reviews payments, reports and finance.", "bi-clipboard-check"),
-        ["Accountant"] = ("Finance, RV and report exports.", "bi-calculator"),
-        ["Manager"] = ("Oversees users, vehicles, payments and reports.", "bi-briefcase"),
+        ["Admin"] = "bi-shield-fill-check",
+        ["Collector"] = "bi-cash-coin",
+        ["Viewer"] = "bi-eye",
+        ["Auditor"] = "bi-clipboard-check",
+        ["Accountant"] = "bi-calculator",
+        ["Manager"] = "bi-briefcase",
     };
 
-    /// <summary>Standard roles plus any role a user already has.</summary>
-    public static async Task<List<RoleOption>> LoadRolesAsync(AppDbContext context, IPermissionService permissions)
+    public static string IconFor(string role) => Icons.TryGetValue(role, out var i) ? i : "bi-person-badge";
+
+    /// <summary>
+    /// Active roles from Administration → Roles, plus <paramref name="keep"/>
+    /// (a user's current role) even when it has been deactivated.
+    /// </summary>
+    public static async Task<List<RoleOption>> LoadRolesAsync(AppDbContext context, IPermissionService permissions, string? keep = null)
     {
-        var names = Known.Keys
-            .Concat(await context.Users.Select(u => u.Role).Distinct().ToListAsync())
-            .Where(r => !string.IsNullOrWhiteSpace(r))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var roles = await context.Roles.AsNoTracking()
+            .Where(r => r.IsActive || r.Name == keep)
+            .OrderBy(r => r.Name)
+            .ToListAsync();
 
         var result = new List<RoleOption>();
-        foreach (var name in names)
+        foreach (var r in roles)
         {
-            var grants = await permissions.GetRoleGrantsAsync(name);
-            var (description, icon) = Known.TryGetValue(name, out var k) ? k : ("Custom role.", "bi-person-badge");
-            result.Add(new RoleOption(name, description, icon, grants.Count));
+            var grants = await permissions.GetRoleGrantsAsync(r.Name);
+            result.Add(new RoleOption(r.Name, string.IsNullOrWhiteSpace(r.Description) ? "Custom role." : r.Description!,
+                IconFor(r.Name), grants.Count));
         }
-        // Standard roles first, in their usual order.
-        var order = Known.Keys.ToList();
-        return result
-            .OrderBy(r => order.FindIndex(o => o.Equals(r.Name, StringComparison.OrdinalIgnoreCase)) is var i && i >= 0 ? i : 100)
-            .ThenBy(r => r.Name)
-            .ToList();
+        // Admin first, then alphabetical.
+        return result.OrderBy(r => Role.IsProtected(r.Name) ? 0 : 1).ThenBy(r => r.Name).ToList();
     }
 
     public static SelectList LoadCheckpoints(AppDbContext context, int? selected) =>

@@ -1,0 +1,184 @@
+@page
+@model VehicleTax.Web.Pages.Account.RolesModel
+@using VehicleTax.Web.Security
+@using VehicleTax.Web.Models
+@{
+    ViewData["Title"] = L["Roles"];
+    bool can(string k) => Model.My.Contains(k);
+}
+<style>
+    .rl-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .rl-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .rl-card .head { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
+    .rl-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .rl-table td { vertical-align: middle; }
+    .rl-ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: #eef4ff; color: #0b57d0; flex-shrink: 0; }
+    .rl-act { width: 34px; height: 34px; border-radius: 10px; display: inline-grid; place-items: center; border: 1px solid #e2e8f0; background: #fff; color: #334155; }
+    .rl-act:hover { background: #f1f5f9; }
+    .rl-act.danger { color: #dc2626; }
+</style>
+
+<div class="container py-4">
+    <div class="rl-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-person-badge me-2"></i>@L["Roles"]</h3>
+            <div style="opacity:.85">@L["Create roles here; they appear in the Role list when you create or edit a user."]</div>
+        </div>
+        <div class="d-flex gap-2">
+            @if (can(AppPermissions.Keys.RolesManagePermissions))
+            {
+                <a class="btn btn-outline-light" asp-page="/Account/ManagePermissions"><i class="bi bi-sliders me-1"></i>@L["Manage Permissions"]</a>
+            }
+            <a class="btn btn-light fw-semibold" asp-page="/Account/Users"><i class="bi bi-people me-1"></i>@L["Users"]</a>
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill"></i>@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger d-flex gap-2 align-items-center"><i class="bi bi-exclamation-triangle-fill"></i>@TempData["Error"]</div>
+    }
+
+    @if (can(AppPermissions.Keys.RolesCreate))
+    {
+        <form method="post" asp-page-handler="Create" class="rl-card mb-3">
+            <div class="head"><i class="bi bi-plus-circle text-primary"></i>@L["Create Role"]</div>
+            <div class="p-3 row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold mb-1">@L["Role Name"] <span class="text-danger">*</span></label>
+                    <input name="Name" class="form-control" required minlength="2" maxlength="50" placeholder="@L["e.g. Supervisor"]" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small fw-semibold mb-1">@L["Description"]</label>
+                    <input name="Description" class="form-control" maxlength="250" placeholder="@L["What this role is for"]" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold mb-1">@L["Copy permissions from"]</label>
+                    <select name="CopyFrom" class="form-select">
+                        <option value="">@L["None"]</option>
+                        @foreach (var r in Model.Rows)
+                        {
+                            <option value="@r.Role.Name">@L[r.Role.Name]</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button class="btn btn-primary fw-semibold"><i class="bi bi-plus-lg me-1"></i>@L["Create Role"]</button>
+                </div>
+            </div>
+        </form>
+    }
+
+    <div class="rl-card">
+        <div class="table-responsive">
+            <table class="table rl-table mb-0">
+                <thead>
+                    <tr>
+                        <th>@L["Role"]</th>
+                        <th class="text-end">@L["Users"]</th>
+                        <th class="text-end">@L["Permissions"]</th>
+                        <th>@L["Status"]</th>
+                        <th>@L["Created"]</th>
+                        <th class="text-end">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        var r = row.Role;
+                        var locked = Role.IsProtected(r.Name);
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="rl-ic"><i class="bi @VehicleTax.Web.Pages.Account.UserFormSupport.IconFor(r.Name)"></i></span>
+                                    <div>
+                                        <div class="fw-bold">@L[r.Name] @if (locked) { <i class="bi bi-lock-fill text-muted small" title="@L["Protected role"]"></i> }</div>
+                                        <div class="small text-muted">@(string.IsNullOrWhiteSpace(r.Description) ? "—" : L[r.Description])</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end fw-semibold">@row.Users</td>
+                            <td class="text-end">@row.Permissions</td>
+                            <td>
+                                @if (r.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success">@L["Active"]</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary">@L["Inactive"]</span>
+                                }
+                            </td>
+                            <td class="small text-muted text-nowrap">@VehicleTax.Web.AppTime.ToLocal(r.CreatedAt).ToString("dd MMM yyyy")<div>@r.CreatedBy</div></td>
+                            <td class="text-end text-nowrap">
+                                @if (can(AppPermissions.Keys.RolesManagePermissions))
+                                {
+                                    <a class="rl-act" title="@L["Permissions"]" asp-page="/Account/ManagePermissions" asp-route-role="@r.Name"><i class="bi bi-shield-lock"></i></a>
+                                }
+                                @if (can(AppPermissions.Keys.RolesEdit))
+                                {
+                                    <button type="button" class="rl-act" title="@L["Edit"]" data-bs-toggle="modal" data-bs-target="#rlEdit"
+                                            data-id="@r.Id" data-name="@r.Name" data-desc="@r.Description" data-locked="@(locked ? "1" : "0")">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    @if (!locked)
+                                    {
+                                        <form method="post" asp-page-handler="Toggle" asp-route-id="@r.Id" class="d-inline">
+                                            <button class="rl-act" title="@L[r.IsActive ? "Deactivate" : "Activate"]"><i class="bi @(r.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i></button>
+                                        </form>
+                                    }
+                                }
+                                @if (can(AppPermissions.Keys.RolesDelete) && !locked)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@r.Id" class="d-inline"
+                                          onsubmit="return confirm('@L["Delete this role? This cannot be undone."]');">
+                                        <button class="rl-act danger" title="@L["Delete"]" @(row.Users > 0 ? "disabled" : "")><i class="bi bi-trash"></i></button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (can(AppPermissions.Keys.RolesEdit))
+{
+    <div class="modal fade" id="rlEdit" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="post" asp-page-handler="Update" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>@L["Edit Role"]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" />
+                    <label class="form-label small fw-semibold">@L["Role Name"]</label>
+                    <input name="name" class="form-control mb-1" required minlength="2" maxlength="50" />
+                    <div class="form-text mb-3" id="rlRenameHint">@L["Renaming also updates every user and permission that uses this role."]</div>
+                    <label class="form-label small fw-semibold">@L["Description"]</label>
+                    <input name="description" class="form-control" maxlength="250" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@L["Cancel"]</button>
+                    <button class="btn btn-primary"><i class="bi bi-check2 me-1"></i>@L["Save Changes"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('rlEdit').addEventListener('show.bs.modal', function (e) {
+            var b = e.relatedTarget, f = this.querySelector('form'), locked = b.dataset.locked === '1';
+            f.id.value = b.dataset.id;
+            f.name.value = b.dataset.name;
+            f.name.readOnly = locked;
+            f.description.value = b.dataset.desc || '';
+            document.getElementById('rlRenameHint').style.display = locked ? 'none' : '';
+        });
+    </script>
+}

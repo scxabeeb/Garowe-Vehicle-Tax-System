@@ -53,7 +53,7 @@ public class EditUserModel : PageModel
         if (dbUser == null) return RedirectToPage("/Account/Users");
 
         var username = (Username ?? "").Trim();
-        var roles = await UserFormSupport.LoadRolesAsync(_context, _permissions);
+        var roles = await UserFormSupport.LoadRolesAsync(_context, _permissions, keep: dbUser.Role);
         var isMe = string.Equals(User.Identity?.Name, dbUser.Username, StringComparison.OrdinalIgnoreCase);
         var errors = new List<string>();
 
@@ -101,7 +101,7 @@ public class EditUserModel : PageModel
             Role = Role,
             CheckpointId = CheckpointId,
             IsLocked = user.IsLocked,
-            Roles = await UserFormSupport.LoadRolesAsync(_context, _permissions),
+            Roles = await UserFormSupport.LoadRolesAsync(_context, _permissions, keep: user.Role),
             Checkpoints = UserFormSupport.LoadCheckpoints(_context, CheckpointId),
             Errors = errors,
         };

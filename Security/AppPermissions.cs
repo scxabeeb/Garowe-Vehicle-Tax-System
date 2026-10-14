@@ -148,7 +148,12 @@ public static class AppPermissions
                 Name = "Roles", Icon = "bi-diagram-2",
                 Pages =
                 {
-                    new PageDef { Name = "View Roles", ViewKey = Keys.RolesView, Icon = "bi-diagram-2" },
+                    new PageDef { Name = "Roles", ViewKey = Keys.RolesView, Icon = "bi-diagram-2",
+                        Actions =
+                        {
+                            new ActionDef { Key = Keys.RolesCreate, Label = "Create" },
+                            new ActionDef { Key = Keys.RolesDelete, Label = "Delete", Critical = true },
+                        } },
                     new PageDef { Name = "Assign Roles", ViewKey = Keys.RolesView, Icon = "bi-person-gear",
                         Actions = { new ActionDef { Key = Keys.RolesEdit, Label = "Edit" } } },
                     new PageDef { Name = "Manage Permissions", ViewKey = Keys.RolesView, Icon = "bi-sliders",

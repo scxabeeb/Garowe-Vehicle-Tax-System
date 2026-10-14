@@ -27,6 +27,8 @@ namespace VehicleTax.Web.Services
         Task<HashSet<string>> GetEffectiveAsync(ClaimsPrincipal user);
         Task<bool> HasAsync(ClaimsPrincipal user, string permission);
         Task<HashSet<string>> GetRoleGrantsAsync(string role);
+        /// <summary>Drop cached permissions (after roles are renamed, copied or deleted).</summary>
+        void Invalidate();
         Task<Dictionary<string, PermissionEffect>> GetUserOverridesAsync(int userId);
         Task<HashSet<string>> GetInheritedFromRoleAsync(User user);
         Task SaveRolePermissionsAsync(string role, IEnumerable<string> grantedKeys, ClaimsPrincipal actor);
@@ -49,6 +51,7 @@ namespace VehicleTax.Web.Services
 
         private int Version => _cache.GetOrCreate(VersionKey, e => { e.SlidingExpiration = CacheLife; return 1; });
         private void Bump() => _cache.Set(VersionKey, Version + 1);
+        public void Invalidate() => Bump();
 
         public bool IsCritical(string key) => AppPermissions.IsCritical(key);
 

@@ -53,6 +53,11 @@ public sealed class PagePermissionFilter : IAsyncPageFilter
         ["/Account/UserSecurity#ToggleLock"] = K.UsersDelete,
 
         // Roles & permissions
+        ["/Account/Roles"] = K.RolesView,
+        ["/Account/Roles#Create"] = K.RolesCreate,
+        ["/Account/Roles#Update"] = K.RolesEdit,
+        ["/Account/Roles#Toggle"] = K.RolesEdit,
+        ["/Account/Roles#Delete"] = K.RolesDelete,
         ["/Account/ManagePermissions"] = K.RolesManagePermissions,
         ["/Account/Permissions"] = K.RolesManagePermissions,
         ["/Account/PermissionHistory"] = K.RolesView,

@@ -100,9 +100,10 @@ public class ManagePermissionsModel : PageModel
         ErrorMessage = error;
         ByRole = !userId.HasValue;
 
+        // Roles from Administration → Roles, plus any role still used by a user.
+        var definedRoles = await _context.Roles.Select(r => r.Name).ToListAsync();
         var usedRoles = await _context.Users.Select(u => u.Role).Distinct().ToListAsync();
-        var grantedRoles = await _context.RolePermissions.Select(r => r.Role).Distinct().ToListAsync();
-        Roles = StandardRoles.Concat(usedRoles).Concat(grantedRoles)
+        Roles = definedRoles.Concat(usedRoles)
             .Where(r => !string.IsNullOrWhiteSpace(r))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(r => Array.IndexOf(StandardRoles, r) is var i && i >= 0 ? i : 100)

@@ -385,10 +385,22 @@
                                         </a>
                                     </li>
                                 }
-                                @if (canManagePermissions)
+                                @if (canManagePermissions || canRolesView)
                                 {
                                     <li><hr class="dropdown-divider" /></li>
-                                    <li class="menu-category">Roles &amp; Permissions</li>
+                                    <li class="menu-category">@L["Roles & Permissions"]</li>
+                                    @if (canRolesView)
+                                    {
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Account/Roles">
+                                            <i class="bi bi-person-badge"></i>
+                                            @L["Roles"]
+                                        </a>
+                                    </li>
+                                    }
+                                }
+                                @if (canManagePermissions)
+                                {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2"
                                            asp-page="/Account/ManagePermissions">

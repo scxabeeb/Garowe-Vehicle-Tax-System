@@ -840,5 +840,21 @@ public static class LangSo
         ["The payment will no longer count as paid. This is recorded in the Activity Log."] = "Lacag-bixintu mar dambe looma tirin doono mid la bixiyay. Tan waxaa lagu diiwaangeliyaa Diiwaanka Dhaqdhaqaaqa.",
         ["The payments you collected."] = "Lacag-bixinnada aad qaadday.",
         ["This payment is already cancelled."] = "Lacag-bixintan horay ayaa loo joojiyay.",
+        // Roles
+        ["Activate"] = "Dhaqaaji",
+        ["Choose a role…"] = "Dooro door…",
+        ["Copy permissions from"] = "Ka koobi ogolaanshaha",
+        ["Create Role"] = "Samee Door",
+        ["Create roles here; they appear in the Role list when you create or edit a user."] = "Halkan ka samee doorar; waxay ka muuqanayaan liiska Doorka marka aad samaynayso ama wax ka beddelayso isticmaale.",
+        ["Deactivate"] = "Hakad geli",
+        ["Delete this role? This cannot be undone."] = "Ma tirtirtaa doorkan? Dib looma celin karo.",
+        ["New role"] = "Door cusub",
+        ["Protected role"] = "Door la ilaaliyay",
+        ["Renaming also updates every user and permission that uses this role."] = "Magac-beddelku wuxuu sidoo kale cusbooneysiinayaa isticmaale kasta iyo ogolaansho kasta oo isticmaala doorkan.",
+        ["Role Name"] = "Magaca Doorka",
+        ["Roles & Permissions"] = "Doorarka & Ogolaanshaha",
+        ["Supervisor"] = "Kormeere",
+        ["What this role is for"] = "Waxa doorkani u yahay",
+        ["e.g. Supervisor"] = "tusaale: Kormeere",
     };
 }
