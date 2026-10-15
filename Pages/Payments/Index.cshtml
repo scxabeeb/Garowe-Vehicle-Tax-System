@@ -155,7 +155,7 @@
                         var p = r.Payment;
                         <tr class="@(p.IsReverted ? "table-danger" : "")">
                             <td class="fw-semibold">@p.Id</td>
-                            <td class="text-nowrap">@p.InvoiceNumber</td>
+                            <td class="text-nowrap">@p.InvoiceNumber<div class="small text-primary fw-semibold">@p.ShortCode</div></td>
                             <td class="text-nowrap small">@when(p.PaidAt)</td>
                             <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
                             <td>@p.Vehicle?.OwnerName</td>

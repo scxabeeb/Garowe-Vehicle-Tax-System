@@ -81,7 +81,7 @@ namespace VehicleTax.Web.Models
         public string InvoiceNumber => $"{AppTime.ToLocal(PaidAt):yyyyMM}{Id:D6}";
 
         [NotMapped]
-        public string ShortCode => InvoiceNumber.Length > 9 ? InvoiceNumber.Substring(0, 9) : InvoiceNumber;
+        public string ShortCode => Id > 0 ? $"*3440*{Id}#" : "";
 
         // 🔴 Revert system
         public bool IsReverted { get; set; } = false;

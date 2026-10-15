@@ -924,5 +924,8 @@ public static class LangSo
         ["without amount"] = "qaddar la'aan",
         ["Show password"] = "Muuji furaha sirta ah",
         ["Hide password"] = "Qari furaha sirta ah",
+        ["Pay with Golis — dial this short code:"] = "Ku bixi Golis — garaac koodhkan gaaban:",
+        ["Dial"] = "Garaac",
+        ["Short Code:"] = "Koodh gaaban:",
     };
 }
