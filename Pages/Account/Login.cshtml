@@ -49,9 +49,16 @@
                     </span>
                     <input asp-for="Password"
                            type="password"
-                           class="form-control"
+                           id="loginPassword"
+                           class="form-control border-end-0"
                            placeholder="@L["Password"]"
+                           autocomplete="current-password"
                            required />
+                    <button type="button" class="input-group-text bg-white" id="togglePassword"
+                            title="@L["Show password"]" aria-label="@L["Show password"]"
+                            data-show="@L["Show password"]" data-hide="@L["Hide password"]">
+                        <i class="bi bi-eye text-secondary"></i>
+                    </button>
                 </div>
             </div>
 
@@ -74,3 +81,16 @@
 <div class="text-white-50 small mt-3">
     © @VehicleTax.Web.AppTime.Now.Year @L["Garowe Municipality"]
 </div>
+
+<script>
+    (function () {
+        var input = document.getElementById('loginPassword'), btn = document.getElementById('togglePassword');
+        btn.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.firstElementChild.className = 'bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + ' text-secondary';
+            btn.title = btn.ariaLabel = show ? btn.dataset.hide : btn.dataset.show;
+            input.focus();
+        });
+    })();
+</script>

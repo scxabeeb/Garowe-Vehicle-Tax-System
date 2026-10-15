@@ -922,5 +922,7 @@ public static class LangSo
         ["no amount"] = "qaddar ma leh",
         ["tariffs"] = "tariff",
         ["without amount"] = "qaddar la'aan",
+        ["Show password"] = "Muuji furaha sirta ah",
+        ["Hide password"] = "Qari furaha sirta ah",
     };
 }
