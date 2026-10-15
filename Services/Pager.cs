@@ -5,6 +5,12 @@ public sealed class Pager
 {
     public static readonly int[] Sizes = { 10, 20, 50, 100, 200 };
 
+    /// <summary>
+    /// Page size that older report pages use for "All" (their paging code
+    /// then takes every row on one page); the pager shows it as All.
+    /// </summary>
+    public const int AllRows = 1_000_000;
+
     /// <summary>Total matching rows.</summary>
     public int Total { get; }
     /// <summary>Rows per page; 0 shows everything.</summary>
@@ -17,7 +23,7 @@ public sealed class Pager
     public Pager(int total, int page, int pageSize, string pageParam = "CurrentPage")
     {
         Total = Math.Max(0, total);
-        PageSize = Math.Max(0, pageSize);
+        PageSize = pageSize >= AllRows ? 0 : Math.Max(0, pageSize);
         PageParam = pageParam;
         Page = Math.Clamp(page, 1, TotalPages);
     }

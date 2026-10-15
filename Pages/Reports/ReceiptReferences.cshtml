@@ -53,15 +53,7 @@
             </select>
         </div>
 
-        <div class="col-md-2">
-            <label class="form-label">@L["Show"]</label>
-            <select name="PageSize" class="form-select" onchange="this.form.submit()">
-                <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
-                <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
-                <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
-                <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
-            </select>
-        </div>
+        <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
 
         <div class="col-md-2">
             <label class="form-label">@L["From Date"]</label>
@@ -141,24 +133,5 @@
     </table>
 </div>
 
-<nav class="mt-3">
-    <ul class="pagination justify-content-center">
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                <a class="page-link"
-                   href="?PageNumber=@i
-                   &PageSize=@Model.PageSize
-                   &Search=@Model.Search
-                   &Status=@Model.Status
-                   &VehicleId=@Model.VehicleId
-                   &Collector=@Model.Collector
-                   &FromDate=@Model.FromDate?.ToString("yyyy-MM-dd")
-                   &ToDate=@Model.ToDate?.ToString("yyyy-MM-dd")">
-                    @i
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
+<partial name="_Pager" model="Model.Pager" />
 </div>

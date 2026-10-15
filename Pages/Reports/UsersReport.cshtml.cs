@@ -33,11 +33,14 @@ namespace VehicleTax.Web.Pages.Reports
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; } = 1;
 
+        [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
+        public VehicleTax.Web.Services.Pager Pager => new(TotalCount, PageNumber, PageSize, "PageNumber");
         public int TotalPages { get; set; }
 
         public void OnGet()
         {
+            if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
             var query = _context.Users.AsQueryable();
 
             // Search

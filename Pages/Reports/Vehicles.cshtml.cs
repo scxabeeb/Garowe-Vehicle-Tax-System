@@ -37,6 +37,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
+        public VehicleTax.Web.Services.Pager Pager => new(TotalRecords, PageNumber, PageSize, "PageNumber");
 
         public int TotalRecords { get; set; }
         public int TotalPages => PageSize == -1 ? 1 : (int)Math.Ceiling((double)TotalRecords / PageSize);
@@ -48,6 +49,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         public async Task OnGetAsync()
         {
+            if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
             CarTypes = new SelectList(
                 await _context.CarTypes.OrderBy(c => c.Name).ToListAsync(),
                 "Id",

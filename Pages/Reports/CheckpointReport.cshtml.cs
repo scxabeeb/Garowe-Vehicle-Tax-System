@@ -23,6 +23,7 @@ public class CheckpointReportModel : PageModel
     [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
     [BindProperty(SupportsGet = true)] public string? GolisBillNo { get; set; }
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
+    public VehicleTax.Web.Services.Pager Pager => new(TotalPayments, CurrentPage, PageSize, "CurrentPage");
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
     // Helpers
@@ -52,6 +53,7 @@ public class CheckpointReportModel : PageModel
 
     public async Task OnGetAsync()
     {
+        if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
         CheckpointList = new SelectList(
             await _context.Checkpoints.AsNoTracking().OrderBy(c => c.Name).ToListAsync(),
             "Id", "Name"

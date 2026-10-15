@@ -6,6 +6,7 @@
 </h3>
 
 <form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
     <div class="col-md-4">
         <input type="text" name="Search" value="@Model.Search"
                class="form-control"
@@ -79,7 +80,7 @@
         <tbody>
         @if (Model.Users.Any())
         {
-            int i = (Model.PageNumber - 1) * 10 + 1;
+            int i = Model.Pager.From;
             foreach (var user in Model.Users)
             {
                 string badgeClass = user.Role switch
@@ -128,17 +129,5 @@
     </table>
 </div>
 
-<nav>
-    <ul class="pagination justify-content-center">
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                <a class="page-link"
-                   href="?PageNumber=@i&Search=@Model.Search&Role=@Model.Role&Status=@Model.Status">
-                    @i
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
+<partial name="_Pager" model="Model.Pager" />
 </div>

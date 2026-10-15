@@ -49,6 +49,7 @@ public class ReceiptReferencesModel : PageModel
 
     [BindProperty(SupportsGet = true)]
     public int PageSize { get; set; } = 10;
+    public VehicleTax.Web.Services.Pager Pager => new(TotalRecords, PageNumber, PageSize, "PageNumber");
 
     public int TotalRecords { get; set; }
     public List<VehicleTax.Web.Services.CountGroup> SummaryGroups { get; set; } = new();
@@ -56,6 +57,7 @@ public class ReceiptReferencesModel : PageModel
 
     public async Task OnGetAsync()
     {
+        if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
         Vehicles = await _context.Vehicles
             .OrderBy(v => v.PlateNumber)
             .ToListAsync();

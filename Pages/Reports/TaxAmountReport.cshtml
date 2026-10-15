@@ -6,6 +6,7 @@
 </h3>
 
 <form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
 
     <!-- Search -->
     <div class="col-md-4">
@@ -81,7 +82,7 @@
         <tbody>
         @if (Model.TaxAmounts.Any())
         {
-            int i = (Model.PageNumber - 1) * Model.PageSize + 1;
+            int i = Model.Pager.From;
             foreach (var t in Model.TaxAmounts)
             {
                 string badgeClass = t.Movement?.Name switch
@@ -122,17 +123,5 @@
 </div>
 
 <!-- Pagination -->
-<nav>
-    <ul class="pagination justify-content-center">
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                <a class="page-link"
-                   href="?PageNumber=@i&CarTypeId=@Model.CarTypeId&MovementName=@Model.MovementName&Search=@Model.Search">
-                    @i
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
+<partial name="_Pager" model="Model.Pager" />
 </div>

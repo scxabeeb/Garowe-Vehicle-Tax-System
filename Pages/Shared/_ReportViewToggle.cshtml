@@ -53,6 +53,22 @@
             var url = new URL(window.location.href);
             url.searchParams.set('view', view);
             window.history.replaceState(null, '', url);
+            // Keep the choice on links back to this page (pages, sorting,
+            // page size), so moving to page 2 stays on the same view.
+            var here = window.location.pathname.toLowerCase();
+            function keepView(raw, set) {
+                if (!raw || raw.charAt(0) === '#' || /^(javascript|mailto|tel):/i.test(raw)) return;
+                var u = new URL(raw, window.location.href);
+                if (u.origin !== window.location.origin || u.pathname.toLowerCase() !== here || u.searchParams.has('handler')) return;
+                u.searchParams.set('view', view);
+                set(u.pathname + u.search + u.hash);
+            }
+            document.querySelectorAll('a[href]').forEach(function (a) {
+                keepView(a.getAttribute('href'), function (v) { a.setAttribute('href', v); });
+            });
+            document.querySelectorAll('.vt-pager select option').forEach(function (o) {
+                keepView(o.value, function (v) { o.value = v; });
+            });
             // Keep the choice when filters are submitted.
             document.querySelectorAll('form[method="get"], form[method="GET"]').forEach(function (f) {
                 var input = f.querySelector('input[name="view"]');

@@ -192,22 +192,7 @@
                 </a>
             </div>
 
-            <form method="get" class="d-inline">
-                <input type="hidden" name="FromDate" value="@Model.FromDate" />
-                <input type="hidden" name="ToDate" value="@Model.ToDate" />
-                   <input type="hidden" name="CheckpointId" value="@Model.CheckpointId" />
-                   <input type="hidden" name="GolisBillNo" value="@Model.GolisBillNo" />
-                   <select name="PageSize"
-                        class="form-select d-inline w-auto"
-                        onchange="this.form.submit()">
-                    <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
-                    <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
-                    <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
-                    <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
-                    <option value="0" selected="@(Model.PageSize == 0 ? "selected" : null)">@L["All"]</option>
-                </select>
-                <span class="ms-1">@L["rows"]</span>
-            </form>
+            
 
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
@@ -256,27 +241,7 @@
             </div>
 
             <!-- Pagination -->
-            @if (Model.TotalPages > 1 && Model.PageSize > 0)
-            {
-                <nav>
-                    <ul class="pagination justify-content-center">
-                        @for (int i = 1; i <= Model.TotalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                <a class="page-link"
-                                   asp.page="/Reports/CheckpointReport"
-                                   asp.route-FromDate="@Model.FromDate"
-                                   asp.route-ToDate="@Model.ToDate"
-                                   asp.route-CheckpointId="@Model.CheckpointId"
-                                   asp.route-CurrentPage="@i"
-                                   asp.route-PageSize="@Model.PageSize">
-                                    @i
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
-            }
+            <partial name="_Pager" model="Model.Pager" />
         </div>
     </div>
     </div>

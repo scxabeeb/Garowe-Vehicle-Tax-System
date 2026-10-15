@@ -346,45 +346,7 @@
     <input type="hidden" name="CheckpointId" value="@Model.CheckpointId" />
     <input type="hidden" name="GolisBillNo" value="@Model.GolisBillNo" />
 
-    <div class="d-flex align-items-center gap-2">
-        <label class="fw-bold">@L["Show"]</label>
-
-        <select name="PageSize"
-                class="form-select form-select-sm w-auto"
-                onchange="this.form.submit()">
-
-            @if (Model.PageSize == 10)
-            { <option value="10" selected>10</option> }
-            else
-            { <option value="10">10</option> }
-
-            @if (Model.PageSize == 20)
-            { <option value="20" selected>20</option> }
-            else
-            { <option value="20">20</option> }
-
-            @if (Model.PageSize == 50)
-            { <option value="50" selected>50</option> }
-            else
-            { <option value="50">50</option> }
-
-            @if (Model.PageSize == 100)
-            { <option value="100" selected>100</option> }
-            else
-            { <option value="100">100</option> }
-
-            @if (Model.PageSize == 200)
-            { <option value="200" selected>200</option> }
-            else
-            { <option value="200">200</option> }
-
-            @if (Model.PageSize == -1)
-            { <option value="-1" selected>@L["All"]</option> }
-            else
-            { <option value="-1">@L["All"]</option> }
-
-        </select>
-    </div>
+    <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
 </form>
 
 <!-- PAYMENTS TABLE -->
@@ -452,35 +414,7 @@
 </div>
 
 <!-- PAGINATION -->
-@if (Model.TotalPages > 1 && Model.PageSize != -1)
-{
-    <nav class="mt-3">
-        <ul class="pagination justify-content-center">
-
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                    <a class="page-link"
-                       asp-page="./Index"
-                       asp-route-CurrentPage="@i"
-                       asp-route-PageSize="@Model.PageSize"
-                       asp-route-FromDate="@Model.FromDate"
-                       asp-route-ToDate="@Model.ToDate"
-                       asp-route-PlateNumber="@Model.PlateNumber"
-                       asp-route-CarTypeId="@Model.CarTypeId"
-                       asp-route-MovementId="@Model.MovementId"
-                       asp-route-RevenueAccountId="@Model.RevenueAccountId"
-                       asp-route-CollectorId="@Model.CollectorId"
-                       asp-route-CheckpointId="@Model.CheckpointId"
-                       asp-route-GolisBillNo="@Model.GolisBillNo">
-                        @i
-                    </a>
-                </li>
-            }
-
-        </ul>
-    </nav>
-}
+<partial name="_Pager" model="Model.Pager" />
 </div>
 
 </div>

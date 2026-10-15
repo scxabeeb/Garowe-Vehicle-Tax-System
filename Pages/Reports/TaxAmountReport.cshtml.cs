@@ -34,7 +34,9 @@ namespace VehicleTax.Web.Pages.Reports
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; } = 1;
 
+        [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
+        public VehicleTax.Web.Services.Pager Pager => new(TotalCount, PageNumber, PageSize, "PageNumber");
         public int TotalPages { get; set; }
 
         // Dropdown data
@@ -43,6 +45,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         public void OnGet()
         {
+            if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
             CarTypes = _context.CarTypes
                 .AsNoTracking()
                 .OrderBy(c => c.Name)

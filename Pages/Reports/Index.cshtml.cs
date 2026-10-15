@@ -74,6 +74,8 @@ namespace VehicleTax.Web.Pages.Reports
 
         // Pagination
         [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 10;
+        public int PagerTotal { get; set; }
+        public VehicleTax.Web.Services.Pager Pager => new(PagerTotal, CurrentPage, PageSize, "CurrentPage");
         [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; }
 
@@ -98,6 +100,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         public async Task OnGetAsync()
         {
+            if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
             // Car Types
             CarTypes = new SelectList(
                 await _context.CarTypes
@@ -317,6 +320,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .ToList();
 
             var totalCount = await query.CountAsync();
+            PagerTotal = totalCount;
 
             // Pagination
             if (PageSize == -1)

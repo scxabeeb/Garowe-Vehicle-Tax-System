@@ -35,6 +35,8 @@ namespace VehicleTax.Web.Pages.Reports
 
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 20;
+        public int PagerTotal { get; set; }
+        public VehicleTax.Web.Services.Pager Pager => new(PagerTotal, PageNumber, PageSize, "PageNumber");
 
         public int TotalPages { get; set; }
 
@@ -47,6 +49,7 @@ namespace VehicleTax.Web.Pages.Reports
 
         public async Task OnGetAsync()
         {
+            if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
             Movements = new SelectList(
                 await _context.Movements
                     .AsNoTracking()
@@ -101,6 +104,7 @@ namespace VehicleTax.Web.Pages.Reports
                 });
 
             var count = await groupedQuery.CountAsync();
+            PagerTotal = count;
             TotalPages = (int)Math.Ceiling(count / (double)PageSize);
 
             ReportData = await groupedQuery
