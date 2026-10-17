@@ -13,6 +13,7 @@
         ActivityActions.Created => (L["Created"], "bi-plus-circle", "#15803d", "#dcfce7"),
         ActivityActions.Updated => (L["Updated"], "bi-pencil", "#b45309", "#fef3c7"),
         ActivityActions.Deleted => (L["Deleted"], "bi-trash", "#b91c1c", "#fee2e2"),
+        ActivityActions.DuplicatePayment => (L["Second payment refused"], "bi-exclamation-octagon-fill", "#b91c1c", "#fee2e2"),
         _ => (action, "bi-dot", "#334155", "#f1f5f9"),
     };
     string when(DateTime utc) => VehicleTax.Web.AppTime.ToLocal(utc).ToString("dd MMM yyyy HH:mm:ss");
