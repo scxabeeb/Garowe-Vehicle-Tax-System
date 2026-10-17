@@ -141,7 +141,7 @@ namespace VehicleTax.Web.Pages.Reports
                 {
                     SystemId = p.Id,
                     ReferenceNo = p.ReferenceNo,
-                    Date = p.PaidAt,
+                    Date = AppTime.ToLocal(p.PaidAt),
                     ReceiptNumber = p.InvoiceNumber,
                     PlateNumber = p.Vehicle!.PlateNumber,
                     OwnerName = p.Vehicle!.OwnerName,

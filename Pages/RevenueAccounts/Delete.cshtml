@@ -33,7 +33,7 @@
                 <p><strong>@L["Account Name:"]</strong> @Model.Account.AccountName</p>
                 <p><strong>@L["Description:"]</strong> @(Model.Account.Description ?? "N/A")</p>
                 <p><strong>@L["Status:"]</strong> @(Model.Account.IsActive ? "Active" : "Inactive")</p>
-                <p><strong>@L["Created:"]</strong> @Model.Account.CreatedAt.ToString("dd MMM yyyy")</p>
+                <p><strong>@L["Created:"]</strong> @VehicleTax.Web.AppTime.ToLocal(Model.Account.CreatedAt).ToString("dd MMM yyyy")</p>
             </div>
 
             <div class="card-footer bg-light text-end">

@@ -253,7 +253,7 @@ public class SummaryModel : PageModel
         {
             var refNo = p.ReferenceNo?.ToString() ?? "";
             var status = p.IsReverted ? "Cancelled" : "Completed";
-            var date = p.PaidAt.ToString("yyyy-MM-dd HH:mm");
+            var date = AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm");
             sb.AppendLine($"{p.Id},{refNo},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{p.Amount:N0},{date},{status}");
         }
 

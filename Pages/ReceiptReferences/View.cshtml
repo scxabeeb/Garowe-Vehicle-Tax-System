@@ -59,7 +59,7 @@
 
                         <div class="mb-3">
                             <strong>@L["Used At"]</strong>
-                            <div>@Model.Item.UsedAt?.ToString("yyyy-MM-dd HH:mm")</div>
+                            <div>@(Model.Item.UsedAt.HasValue ? VehicleTax.Web.AppTime.ToLocal(Model.Item.UsedAt.Value).ToString("yyyy-MM-dd HH:mm") : "")</div>
                         </div>
                     }
 
@@ -74,7 +74,7 @@
 
                         <div class="mb-3">
                             <strong>@L["Cancelled At"]</strong>
-                            <div>@Model.Item.CancelledAt?.ToString("yyyy-MM-dd HH:mm")</div>
+                            <div>@(Model.Item.CancelledAt.HasValue ? VehicleTax.Web.AppTime.ToLocal(Model.Item.CancelledAt.Value).ToString("yyyy-MM-dd HH:mm") : "")</div>
                         </div>
 
                         <div class="mb-3">

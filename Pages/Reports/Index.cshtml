@@ -377,7 +377,7 @@
                 {
                     <tr>
                         <td class="fw-semibold">@p.Id</td>
-                        <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
+                        <td class="text-nowrap">@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm")</td>
                         <td>@p.Vehicle?.PlateNumber</td>
                         <td>@p.Vehicle?.OwnerName</td>
                         <td>@p.Vehicle?.Mobile</td>

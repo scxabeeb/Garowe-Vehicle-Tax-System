@@ -124,7 +124,7 @@
                 <td><span class="badge bg-@badge">@L[status]</span></td>
                 <td>@r.Vehicle?.PlateNumber</td>
                 <td>@r.UsedBy</td>
-                <td>@r.UsedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@(r.UsedAt.HasValue ? VehicleTax.Web.AppTime.ToLocal(r.UsedAt.Value).ToString("yyyy-MM-dd HH:mm") : "")</td>
                 <td>@r.CancelledBy</td>
                 <td>@r.CancelledReason</td>
             </tr>

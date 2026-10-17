@@ -195,7 +195,7 @@ public class ReceiptReferencesModel : PageModel
                 $"{statusText}," +
                 $"{r.Vehicle?.PlateNumber}," +
                 $"{r.UsedBy}," +
-                $"{r.UsedAt}," +
+                $"{(r.UsedAt.HasValue ? AppTime.ToLocal(r.UsedAt.Value).ToString("yyyy-MM-dd HH:mm") : "")}," +
                 $"{r.CancelledBy}," +
                 $"{r.CancelledReason}"
             );
