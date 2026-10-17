@@ -21,6 +21,9 @@ public class VerifyController : ControllerBase
 {
     private readonly AppDbContext _context;
 
+    private string? Phone(string? n) =>
+        User.Identity?.IsAuthenticated == true ? n : VehicleTax.Web.Services.SomaliPhone.Mask(n);
+
     public VerifyController(AppDbContext context)
     {
         _context = context;
@@ -49,6 +52,8 @@ public class VerifyController : ControllerBase
             paidAt = DateTime.SpecifyKind(payment.PaidAt, DateTimeKind.Utc),
             collector = payment.Collector?.Username,
             golisBillNo = payment.TransactionId,
+            // The sender's number is partly hidden for people who are not signed in.
+            paidBy = Phone(payment.PaidBy),
             referenceNo = payment.ReferenceNo
         });
     }
@@ -79,7 +84,8 @@ public class VerifyController : ControllerBase
                 Row(T("Amount"), "$" + payment.Amount.ToString("0.00")) +
                 Row(T("Paid At"), AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy, HH:mm")) +
                 Row(T("Collector"), payment.Collector?.Username) +
-                (string.IsNullOrWhiteSpace(payment.TransactionId) ? "" : Row(T("Golis Bill"), payment.TransactionId));
+                (string.IsNullOrWhiteSpace(payment.TransactionId) ? "" : Row(T("Golis Bill"), payment.TransactionId)) +
+                (string.IsNullOrWhiteSpace(payment.PaidBy) ? "" : Row(T("Paid by (sender)"), Phone(payment.PaidBy)));
             body = Card(color, bg, status,
                 T(valid ? "This receipt is genuine and paid." : "This receipt is not valid as a paid receipt."),
                 rows);

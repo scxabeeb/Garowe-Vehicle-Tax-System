@@ -25,6 +25,14 @@ public static class SomaliPhone
         return Regex.IsMatch(s, $@"^\d{{{MinDigits},{MaxDigits}}}$") ? Prefix + s : null;
     }
 
+    /// <summary>Partly hidden for public pages: +25261•••456.</summary>
+    public static string? Mask(string? number)
+    {
+        if (string.IsNullOrWhiteSpace(number)) return number;
+        var n = number.Trim();
+        return n.Length <= 7 ? new string('•', n.Length) : n[..Math.Min(6, n.Length - 3)] + "•••" + n[^3..];
+    }
+
     /// <summary>The digits after +252, for the input box.</summary>
     public static string Local(string? stored) =>
         Normalize(stored) is { } n ? n[Prefix.Length..] : Regex.Replace(stored ?? "", @"\D", "");

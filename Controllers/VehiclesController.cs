@@ -106,6 +106,8 @@ public class VehiclesController : ControllerBase
             movement = lastPayment?.Movement?.Name ?? lastPayment?.MovementType,
             invoiceNumber = lastPayment?.InvoiceNumber,
             golisBillNo = lastPayment?.TransactionId,
+            // Number that paid the last payment (Golis sender).
+            paidBy = lastPayment?.PaidBy,
             paidToday = paidToday != null,
             paidTodayAt = paidToday == null ? (DateTime?)null : DateTime.SpecifyKind(paidToday.Value, DateTimeKind.Utc),
             tariffs

@@ -940,5 +940,6 @@ public static class LangSo
         ["Vehicle not found"] = "Gaariga lama helin",
         ["Register it now, then continue to payment."] = "Hadda diiwaangeli, kadibna u gudub lacag-bixinta.",
         ["No tariff has an amount for this car type yet. Add one in Data & Setup → Tax Amounts."] = "Ma jiro tariff qaddar u leh nooca gaarigan. Ku dar Xogta & Habaynta → Qaddarrada Canshuurta.",
+        ["Paid by (sender)"] = "Waxaa bixiyay (diraha)",
     };
 }
