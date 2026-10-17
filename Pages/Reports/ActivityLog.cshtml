@@ -41,7 +41,7 @@
         </div>
         <a class="btn btn-light fw-semibold" asp-page-handler="ExportCsv"
            asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
-           asp-route-Username="@Model.Username" asp-route-Action="@Model.Action" asp-route-Entity="@Model.Entity" asp-route-Search="@Model.Search">
+           asp-route-Username="@Model.Username" asp-route-Action="@Model.Action" asp-route-Entity="@Model.Entity" asp-route-Search="@Model.Search" asp-route-Source="@Model.Source">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i>@L["Export CSV"]
         </a>
     </div>
@@ -84,6 +84,16 @@
                     @foreach (var e in Model.Entities)
                     {
                         <option value="@e" selected="@(e == Model.Entity ? "selected" : null)">@L[e]</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Source"]</label>
+                <select name="Source" class="form-select">
+                    <option value="">@L["All"]</option>
+                    @foreach (var src in new[] { "Web", "Mobile app", "Golis", "System" })
+                    {
+                        <option value="@src" selected="@(src == Model.Source ? "selected" : null)">@L[src]</option>
                     }
                 </select>
             </div>
@@ -233,6 +243,7 @@
                             <th>@L["System ID"]</th>
                             <th>@L["Date"]</th>
                             <th>@L["User"]</th>
+                            <th>@L["Source"]</th>
                             <th>@L["Action"]</th>
                             <th>@L["Record"]</th>
                             <th>@L["Details"]</th>
@@ -246,7 +257,21 @@
                             <tr>
                                 <td class="fw-semibold al-num">@a.Id</td>
                                 <td class="text-nowrap small">@when(a.At)</td>
-                                <td class="fw-semibold">@a.Username</td>
+                                <td class="fw-semibold">
+                                    @if (a.Username == VehicleTax.Web.Services.ActivityContext.UnknownApp)
+                                    {
+                                        <span class="text-muted fst-italic">@L[a.Username]</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-person-circle text-primary me-1"></i>@a.Username
+                                    }
+                                </td>
+                                <td>@{ var src = VehicleTax.Web.Services.ActivityContext.SourceOf(a.Path); }
+                                    <span class="al-badge" style="background:@(src == "Web" ? "#eef4ff" : src == "Mobile app" ? "#ecfeff" : src == "Golis" ? "#fef3c7" : "#f1f5f9");color:@(src == "Web" ? "#0b57d0" : src == "Mobile app" ? "#0e7490" : src == "Golis" ? "#92400e" : "#475569")">
+                                        <i class="bi @(src == "Web" ? "bi-laptop" : src == "Mobile app" ? "bi-phone" : src == "Golis" ? "bi-cash" : "bi-gear")"></i>@L[src]
+                                    </span>
+                                </td>
                                 <td><span class="al-badge" style="background:@lk.Bg;color:@lk.Fg"><i class="bi @lk.Icon"></i>@lk.Label</span></td>
                                 <td class="text-nowrap">@L[a.Entity]@(string.IsNullOrEmpty(a.EntityId) ? "" : " #" + a.EntityId)</td>
                                 <td><div class="al-details">@(string.IsNullOrEmpty(a.Details) ? "—" : a.Details)</div></td>
@@ -255,7 +280,7 @@
                         }
                         @if (!Model.Rows.Any())
                         {
-                            <tr><td colspan="7" class="text-center text-muted py-4">@L["No activity found for the selected filters."]</td></tr>
+                            <tr><td colspan="8" class="text-center text-muted py-4">@L["No activity found for the selected filters."]</td></tr>
                         }
                     </tbody>
                 </table>

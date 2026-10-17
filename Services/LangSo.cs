@@ -971,5 +971,11 @@ public static class LangSo
         ["Add amount"] = "Ku dar qaddar",
         ["Every active tariff has an amount."] = "Tariff kasta oo firfircoon wuxuu leeyahay qaddar.",
         ["No tax amounts found."] = "Qaddar canshuur lama helin.",
+        ["Source"] = "Halka laga sameeyay",
+        ["Web"] = "Websaydh",
+        ["Mobile app"] = "Barnaamijka taleefanka",
+        ["Golis"] = "Golis",
+        ["System"] = "Nidaamka",
+        ["Unknown (mobile app)"] = "Lama yaqaan (barnaamijka taleefanka)",
     };
 }

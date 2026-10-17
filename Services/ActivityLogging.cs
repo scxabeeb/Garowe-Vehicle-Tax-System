@@ -15,6 +15,15 @@ namespace VehicleTax.Web.Services;
 /// <summary>Who / where of the current request, for activity entries.</summary>
 public static class ActivityContext
 {
+    /// <summary>App request whose user could not be identified.</summary>
+    public const string UnknownApp = "Unknown (mobile app)";
+
+    /// <summary>Where an action came from, from its request path.</summary>
+    public static string SourceOf(string? path) =>
+        string.IsNullOrEmpty(path) ? "System" :
+        path.StartsWith("/api/golis", StringComparison.OrdinalIgnoreCase) ? "Golis" :
+        path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) ? "Mobile app" : "Web";
+
     public static (string User, string? Ip, string? Path) Of(HttpContext? http)
     {
         if (http == null) return ("system", null, null);
@@ -22,7 +31,7 @@ public static class ActivityContext
         var path = http.Request.Path.Value ?? "";
         var user = name
             ?? (path.StartsWith("/api/golis", StringComparison.OrdinalIgnoreCase) ? "Golis" :
-                path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) ? "mobile app" : "system");
+                path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) ? UnknownApp : "system");
         var ip = http.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim()
                  ?? http.Connection.RemoteIpAddress?.ToString();
         return (user, ip, path.Length > 200 ? path[..200] : path);
@@ -53,13 +62,16 @@ public static class ActivityContext
                     ValidAudience = jwt.Audience,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
-                    ValidateLifetime = true,
+                    // The app keeps people signed in longer than the token
+                    // lifetime; an expired but genuinely signed token still
+                    // says who it is. Used only to name the user in the log.
+                    ValidateLifetime = false,
                 }, out _);
                 name = principal.FindFirst(ClaimTypes.Name)?.Value ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             }
             catch (Exception)
             {
-                // Invalid or expired token: the change is logged as "mobile app".
+                // No valid signature: the change is logged as UnknownApp.
             }
         }
         http.Items[cacheKey] = name;
@@ -127,6 +139,7 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
     private static readonly HashSet<string> Skip = new(StringComparer.Ordinal)
     {
         nameof(ActivityLog), nameof(PermissionAuditLog), nameof(RvAuditLog),
+        "DataProtectionKey", // sign-in key storage, not user activity
     };
 
     private sealed class Pending
@@ -232,6 +245,9 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
             // While signing in (no user yet) a change to a User row, such as
             // upgrading a legacy password, is made on that user's behalf.
             var by = !signedIn && p.Entry.Entity is User u && !string.IsNullOrEmpty(u.Username) ? u.Username : user;
+            // A payment sent without a usable sign-in names its collector.
+            if ((by == ActivityContext.UnknownApp || by == "system") && p.Entry.Entity is Payment pay && pay.CollectorId is int cid)
+                by = context.Set<User>().Find(cid)?.Username ?? by;
             logs.Add(new ActivityLog
             {
                 Username = by.Length > 100 ? by[..100] : by,

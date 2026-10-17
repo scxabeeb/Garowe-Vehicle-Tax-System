@@ -24,6 +24,8 @@ public class ActivityLogModel : PageModel
     [BindProperty(SupportsGet = true)] public string? Action { get; set; }
     [BindProperty(SupportsGet = true)] public string? Entity { get; set; }
     [BindProperty(SupportsGet = true)] public string? Search { get; set; }
+    /// <summary>Web | Mobile app | Golis | System</summary>
+    [BindProperty(SupportsGet = true)] public string? Source { get; set; }
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -122,13 +124,13 @@ public class ActivityLogModel : PageModel
             .ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("System ID,Date,User,Action,Record,Record ID,Details,IP Address,Page");
+        sb.AppendLine("System ID,Date,User,Source,Action,Record,Record ID,Details,IP Address,Page");
         foreach (var a in rows)
         {
             sb.AppendLine(string.Join(",",
                 a.Id,
                 Csv(AppTime.ToLocal(a.At).ToString("yyyy-MM-dd HH:mm:ss")),
-                Csv(a.Username), Csv(a.Action), Csv(a.Entity), Csv(a.EntityId),
+                Csv(a.Username), ActivityContext.SourceOf(a.Path), Csv(a.Action), Csv(a.Entity), Csv(a.EntityId),
                 Csv(a.Details), Csv(a.IpAddress), Csv(a.Path)));
         }
         return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray(),
@@ -158,6 +160,14 @@ public class ActivityLogModel : PageModel
                 : q.Where(a => a.Action == Action);
         }
         if (!string.IsNullOrWhiteSpace(Entity)) q = q.Where(a => a.Entity == Entity);
+        q = Source switch
+        {
+            "Golis" => q.Where(a => a.Path != null && a.Path.StartsWith("/api/golis")),
+            "Mobile app" => q.Where(a => a.Path != null && a.Path.StartsWith("/api/") && !a.Path.StartsWith("/api/golis")),
+            "Web" => q.Where(a => a.Path != null && !a.Path.StartsWith("/api/")),
+            "System" => q.Where(a => a.Path == null || a.Path == ""),
+            _ => q,
+        };
         if (!string.IsNullOrWhiteSpace(Search))
         {
             var s = Search.Trim();
