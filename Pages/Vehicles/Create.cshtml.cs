@@ -28,6 +28,12 @@ public class CreateModel : PageModel
 
     public IActionResult OnPost()
     {
+        var mobile = VehicleTax.Web.Services.SomaliPhone.Normalize(Vehicle.Mobile);
+        if (mobile == null)
+            ModelState.AddModelError("Vehicle.Mobile", VehicleTax.Web.Services.SomaliPhone.Error);
+        else
+            Vehicle.Mobile = mobile;
+
         if (!ModelState.IsValid)
         {
             LoadCarTypes();
@@ -36,7 +42,6 @@ public class CreateModel : PageModel
 
         Vehicle.PlateNumber = Vehicle.PlateNumber.Trim().ToUpper();
         Vehicle.OwnerName = Vehicle.OwnerName.Trim();
-        Vehicle.Mobile = Vehicle.Mobile?.Trim() ?? "";
 
         // Prevent duplicate plate numbers
         var exists = _context.Vehicles

@@ -55,9 +55,8 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">@L["Mobile"]</label>
-                            <input asp-for="Vehicle.Mobile"
-                                   class="form-control"
-                                   placeholder="2526xxxxxxx" />
+                            <partial name="_PhoneInput" model="Model.Vehicle.Mobile" />
+                            <span asp-validation-for="Vehicle.Mobile" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-4">

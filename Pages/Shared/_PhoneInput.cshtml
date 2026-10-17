@@ -1,0 +1,14 @@
+@model string?
+@*
+    Mobile number box: fixed +252 prefix, digits only (7–9). Posts as
+    Vehicle.Mobile; the server stores it as +252XXXXXXXXX.
+*@
+<div class="input-group">
+    <span class="input-group-text fw-semibold">+252</span>
+    <input name="Vehicle.Mobile" id="Vehicle_Mobile" value="@VehicleTax.Web.Services.SomaliPhone.Local(Model)"
+           class="form-control" inputmode="numeric" autocomplete="tel-national"
+           pattern="[0-9]{7,9}" minlength="7" maxlength="9" required
+           placeholder="61xxxxxxx" title="@L["7 to 9 digits, numbers only"]"
+           oninput="this.value=this.value.replace(/\D/g,'').slice(0,9)" />
+</div>
+<div class="form-text">@L["7 to 9 digits, numbers only"]</div>

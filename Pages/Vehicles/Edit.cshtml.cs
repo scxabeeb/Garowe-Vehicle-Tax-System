@@ -41,6 +41,12 @@ public class EditModel : PageModel
 
     public IActionResult OnPost()
     {
+        var mobile = VehicleTax.Web.Services.SomaliPhone.Normalize(Vehicle.Mobile);
+        if (mobile == null)
+            ModelState.AddModelError("Vehicle.Mobile", VehicleTax.Web.Services.SomaliPhone.Error);
+        else
+            Vehicle.Mobile = mobile;
+
         if (!ModelState.IsValid)
         {
             LoadCarTypes();

@@ -935,5 +935,7 @@ public static class LangSo
         ["Tariff names"] = "Magacyada tariff-ka",
         ["Tariff rows"] = "Safafka tariff-ka",
         ["Tax Amount"] = "Qaddarka Canshuurta",
+        ["7 to 9 digits, numbers only"] = "7 ilaa 9 god, tirooyin kaliya",
+        ["Mobile number must be 7 to 9 digits after +252 (numbers only)."] = "Lambarka taleefanku waa inuu ahaadaa 7 ilaa 9 god ka dib +252 (tirooyin kaliya).",
     };
 }

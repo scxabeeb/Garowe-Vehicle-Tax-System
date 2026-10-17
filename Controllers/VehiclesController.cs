@@ -114,7 +114,10 @@ public class VehiclesController : ControllerBase
 
         model.PlateNumber = model.PlateNumber.Trim().ToUpper();
         model.OwnerName = model.OwnerName.Trim();
-        model.Mobile = model.Mobile.Trim();
+        var mobile = VehicleTax.Web.Services.SomaliPhone.Normalize(model.Mobile);
+        if (mobile == null)
+            return BadRequest(new { message = VehicleTax.Web.Services.SomaliPhone.Error });
+        model.Mobile = mobile;
 
         var exists = await _context.Vehicles
             .AnyAsync(v => v.PlateNumber == model.PlateNumber);
@@ -145,9 +148,13 @@ public class VehiclesController : ControllerBase
         if (vehicle == null)
             return NotFound(new { message = "Vehicle not found" });
 
+        var mobile = VehicleTax.Web.Services.SomaliPhone.Normalize(model.Mobile);
+        if (mobile == null)
+            return BadRequest(new { message = VehicleTax.Web.Services.SomaliPhone.Error });
+
         vehicle.PlateNumber = model.PlateNumber.Trim().ToUpper();
         vehicle.OwnerName = model.OwnerName.Trim();
-        vehicle.Mobile = model.Mobile.Trim();
+        vehicle.Mobile = mobile;
         vehicle.CarTypeId = model.CarTypeId;
 
         await _context.SaveChangesAsync();
