@@ -161,7 +161,7 @@ public class SummaryModel : PageModel
         };
 
         CollectorSummaries = data
-            .GroupBy(p => p.Collector?.Username ?? "Unassigned")
+            .GroupBy(p => !string.IsNullOrEmpty(p.TransactionId) ? VehicleTax.Web.Services.PaymentSource.GolisLabel : p.Collector?.Username ?? "Unassigned")
             .Select(g => new CollectorSummary
             {
                 CollectorName = g.Key,

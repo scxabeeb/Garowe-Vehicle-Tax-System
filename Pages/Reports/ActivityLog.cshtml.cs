@@ -78,7 +78,9 @@ public class ActivityLogModel : PageModel
             .GroupBy(a => new { a.Username, a.Action })
             .Select(g => new { g.Key.Username, g.Key.Action, N = g.Count(), Last = g.Max(a => a.At) })
             .ToListAsync();
-        ByUser = perUser.GroupBy(x => x.Username)
+        // Only staff users: Golis, the system and unidentified app requests are not users.
+        var notUsers = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Golis", "system", ActivityContext.UnknownApp };
+        ByUser = perUser.Where(x => !notUsers.Contains(x.Username)).GroupBy(x => x.Username)
             .Select(g => new UserActivity(g.Key,
                 g.Where(x => x.Action == ActivityActions.Login).Sum(x => x.N),
                 g.Where(x => x.Action == ActivityActions.LoginFailed).Sum(x => x.N),

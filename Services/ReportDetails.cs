@@ -100,7 +100,8 @@ public static class ReportDetails
             PaidCount = await paid.CountAsync(),
             PaidAmount = await paid.SumAsync(p => (decimal?)p.Amount) ?? 0m,
             ByTariff = await Group(paid.Select(p => new NameAmount { Name = p.Movement != null ? p.Movement.Name : p.MovementType, Amount = p.Amount })),
-            ByCollector = await Group(paid.Select(p => new NameAmount { Name = p.Collector != null ? p.Collector.Username : "-", Amount = p.Amount })),
+            // Paid through Golis = the customer's payment, not a collector's.
+            ByCollector = await Group(paid.Select(p => new NameAmount { Name = (p.TransactionId != null && p.TransactionId != "") ? PaymentSource.GolisLabel : p.Collector != null ? p.Collector.Username : "-", Amount = p.Amount })),
             ByCheckpoint = await Group(paid.Where(p => p.Checkpoint != null)
                 .Select(p => new NameAmount { Name = p.Checkpoint!.Name, Amount = p.Amount })),
             ByCarType = await Group(paid.Select(p => new NameAmount { Name = p.Vehicle != null && p.Vehicle.CarType != null ? p.Vehicle.CarType.Name : "-", Amount = p.Amount })),

@@ -112,6 +112,9 @@ namespace VehicleTax.Web.Controllers
             if (collectorId.HasValue)
                 payments = payments.Where(p => p.CollectorId == collectorId.Value);
             var paid = payments.Where(p => p.IsPaid);
+            // A collector's own figures leave out what customers paid through Golis.
+            if (collectorId.HasValue)
+                paid = paid.Where(p => !(p.TransactionId != null && p.TransactionId != ""));
 
             object Totals(DateTime fromUtc, DateTime toUtc)
             {
@@ -130,9 +133,9 @@ namespace VehicleTax.Web.Controllers
                 {
                     p.Amount,
                     p.VehicleId,
-                    p.CollectorId,
+                    CollectorId = (p.TransactionId != null && p.TransactionId != "") ? null : p.CollectorId,
                     Movement = p.Movement != null ? p.Movement.Name : p.MovementType,
-                    Collector = p.Collector != null ? p.Collector.Username : null
+                    Collector = (p.TransactionId != null && p.TransactionId != "") ? VehicleTax.Web.Services.PaymentSource.GolisLabel : p.Collector != null ? p.Collector.Username : null
                 })
                 .ToList();
 

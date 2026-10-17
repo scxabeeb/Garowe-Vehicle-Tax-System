@@ -78,7 +78,9 @@ public class IndexModel : PageModel
     /// </summary>
     private IQueryable<Payment> ScopedPayments() =>
         _collectorId.HasValue
-            ? _context.Payments.Where(p => p.CollectorId == _collectorId.Value)
+            // A collector's own figures: only what they collected, not what
+            // customers paid themselves through Golis.
+            ? _context.Payments.Where(p => p.CollectorId == _collectorId.Value && !(p.TransactionId != null && p.TransactionId != ""))
             : _context.Payments.AsQueryable();
 
     public void OnGet()
@@ -201,7 +203,7 @@ public class IndexModel : PageModel
             .Include(p => p.ReceiptReference)
             .Where(p => p.IsPaid && !p.IsReverted)
             .AsEnumerable()
-            .GroupBy(p => p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
+            .GroupBy(p => !string.IsNullOrEmpty(p.TransactionId) ? VehicleTax.Web.Services.PaymentSource.GolisLabel : p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
             .Select(g => new
             {
                 Collector = g.Key,
