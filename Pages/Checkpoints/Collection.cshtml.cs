@@ -85,12 +85,12 @@ public class CollectionModel : PageModel
 
         if (FromDate.HasValue)
         {
-            query = query.Where(p => p.PaidAt >= FromDate.Value.Date);
+            query = query.Where(p => p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date));
         }
 
         if (ToDate.HasValue)
         {
-            query = query.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
+            query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
         }
 
         Payments = await query

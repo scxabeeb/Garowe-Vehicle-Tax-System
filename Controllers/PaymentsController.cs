@@ -621,12 +621,12 @@ namespace VehicleTax.Web.Controllers
 
             if (fromDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+                query = query.Where(p => p.PaidAt >= AppTime.ToUtc(fromDate.Value.Date));
             }
 
             if (toDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+                query = query.Where(p => p.PaidAt < AppTime.ToUtc(toDate.Value.Date.AddDays(1)));
             }
 
             var items = query
@@ -673,12 +673,12 @@ namespace VehicleTax.Web.Controllers
 
             if (fromDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+                query = query.Where(p => p.PaidAt >= AppTime.ToUtc(fromDate.Value.Date));
             }
 
             if (toDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+                query = query.Where(p => p.PaidAt < AppTime.ToUtc(toDate.Value.Date.AddDays(1)));
             }
 
             // Only registered checkpoints (all of them, even with no payments).

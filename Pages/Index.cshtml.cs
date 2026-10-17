@@ -78,9 +78,9 @@ public class IndexModel : PageModel
     /// </summary>
     private IQueryable<Payment> ScopedPayments() =>
         _collectorId.HasValue
-            // A collector's own figures: only what they collected, not what
-            // customers paid themselves through Golis.
-            ? _context.Payments.Where(p => p.CollectorId == _collectorId.Value && !(p.TransactionId != null && p.TransactionId != ""))
+            // A collector sees the totals of all their invoices, including
+            // those their customers paid through Golis.
+            ? _context.Payments.Where(p => p.CollectorId == _collectorId.Value)
             : _context.Payments.AsQueryable();
 
     public void OnGet()

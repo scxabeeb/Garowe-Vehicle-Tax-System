@@ -111,10 +111,9 @@ namespace VehicleTax.Web.Controllers
             var payments = _context.Payments.Where(p => !p.IsReverted);
             if (collectorId.HasValue)
                 payments = payments.Where(p => p.CollectorId == collectorId.Value);
+            // A collector's figures cover all their invoices, including those
+            // their customers paid through Golis.
             var paid = payments.Where(p => p.IsPaid);
-            // A collector's own figures leave out what customers paid through Golis.
-            if (collectorId.HasValue)
-                paid = paid.Where(p => !(p.TransactionId != null && p.TransactionId != ""));
 
             object Totals(DateTime fromUtc, DateTime toUtc)
             {
@@ -207,12 +206,12 @@ namespace VehicleTax.Web.Controllers
 
             if (fromDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+                query = query.Where(p => p.PaidAt >= AppTime.ToUtc(fromDate.Value.Date));
             }
 
             if (toDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+                query = query.Where(p => p.PaidAt < AppTime.ToUtc(toDate.Value.Date.AddDays(1)));
             }
 
             // Use the snapshot Payment.Checkpoint first; if null, fall back
@@ -276,12 +275,12 @@ namespace VehicleTax.Web.Controllers
 
             if (fromDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt >= fromDate.Value.Date);
+                query = query.Where(p => p.PaidAt >= AppTime.ToUtc(fromDate.Value.Date));
             }
 
             if (toDate.HasValue)
             {
-                query = query.Where(p => p.PaidAt < toDate.Value.Date.AddDays(1));
+                query = query.Where(p => p.PaidAt < AppTime.ToUtc(toDate.Value.Date.AddDays(1)));
             }
 
             var items = query

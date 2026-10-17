@@ -93,13 +93,13 @@ public class IndexModel : PageModel
         // Filters (use action date: PaidAt for completed, RevertedAt for cancelled)
         if (FromDate.HasValue)
             query = query.Where(p =>
-                (!p.IsReverted && p.PaidAt.Date >= FromDate.Value.Date) ||
-                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date >= FromDate.Value.Date));
+                (!p.IsReverted && p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date)) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value >= AppTime.ToUtc(FromDate.Value.Date)));
 
         if (ToDate.HasValue)
             query = query.Where(p =>
-                (!p.IsReverted && p.PaidAt.Date <= ToDate.Value.Date) ||
-                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date <= ToDate.Value.Date));
+                (!p.IsReverted && p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1))) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value < AppTime.ToUtc(ToDate.Value.Date.AddDays(1))));
 
         if (UserId.HasValue)
             query = query.Where(p =>

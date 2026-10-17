@@ -61,10 +61,10 @@ namespace VehicleTax.Web.Pages.Reports
                 .Where(p => p.IsPaid && !p.IsReverted);
 
             if (FromDate.HasValue)
-                query = query.Where(p => p.PaidAt >= FromDate.Value);
+                query = query.Where(p => p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date));
 
             if (ToDate.HasValue)
-                query = query.Where(p => p.PaidAt <= ToDate.Value);
+                query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
             if (MovementId.HasValue)
                 query = query.Where(p => p.MovementId == MovementId.Value);
@@ -104,10 +104,10 @@ namespace VehicleTax.Web.Pages.Reports
                 .Where(p => p.IsPaid && !p.IsReverted);
 
             if (FromDate.HasValue)
-                query = query.Where(p => p.PaidAt >= FromDate.Value);
+                query = query.Where(p => p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date));
 
             if (ToDate.HasValue)
-                query = query.Where(p => p.PaidAt <= ToDate.Value);
+                query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
             if (MovementId.HasValue)
                 query = query.Where(p => p.MovementId == MovementId.Value);

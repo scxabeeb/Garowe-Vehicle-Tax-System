@@ -68,10 +68,10 @@ public class CheckpointReportModel : PageModel
             .AsQueryable();
 
         if (FromDate.HasValue)
-            summaryQuery = summaryQuery.Where(p => p.PaidAt >= FromDate.Value.Date);
+            summaryQuery = summaryQuery.Where(p => p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date));
 
         if (ToDate.HasValue)
-            summaryQuery = summaryQuery.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
+            summaryQuery = summaryQuery.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
         // Only registered checkpoints are listed (all of them, even with no
         // payments); payments with no checkpoint are not shown as a group.
@@ -116,10 +116,10 @@ public class CheckpointReportModel : PageModel
             .AsQueryable();
 
         if (FromDate.HasValue)
-            query = query.Where(p => p.PaidAt >= FromDate.Value.Date);
+            query = query.Where(p => p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date));
 
         if (ToDate.HasValue)
-            query = query.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
+            query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
         // Filter by the Payment.CheckpointId snapshot first; if null, fall
         // back to the collector's currently-assigned checkpoint so old
@@ -166,10 +166,10 @@ public class CheckpointReportModel : PageModel
             .AsQueryable();
 
         if (FromDate.HasValue)
-            query = query.Where(p => p.PaidAt >= FromDate.Value.Date);
+            query = query.Where(p => p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date));
 
         if (ToDate.HasValue)
-            query = query.Where(p => p.PaidAt < ToDate.Value.Date.AddDays(1));
+            query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
         if (CheckpointId.HasValue)
             query = query.Where(p => p.CheckpointId == CheckpointId.Value);

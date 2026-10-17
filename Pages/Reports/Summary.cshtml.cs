@@ -124,13 +124,13 @@ public class SummaryModel : PageModel
 
         if (FromDate.HasValue)
             query = query.Where(p =>
-                (!p.IsReverted && p.PaidAt >= FromDate.Value.Date) ||
-                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date >= FromDate.Value.Date));
+                (!p.IsReverted && p.PaidAt >= AppTime.ToUtc(FromDate.Value.Date)) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value >= AppTime.ToUtc(FromDate.Value.Date)));
 
         if (ToDate.HasValue)
             query = query.Where(p =>
-                (!p.IsReverted && p.PaidAt < ToDate.Value.Date.AddDays(1)) ||
-                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value.Date < ToDate.Value.Date.AddDays(1)));
+                (!p.IsReverted && p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1))) ||
+                (p.IsReverted && p.RevertedAt.HasValue && p.RevertedAt.Value < AppTime.ToUtc(ToDate.Value.Date.AddDays(1))));
 
         if (CollectorId.HasValue)
             query = query.Where(p => p.CollectorId == CollectorId.Value);
