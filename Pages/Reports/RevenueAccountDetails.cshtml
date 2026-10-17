@@ -21,12 +21,18 @@
                 </h3>
                 <div class="sub">
                     @Model.Account.AccountCode - @Model.Account.AccountName &nbsp;|&nbsp;
-                    <span class="badge bg-@(Model.Account.IsActive ? "bg-success" : "bg-secondary")">
+                    <span class="badge @(Model.Account.IsActive ? "bg-success" : "bg-secondary")">
                         @(Model.Account.IsActive ? "Active" : "Inactive")
                     </span>
                 </div>
             </div>
-            <a asp-page="./RevenueAccountReport" class="btn btn-outline-secondary">
+            @{
+                // Back to the list the user came from (with its filters), else the report with these filters.
+                var back = ViewContext.HttpContext.Request.Query["returnUrl"].ToString();
+                if (!Url.IsLocalUrl(back))
+                    back = Url.Page("./RevenueAccountReport", new { FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), Model.MovementId, Model.CarTypeId })!;
+            }
+            <a href="@back" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> @L["Back to Report"]
             </a>
         </div>

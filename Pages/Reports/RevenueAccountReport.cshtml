@@ -110,10 +110,12 @@
                                 <td class="text-center">
                                     <a asp-page="./RevenueAccountDetails"
                                        asp-route-accountId="@item.AccountId"
-                                       asp-route-FromDate="@Model.FromDate"
-                                       asp-route-ToDate="@Model.ToDate"
+                                       asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                                       asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
                                        asp-route-MovementId="@Model.MovementId"
                                        asp-route-CarTypeId="@Model.CarTypeId"
+                                       asp-route-view="details"
+                                       data-return-here
                                        class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye"></i> @L["View"]
                                     </a>
@@ -152,3 +154,14 @@
     </div>
 
 </div>
+
+<script>
+    // "View" opens the account's payment list; remember this list so Back returns here.
+    document.querySelectorAll('a[data-return-here]').forEach(function (a) {
+        a.addEventListener('click', function () {
+            var u = new URL(a.href, location.href);
+            u.searchParams.set('returnUrl', location.pathname + location.search);
+            a.href = u.pathname + u.search;
+        });
+    });
+</script>
