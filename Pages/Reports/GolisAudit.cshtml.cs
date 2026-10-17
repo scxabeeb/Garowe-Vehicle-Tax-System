@@ -545,9 +545,9 @@ public class GolisAuditModel : PageModel
         [Required]
         public string StatementNumber { get; set; } = string.Empty;
         [Required]
-        public DateTime FromDate { get; set; } = DateTime.Today.AddDays(-7);
+        public DateTime FromDate { get; set; } = AppTime.Today.AddDays(-7);
         [Required]
-        public DateTime ToDate { get; set; } = DateTime.Today;
+        public DateTime ToDate { get; set; } = AppTime.Today;
         public decimal StatementTotal { get; set; }
         public int StatementTransactionCount { get; set; }
         public string? Notes { get; set; }

@@ -100,7 +100,7 @@
                                 <td>@a.MatchedCount</td>
                                 <td>@(a.TotalGolisTransactions - a.MatchedCount)</td>
                                 <td>@(a.FinalizedByUser?.Username ?? a.CreatedByUser?.Username ?? "-")</td>
-                                <td>@(a.FinalizedAt?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? a.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm"))</td>
+                                <td>@(VehicleTax.Web.AppTime.ToLocal(a.FinalizedAt ?? a.CreatedAt).ToString("dd MMM yyyy HH:mm"))</td>
                                 <td>
                                     @if (a.Status == AuditStatus.Finalized)
                                     {

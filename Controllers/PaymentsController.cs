@@ -862,7 +862,7 @@ namespace VehicleTax.Web.Controllers
             }
 
             var movement = payment.Movement?.Name ?? payment.MovementType;
-            var paidAt = payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm");
+            var paidAt = AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy HH:mm");
             var status = payment.IsReverted ? "REVERTED" : "PAID";
             var lines = new List<string>
             {

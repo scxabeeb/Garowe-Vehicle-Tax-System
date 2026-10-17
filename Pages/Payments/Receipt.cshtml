@@ -366,7 +366,7 @@
                                     </tr>
                                     <tr>
                                         <td class="meta-label">@L["Date"]</td>
-                                        <td>@Model.Payment.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                        <td>@VehicleTax.Web.AppTime.ToLocal(Model.Payment.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -513,7 +513,7 @@
                 }
 
                     <div class="text-muted mt-4">
-                        @L["Printed On:"] @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+                        @L["Printed On:"] @VehicleTax.Web.AppTime.Now.ToString("dd MMM yyyy HH:mm")
                     </div>
                 </div>
             }

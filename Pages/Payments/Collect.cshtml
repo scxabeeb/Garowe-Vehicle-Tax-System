@@ -230,7 +230,7 @@
                         {
                             <tr class="@(p.IsReverted ? "table-danger" : "")">
                                 <td>@p.Id</td>
-                                <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
                                 <td>@p.MovementType</td>
                                 <td>$@p.Amount.ToString("N0")</td>
                                 <td>

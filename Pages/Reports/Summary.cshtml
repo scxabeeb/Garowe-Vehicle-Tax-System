@@ -285,7 +285,7 @@
                                     <td>@p.MovementType</td>
                                     <td>@p.CollectorName</td>
                                     <td class="text-end">$@p.Amount.ToString("N0")</td>
-                                    <td>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                    <td>@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("dd MMM yyyy HH:mm")</td>
                                     <td>
                                         @if (p.IsReverted)
                                         {
