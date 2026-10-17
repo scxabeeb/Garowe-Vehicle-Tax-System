@@ -1,191 +1,202 @@
 @page
 @model VehicleTax.Web.Pages.Movements.IndexModel
+@using VehicleTax.Web.Security
 @{
     ViewData["Title"] = L["Tariff"];
-}
-
-<div class="module-page">
-
-    @if (TempData["Error"] != null)
+    bool can(string k) => Model.My.Contains(k);
+    var canEdit = can(AppPermissions.Keys.SettingsEdit);
+    var chips = new[]
     {
-        <div class="alert alert-warning alert-dismissible fade show">
-            @L[TempData["Error"]!.ToString()!]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    <!-- SUCCESS ALERT -->
+        ("all", L["All"].ToString(), Model.ActiveCount + Model.InactiveCount, "bi-list-ul"),
+        ("active", L["Active"].ToString(), Model.ActiveCount, "bi-check-circle"),
+        ("inactive", L["Inactive"].ToString(), Model.InactiveCount, "bi-pause-circle"),
+    };
+}
+<partial name="_ListStyles" />
+
+<div class="container py-4">
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Success"]
+        <div class="alert alert-success alert-dismissible fade show d-flex gap-2 align-items-center">
+            <i class="bi bi-check-circle-fill"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show d-flex gap-2 align-items-center">
+            <i class="bi bi-exclamation-triangle-fill"></i>@L[TempData["Error"]!.ToString()!]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <div class="module-header mb-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
-                <h3 class="fw-bold mb-1">@L["Tariff Types"]</h3>
-                <div class="sub">@L["Manage tariff definitions and linked car types."]</div>
-            </div>
-            <a asp-page="Create" class="btn btn-light module-action-btn">
-                <i class="bi bi-plus-circle"></i> @L["Add Tariff"]
-            </a>
+    <div class="ls-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-signpost-split me-2"></i>@L["Tariff Types"]<span class="count">@((Model.ActiveCount + Model.InactiveCount).ToString("N0"))</span></h3>
+            <div style="opacity:.85">@L["Manage tariff definitions and linked car types."]</div>
         </div>
+        @if (canEdit)
+        {
+            <a asp-page="Create" class="btn btn-light fw-semibold"><i class="bi bi-plus-circle me-1"></i>@L["Add Tariff"]</a>
+        }
     </div>
 
-    <!-- SEARCH + STATUS -->
-    <form method="get" class="card module-filter-card p-3 mb-3">
-        <div class="row g-2 align-items-center">
+    <form method="get" class="ls-card mb-3">
+        <div class="p-3 row g-2 align-items-end">
             <div class="col-md-4">
-                <input name="Search" value="@Model.Search" class="form-control" placeholder="@L["Search tariff, car type or account..."]" />
+                <label class="form-label small fw-semibold mb-1">@L["Search"]</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input name="Search" value="@Model.Search" class="form-control" placeholder="@L["Search tariff, car type or account..."]" />
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Car Type"]</label>
+                <select name="CarTypeId" class="form-select" onchange="this.form.submit()">
+                    <option value="">@L["All car types"]</option>
+                    @foreach (var c in Model.CarTypes)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CarTypeId ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Revenue Account"]</label>
+                <select name="AccountId" class="form-select" onchange="this.form.submit()">
+                    <option value="">@L["All accounts"]</option>
+                    @foreach (var a in Model.Accounts)
+                    {
+                        <option value="@a.Id" selected="@(a.Id == Model.AccountId ? "selected" : null)">@a.DisplayName</option>
+                    }
+                    <option value="-1" selected="@(Model.AccountId == -1 ? "selected" : null)">@L["No revenue account"]</option>
+                </select>
             </div>
             <input type="hidden" name="Status" value="@Model.Status" />
-            <input type="hidden" name="PageSize" value="@Model.PageSize" />
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100 module-action-btn"><i class="bi bi-search me-1"></i>@L["Search"]</button>
-            </div>
-            <div class="col-md-2">
-                <a class="btn btn-outline-secondary w-100 module-action-btn"
-                   asp-route-Search="@Model.Search" asp-route-Status="@Model.Status" asp-route-PageSize="@Model.PageSize"
-                   asp-route-Sort="@(Model.Sort == "asc" ? "desc" : "asc")">
-                    @L["Sort"] @(Model.Sort == "asc" ? "Z–A" : "A–Z")
-                </a>
-            </div>
-            <div class="col-md-4 d-flex gap-2 justify-content-md-end flex-wrap">
-                @foreach (var (key, label, n) in new[] { ("all", L["All"].ToString(), Model.ActiveCount + Model.InactiveCount), ("active", L["Active"].ToString(), Model.ActiveCount), ("inactive", L["Inactive"].ToString(), Model.InactiveCount) })
-                {
-                    <a class="btn btn-sm @(Model.Status == key ? "btn-primary" : "btn-outline-primary")"
-                       asp-route-Search="@Model.Search" asp-route-Sort="@Model.Sort" asp-route-PageSize="@Model.PageSize" asp-route-Status="@key">
-                        @label <span class="badge bg-light text-dark ms-1">@n</span>
-                    </a>
-                }
+            <input type="hidden" name="Sort" value="@Model.Sort" />
+            <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i>@L["Filter"]</button>
+                <a class="btn btn-outline-secondary" title="@L["Sort"]"
+                   asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-AccountId="@Model.AccountId"
+                   asp-route-Status="@Model.Status" asp-route-PageSize="@Model.Pager.PageSize"
+                   asp-route-Sort="@(Model.Sort == "asc" ? "desc" : "asc")"><i class="bi @(Model.Sort == "asc" ? "bi-sort-alpha-down" : "bi-sort-alpha-up")"></i></a>
+                <a class="btn btn-outline-secondary" asp-page="./Index" title="@L["Reset"]"><i class="bi bi-x-lg"></i></a>
             </div>
         </div>
     </form>
 
-    <!-- TABLE -->
-    <div class="card module-table-card border-0">
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        @foreach (var (key, label, n, icon) in chips)
+        {
+            <a class="ls-chip @(Model.Status == key ? "active" : "")" asp-route-Status="@key"
+               asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-AccountId="@Model.AccountId"
+               asp-route-Sort="@Model.Sort" asp-route-PageSize="@Model.Pager.PageSize">
+                <i class="bi @icon"></i>@label <span class="n">@n</span>
+            </a>
+        }
+    </div>
+
+    <div class="ls-card">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table ls-table mb-0">
+                <thead>
                     <tr>
-                        <th style="width:40px"><input type="checkbox" class="form-check-input" id="tfAll" form="tfBulk" /></th>
-                        <th style="width:60px">#</th>
+                        @if (canEdit) { <th style="width:40px"><input type="checkbox" class="form-check-input" id="tfAll" form="tfBulk" /></th> }
                         <th>@L["Tariff Name"]</th>
                         <th>@L["Car Type"]</th>
                         <th>@L["Revenue Account"]</th>
+                        <th class="text-end">@L["Tax Amount"]</th>
                         <th>@L["Status"]</th>
-                        <th class="text-center" style="width:180px">
-                            @L["Actions"]
-                        </th>
+                        <th class="text-end">@L["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
-                @if (Model.Movements.Any())
-                {
-                    int i = Model.Pager.From;
-
-                    foreach (var item in Model.Movements)
+                    @foreach (var item in Model.Movements)
                     {
-                        <tr class="@(item.IsActive ? "" : "table-secondary text-muted")">
-                            <td><input type="checkbox" class="form-check-input tf-pick" name="ids" value="@item.Id" form="tfBulk" /></td>
-                            <td>@i</td>
-                            <td class="fw-semibold">@item.Name</td>
+                        <tr class="@(item.IsActive ? "" : "text-muted")" style="@(item.IsActive ? "" : "background:#fafafa")">
+                            @if (canEdit) { <td><input type="checkbox" class="form-check-input tf-pick" name="ids" value="@item.Id" form="tfBulk" /></td> }
                             <td>
-                                @if (item.CarType != null)
-                                {
-                                    <span class="badge bg-info text-dark">
-                                        @item.CarType.Name
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">@L["No Car Type"]</span>
-                                }
+                                <div class="fw-bold">@item.Name</div>
+                                <div class="small text-muted">System ID @item.Id</div>
                             </td>
+                            <td><span class="ls-pill" style="background:#ecfeff;color:#0e7490">@(item.CarType?.Name ?? L["No Car Type"])</span></td>
                             <td>
                                 @if (item.RevenueAccount != null)
                                 {
-                                    <span class="badge bg-primary">
-                                        @item.RevenueAccount.AccountCode - @item.RevenueAccount.AccountName
-                                    </span>
+                                    <span class="ls-pill" style="background:#eef4ff;color:#0b57d0">@item.RevenueAccount.DisplayName</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">@L["Not assigned"]</span>
+                                    <span class="ls-pill" style="background:#fef3c7;color:#92400e"><i class="bi bi-exclamation-triangle"></i>@L["Not assigned"]</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (Model.Amounts.TryGetValue(item.Id, out var amt))
+                                {
+                                    <span class="fw-bold">$@amt.ToString("N2")</span>
+                                }
+                                else
+                                {
+                                    <span class="ls-pill" style="background:#fee2e2;color:#b91c1c">@L["no amount"]</span>
                                 }
                             </td>
                             <td>
                                 @if (item.IsActive)
                                 {
-                                    <span class="badge bg-success">@L["Active"]</span>
+                                    <span class="ls-pill" style="background:#dcfce7;color:#15803d"><i class="bi bi-circle-fill" style="font-size:7px"></i>@L["Active"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">@L["Inactive"]</span>
+                                    <span class="ls-pill" style="background:#f1f5f9;color:#64748b"><i class="bi bi-circle-fill" style="font-size:7px"></i>@L["Inactive"]</span>
                                 }
                             </td>
-                            <td class="text-center text-nowrap">
-                                <button type="submit" form="tfOne" name="ids" value="@item.Id"
-                                        class="btn btn-sm @(item.IsActive ? "btn-outline-secondary" : "btn-outline-success") me-1 module-action-btn"
-                                        formaction="@Url.Page("Index", "SetActive", new { active = !item.IsActive, Model.Search, Model.Sort, Model.Status, Model.PageSize, Model.CurrentPage })">
-                                    @(item.IsActive ? L["Deactivate"] : L["Activate"])
-                                </button>
-                                <a asp-page="Edit"
-                                   asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-warning me-1 module-action-btn">
-                                    @L["Edit"]
-                                </a>
-                                <a asp-page="Delete"
-                                   asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-danger module-action-btn">
-                                    @L["Delete"]
-                                </a>
+                            <td class="text-end text-nowrap">
+                                @if (canEdit)
+                                {
+                                    <button type="submit" form="tfOne" name="ids" value="@item.Id" class="ls-act" title="@(item.IsActive ? L["Deactivate"] : L["Activate"])"
+                                            formaction="@Url.Page("Index", "SetActive", new { active = !item.IsActive, Model.Search, Model.CarTypeId, Model.AccountId, Model.Sort, Model.Status, PageSize = Model.Pager.PageSize, Model.CurrentPage })">
+                                        <i class="bi @(item.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                    </button>
+                                    <a class="ls-act" title="@L["Edit"]" asp-page="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="ls-act danger" title="@L["Delete"]" asp-page="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                }
                             </td>
                         </tr>
-                        i++;
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            @L["No tariffs found"]
-                        </td>
-                    </tr>
-                }
+                    @if (!Model.Movements.Any())
+                    {
+                        <tr><td colspan="7" class="ls-empty"><i class="bi bi-signpost-split"></i>@L["No tariffs found"]</td></tr>
+                    }
                 </tbody>
             </table>
         </div>
+        @if (canEdit)
+        {
+            <form method="post" id="tfOne"></form>
+            <form method="post" id="tfBulk" asp-page-handler="SetActive"
+                  asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-AccountId="@Model.AccountId"
+                  asp-route-Sort="@Model.Sort" asp-route-Status="@Model.Status" asp-route-PageSize="@Model.Pager.PageSize" asp-route-CurrentPage="@Model.CurrentPage"
+                  class="d-flex flex-wrap align-items-center gap-2 px-3 py-2 border-top" style="background:#f8fafc">
+                <span class="small text-muted"><span id="tfCount">0</span> @L["selected"]</span>
+                <button class="btn btn-sm btn-outline-success" name="active" value="true" disabled data-bulk><i class="bi bi-play-circle me-1"></i>@L["Activate"]</button>
+                <button class="btn btn-sm btn-outline-secondary" name="active" value="false" disabled data-bulk><i class="bi bi-pause-circle me-1"></i>@L["Deactivate"]</button>
+            </form>
+        }
+        <partial name="_Pager" model="Model.Pager" />
     </div>
-
-    <!-- BULK + PAGER -->
-    <form method="post" id="tfOne"></form>
-    <form method="post" id="tfBulk" asp-page-handler="SetActive"
-          asp-route-Search="@Model.Search" asp-route-Sort="@Model.Sort" asp-route-Status="@Model.Status"
-          asp-route-PageSize="@Model.PageSize" asp-route-CurrentPage="@Model.CurrentPage"
-          class="card border-0 mt-2">
-        <div class="d-flex flex-wrap align-items-center gap-2 p-2">
-            <span class="small text-muted"><span id="tfCount">0</span> @L["selected"]</span>
-            <button class="btn btn-sm btn-outline-success" name="active" value="true" disabled data-bulk><i class="bi bi-play-circle me-1"></i>@L["Activate"]</button>
-            <button class="btn btn-sm btn-outline-secondary" name="active" value="false" disabled data-bulk><i class="bi bi-pause-circle me-1"></i>@L["Deactivate"]</button>
-        </div>
-    </form>
-    <div class="card border-0 mt-2"><partial name="_Pager" model="Model.Pager" /></div>
-
 </div>
 
 <script>
     (function () {
         var picks = document.querySelectorAll('.tf-pick'), all = document.getElementById('tfAll');
+        if (!all) return;
         function update() {
             var n = [].filter.call(picks, function (c) { return c.checked; }).length;
             document.getElementById('tfCount').textContent = n;
             document.querySelectorAll('[data-bulk]').forEach(function (b) { b.disabled = n === 0; });
-            if (all) all.checked = n > 0 && n === picks.length;
+            all.checked = n > 0 && n === picks.length;
         }
         picks.forEach(function (c) { c.addEventListener('change', update); });
-        if (all) all.addEventListener('change', function () { picks.forEach(function (c) { c.checked = all.checked; }); update(); });
+        all.addEventListener('change', function () { picks.forEach(function (c) { c.checked = all.checked; }); update(); });
     })();
 </script>

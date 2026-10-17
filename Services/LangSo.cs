@@ -941,5 +941,16 @@ public static class LangSo
         ["Register it now, then continue to payment."] = "Hadda diiwaangeli, kadibna u gudub lacag-bixinta.",
         ["No tariff has an amount for this car type yet. Add one in Data & Setup → Tax Amounts."] = "Ma jiro tariff qaddar u leh nooca gaarigan. Ku dar Xogta & Habaynta → Qaddarrada Canshuurta.",
         ["Paid by (sender)"] = "Waxaa bixiyay (diraha)",
+        // Vehicle / tariff lists
+        ["Paid today"] = "La bixiyay maanta",
+        ["Not paid today"] = "Aan la bixin maanta",
+        ["Never paid"] = "Weligeed lama bixin",
+        ["Never"] = "Weligeed",
+        ["Plate, owner or mobile"] = "Taarikada, milkiilaha ama taleefanka",
+        ["All car types"] = "Dhammaan noocyada gaadiidka",
+        ["Plate A–Z"] = "Taarikada A–Z",
+        ["Newest first"] = "Kuwa ugu dambeeyay",
+        ["Owner A–Z"] = "Milkiilaha A–Z",
+        ["No vehicles found."] = "Gaari lama helin.",
     };
 }
