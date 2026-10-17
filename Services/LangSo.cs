@@ -978,5 +978,6 @@ public static class LangSo
         ["System"] = "Nidaamka",
         ["Unknown (mobile app)"] = "Lama yaqaan (barnaamijka taleefanka)",
         ["Golis (customer paid)"] = "Golis (macmiilku bixiyay)",
+        ["View all"] = "Eeg dhammaan",
     };
 }

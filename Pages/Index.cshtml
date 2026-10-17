@@ -273,7 +273,9 @@
     <div class="card-body">
 
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="fw-bold mb-0">@L["Recent Payments"]</h6>
+            <h6 class="fw-bold mb-0">@L["Recent Payments"]
+                <a class="small fw-semibold ms-2" asp-page="/Payments/Index">@L["View all"] <i class="bi bi-arrow-right"></i></a>
+            </h6>
 
             <!-- Search -->
             <input type="text"
@@ -300,11 +302,17 @@
                 @foreach (var p in Model.RecentPayments)
                 {
                     <tr>
-                        <td>@p.PaidAt.ToString("yyyy-MM-dd")</td>
+                        <td class="text-nowrap">@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm")</td>
                         <td>@p.Vehicle?.PlateNumber</td>
                         <td>@p.Vehicle?.Mobile</td>
                         <td>@p.MovementType</td>
-                        <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
+                        <td>
+                            @(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
+                            @if (!string.IsNullOrEmpty(p.TransactionId))
+                            {
+                                <span class="badge bg-warning-subtle text-warning-emphasis ms-1" title="@L["Golis (customer paid)"]">Golis</span>
+                            }
+                        </td>
                         <td>@(p.Checkpoint?.Name ?? "Unassigned")</td>
                         <td class="text-end fw-bold">$@p.Amount.ToString("N0")</td>
                     </tr>
