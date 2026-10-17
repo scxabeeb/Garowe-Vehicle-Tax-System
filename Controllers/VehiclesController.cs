@@ -65,6 +65,17 @@ public class VehiclesController : ControllerBase
         if (vehicle == null)
             return NotFound(new { message = "Vehicle not found" });
 
+        // Everything the payment screen needs in one call: the tariffs that
+        // can be collected for this car type (with amounts) and whether the
+        // plate was already paid today.
+        var tariffs = await MovementsController.WithAmountsAsync(_context, vehicle.CarTypeId);
+        var (dayStart, dayEnd) = AppTime.GetUtcDayRange(AppTime.Today);
+        var paidToday = await _context.Payments.AsNoTracking()
+            .Where(p => p.VehicleId == vehicle.Id && p.IsPaid && !p.IsReverted && p.PaidAt >= dayStart && p.PaidAt < dayEnd)
+            .OrderByDescending(p => p.PaidAt)
+            .Select(p => (DateTime?)p.PaidAt)
+            .FirstOrDefaultAsync();
+
         // Latest collected (paid, not reverted) payment so the plate checker
         // can show paid / not-paid status.
         var lastPayment = await _context.Payments
@@ -94,7 +105,10 @@ public class VehiclesController : ControllerBase
             amount = lastPayment?.Amount,
             movement = lastPayment?.Movement?.Name ?? lastPayment?.MovementType,
             invoiceNumber = lastPayment?.InvoiceNumber,
-            golisBillNo = lastPayment?.TransactionId
+            golisBillNo = lastPayment?.TransactionId,
+            paidToday = paidToday != null,
+            paidTodayAt = paidToday == null ? (DateTime?)null : DateTime.SpecifyKind(paidToday.Value, DateTimeKind.Utc),
+            tariffs
         });
     }
 

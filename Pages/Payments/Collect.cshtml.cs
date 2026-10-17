@@ -42,6 +42,19 @@ public class CollectModel : PageModel
     /// <summary>This vehicle's paid (not cancelled) payment today (EAT), if any.</summary>
     public Payment? PaidToday { get; set; }
 
+    /// <summary>A tariff that can be collected for the vehicle's car type, with its amount.</summary>
+    public record TariffOption(int Id, string Name, decimal Amount);
+    public List<TariffOption> Tariffs { get; set; } = new();
+
+    /// <summary>A plate was searched and no vehicle has it: offer to register it.</summary>
+    public bool NotFound { get; set; }
+    public List<CarType> CarTypes { get; set; } = new();
+
+    // Register a vehicle that was not found
+    [BindProperty] public string? OwnerName { get; set; }
+    [BindProperty] public string? Mobile { get; set; }
+    [BindProperty] public int? CarTypeId { get; set; }
+
     // =======================
     // GET
     // =======================
@@ -80,6 +93,47 @@ public class CollectModel : PageModel
         LoadVehicle();
         LoadMovements();
         LoadCheckpoints();
+        LoadNotFound();
+    }
+
+    /// <summary>Register the searched plate, then continue to payment.</summary>
+    public void OnPostRegisterVehicle()
+    {
+        var plate = (PlateNumber ?? "").Trim().ToUpper();
+        var mobile = VehicleTax.Web.Services.SomaliPhone.Normalize(Mobile);
+        ErrorMessage =
+            plate.Length == 0 ? "Enter the plate number." :
+            string.IsNullOrWhiteSpace(OwnerName) ? "Enter the owner name." :
+            mobile == null ? VehicleTax.Web.Services.SomaliPhone.Error :
+            CarTypeId == null || !_context.CarTypes.Any(c => c.Id == CarTypeId) ? "Choose the car type." :
+            _context.Vehicles.Any(v => v.PlateNumber.ToUpper() == plate) ? "This plate is already registered." :
+            null;
+
+        if (ErrorMessage == null)
+        {
+            _context.Vehicles.Add(new Vehicle
+            {
+                PlateNumber = plate,
+                OwnerName = OwnerName!.Trim(),
+                Mobile = mobile!,
+                CarTypeId = CarTypeId!.Value,
+            });
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = $"Vehicle {plate} registered. Choose the tariff to collect.";
+        }
+
+        PlateNumber = plate;
+        LoadVehicle();
+        LoadMovements();
+        LoadCheckpoints();
+        LoadNotFound();
+    }
+
+    private void LoadNotFound()
+    {
+        NotFound = Vehicle == null && !string.IsNullOrWhiteSpace(PlateNumber);
+        if (NotFound)
+            CarTypes = _context.CarTypes.AsNoTracking().OrderBy(c => c.Name).ToList();
     }
 
     // =======================
@@ -347,19 +401,16 @@ public class CollectModel : PageModel
             return;
         }
 
-        var movementIds = _context.TaxAmounts
-            .Where(t => t.CarTypeId == Vehicle.CarTypeId)
-            .Select(t => t.MovementId)
-            .Distinct()
+        // One query: active tariffs that have an amount for this car type.
+        Tariffs = _context.TaxAmounts.AsNoTracking()
+            .Where(t => t.CarTypeId == Vehicle.CarTypeId && t.Movement != null && t.Movement.IsActive)
+            .OrderBy(t => t.Movement!.Name)
+            .Select(t => new TariffOption(t.MovementId, t.Movement!.Name, t.Amount))
+            .ToList()
+            .GroupBy(t => t.Id).Select(g => g.First())
             .ToList();
 
-        Movements = new SelectList(
-            _context.Movements
-                .Where(m => movementIds.Contains(m.Id) && m.IsActive)
-                .OrderBy(m => m.Name),
-            "Id",
-            "Name"
-        );
+        Movements = new SelectList(Tariffs, "Id", "Name");
     }
 
     private void LoadCheckpoints()

@@ -29,36 +29,89 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
 
-            <form method="post">
+            <form method="post" id="collectForm">
 
-                <!-- Plate Number -->
-                <div class="mb-3 col-md-6">
-                    <label class="form-label fw-semibold">@L["Plate Number"]</label>
-                    <input asp-for="PlateNumber" class="form-control" placeholder="e.g. GAR-1234" />
-                </div>
-
-                <!-- Search + Reset Buttons -->
-                <div class="mb-4">
-                    <button asp-page-handler="Search"
-                            type="submit"
-                            formnovalidate
-                            class="btn btn-outline-primary">
-                        <i class="bi bi-search"></i> @L["Search Vehicle"]
+                <!-- Search -->
+                <label class="form-label fw-semibold" for="PlateNumber">@L["Plate Number"]</label>
+                <div class="input-group input-group-lg mb-3">
+                    <span class="input-group-text"><i class="bi bi-car-front"></i></span>
+                    <input asp-for="PlateNumber" class="form-control fw-bold text-uppercase" placeholder="e.g. GAR-1234" autocomplete="off" autofocus />
+                    <button asp-page-handler="Search" type="submit" formnovalidate class="btn btn-primary px-4">
+                        <i class="bi bi-search me-1"></i>@L["Search"]
                     </button>
-
-                    <button asp-page-handler="Reset"
-                            type="submit"
-                            formnovalidate
-                            class="btn btn-outline-secondary ms-2">
-                        <i class="bi bi-arrow-repeat"></i> @L["Reset"]
+                    <button asp-page-handler="Reset" type="submit" formnovalidate class="btn btn-outline-secondary" title="@L["Reset"]">
+                        <i class="bi bi-arrow-repeat"></i>
                     </button>
                 </div>
+
+                @if (Model.NotFound)
+                {
+                    <!-- Not found: register here -->
+                    <div class="border rounded-4 p-3 mb-3" style="background:#fffbeb;border-color:#fcd34d!important">
+                        <div class="fw-bold mb-1"><i class="bi bi-exclamation-circle text-warning me-1"></i>@L["Vehicle not found"] — @Model.PlateNumber.ToUpper()</div>
+                        <div class="small text-muted mb-3">@L["Register it now, then continue to payment."]</div>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold mb-1">@L["Owner Name"]</label>
+                                <input name="OwnerName" value="@Model.OwnerName" class="form-control" placeholder="@L["Owner full name"]" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold mb-1">@L["Mobile Number"]</label>
+                                <div class="input-group">
+                                    <span class="input-group-text fw-semibold">+252</span>
+                                    <input name="Mobile" value="@VehicleTax.Web.Services.SomaliPhone.Local(Model.Mobile)" class="form-control"
+                                           inputmode="numeric" maxlength="9" placeholder="61xxxxxxx"
+                                           oninput="this.value=this.value.replace(/\D/g,'').slice(0,9)" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold mb-1">@L["Car Type"]</label>
+                                <select name="CarTypeId" class="form-select">
+                                    <option value="">@L["Select Car Type"]</option>
+                                    @foreach (var c in Model.CarTypes)
+                                    {
+                                        <option value="@c.Id" selected="@(c.Id == Model.CarTypeId ? "selected" : null)">@c.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <button asp-page-handler="RegisterVehicle" type="submit" formnovalidate class="btn btn-warning fw-semibold">
+                                <i class="bi bi-plus-circle me-1"></i>@L["Register Vehicle"]
+                            </button>
+                        </div>
+                    </div>
+                }
 
                 @if (Model.Vehicle != null)
                 {
-                    <div class="alert alert-secondary">
-                        <strong>@L["Owner:"]</strong> @Model.Vehicle.OwnerName |
-                        <strong>@L["Car Type:"]</strong> @Model.Vehicle.CarType?.Name
+                    var v = Model.Vehicle;
+                    <!-- Vehicle -->
+                    <div class="border rounded-4 p-3 mb-3 d-flex flex-wrap gap-3 align-items-center" style="background:#f8fafc">
+                        <div class="px-3 py-2 rounded-3 fw-bold fs-4" style="background:#0b57d0;color:#fff;letter-spacing:.05em">@v.PlateNumber</div>
+                        <div class="row g-2 flex-grow-1 small">
+                            <div class="col-6 col-md-4">
+                                <div class="text-muted">@L["Owner"]</div>
+                                <div class="fw-semibold fs-6">@v.OwnerName</div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="text-muted">@L["Mobile"]</div>
+                                <div class="fw-semibold fs-6">
+                                    @if (string.IsNullOrWhiteSpace(v.Mobile))
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                    else
+                                    {
+                                        <a href="tel:@v.Mobile" class="text-decoration-none"><i class="bi bi-telephone me-1"></i>@v.Mobile</a>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="text-muted">@L["Car Type"]</div>
+                                <div class="fw-semibold fs-6"><span class="badge bg-info text-dark">@(v.CarType?.Name ?? "—")</span></div>
+                            </div>
+                        </div>
                     </div>
 
                     @if (Model.PaidToday != null)
@@ -74,63 +127,58 @@
                         </div>
                     }
 
-                    <div class="row g-3">
-
-                        <!-- Movement -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">@L["Tariff"]</label>
-                            <select asp-for="MovementId"
-                                    asp-items="Model.Movements"
-                                    class="form-select"
-                                    onchange="document.getElementById('calcBtn').click()"
-                                    required>
-                                <option value="">-- @L["Select Tariff"] --</option>
-                            </select>
-                        </div>
-
-                        <!-- Quantity -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">@L["Quantity"]</label>
-                            <input asp-for="Quantity"
-                                   type="number"
-                                   min="1"
-                                   class="form-control"
-                                   onchange="document.getElementById('calcBtn').click()" />
-                        </div>
-
-                    </div>
-
-                    <button asp-page-handler="Calculate"
-                            type="submit"
-                            id="calcBtn"
-                            hidden></button>
-
-                    @if (Model.UnitAmount > 0)
+                    @if (!Model.Tariffs.Any())
                     {
-                        <div class="alert alert-info mt-4">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <strong>@L["Unit:"]</strong> $@Model.UnitAmount.ToString("N0")
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>@L["Qty:"]</strong> @Model.Quantity
-                                </div>
-                                <div class="col-md-4 text-end fw-bold">
-                                    @L["Total: $"]@Model.Amount.ToString("N0")
-                                </div>
+                        <div class="alert alert-secondary">@L["No tariff has an amount for this car type yet. Add one in Data & Setup → Tax Amounts."]</div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">@L["Tariff"]</label>
+                                <select name="MovementId" id="tariffSelect" class="form-select form-select-lg" required>
+                                    <option value="">@L["Select Tariff"]</option>
+                                    @foreach (var t in Model.Tariffs)
+                                    {
+                                        <option value="@t.Id" data-amount="@t.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                selected="@(t.Id == Model.MovementId ? "selected" : null)">@t.Name — $@t.Amount.ToString("N2")</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">@L["Quantity"]</label>
+                                <input asp-for="Quantity" id="qtyInput" type="number" min="1" class="form-control form-control-lg" />
                             </div>
                         </div>
 
-                        <div class="text-end">
-                            <button asp-page-handler="GenerateInvoice"
-                                    type="submit"
-                                    class="btn btn-success btn-lg"
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 p-3 rounded-4" style="background:#eef4ff">
+                            <div>
+                                <div class="small text-muted">@L["Total"]</div>
+                                <div class="fw-bold" style="font-size:2rem;color:#0b57d0" id="totalBox">$0.00</div>
+                                <div class="small text-muted" id="unitBox"></div>
+                            </div>
+                            <button asp-page-handler="GenerateInvoice" type="submit" id="generateBtn" disabled
+                                    class="btn btn-success btn-lg px-4"
                                     onclick="@(Model.PaidToday != null
                                         ? "return confirm('" + System.Web.HttpUtility.JavaScriptStringEncode(L["This vehicle was already paid today. Generate another invoice anyway?"]) + "');"
                                         : null)">
-                                <i class="bi bi-receipt"></i> @L["Generate Invoice"]
+                                <i class="bi bi-receipt me-1"></i>@L["Generate Invoice"]
                             </button>
                         </div>
+                        <script>
+                            (function () {
+                                var sel = document.getElementById('tariffSelect'), qty = document.getElementById('qtyInput');
+                                function money(n) { return '$' + n.toFixed(2); }
+                                function update() {
+                                    var o = sel.options[sel.selectedIndex], unit = parseFloat(o && o.dataset.amount) || 0;
+                                    var q = Math.max(1, parseInt(qty.value, 10) || 1);
+                                    document.getElementById('totalBox').textContent = money(unit * q);
+                                    document.getElementById('unitBox').textContent = unit ? money(unit) + ' × ' + q : '';
+                                    document.getElementById('generateBtn').disabled = !unit;
+                                }
+                                sel.addEventListener('change', update); qty.addEventListener('input', update); update();
+                            })();
+                        </script>
                     }
                 }
 

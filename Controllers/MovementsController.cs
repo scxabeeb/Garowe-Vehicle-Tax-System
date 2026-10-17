@@ -45,6 +45,24 @@ namespace VehicleTax.Web.Controllers
         }
 
         // ======================================
+        // GET: api/movements/with-amounts/{carTypeId}
+        // Active tariffs that can be collected for this car type, with their
+        // tax amount, in one call (the app used one call per tariff).
+        // ======================================
+        [HttpGet("with-amounts/{carTypeId}")]
+        public async Task<IActionResult> GetWithAmounts(int carTypeId) =>
+            Ok(new { status = "success", items = await WithAmountsAsync(_context, carTypeId) });
+
+        public static async Task<List<object>> WithAmountsAsync(AppDbContext context, int carTypeId) =>
+            (await context.TaxAmounts.AsNoTracking()
+                .Where(t => t.CarTypeId == carTypeId && t.Movement != null && t.Movement.IsActive)
+                .OrderBy(t => t.Movement!.Name)
+                .Select(t => new { id = t.MovementId, name = t.Movement!.Name, carTypeId, taxAmount = t.Amount })
+                .ToListAsync())
+            .GroupBy(t => t.id).Select(g => (object)g.First())
+            .ToList();
+
+        // ======================================
         // GET: api/movements/by-car-type/{carTypeId}
         // Backend filtering (optional but powerful)
         // ======================================

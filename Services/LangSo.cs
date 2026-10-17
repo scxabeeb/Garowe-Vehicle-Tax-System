@@ -937,5 +937,8 @@ public static class LangSo
         ["Tax Amount"] = "Qaddarka Canshuurta",
         ["7 to 9 digits, numbers only"] = "7 ilaa 9 god, tirooyin kaliya",
         ["Mobile number must be 7 to 9 digits after +252 (numbers only)."] = "Lambarka taleefanku waa inuu ahaadaa 7 ilaa 9 god ka dib +252 (tirooyin kaliya).",
+        ["Vehicle not found"] = "Gaariga lama helin",
+        ["Register it now, then continue to payment."] = "Hadda diiwaangeli, kadibna u gudub lacag-bixinta.",
+        ["No tariff has an amount for this car type yet. Add one in Data & Setup → Tax Amounts."] = "Ma jiro tariff qaddar u leh nooca gaarigan. Ku dar Xogta & Habaynta → Qaddarrada Canshuurta.",
     };
 }
