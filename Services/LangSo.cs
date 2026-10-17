@@ -927,5 +927,13 @@ public static class LangSo
         ["Pay with Golis — dial this short code:"] = "Ku bixi Golis — garaac koodhkan gaaban:",
         ["Dial"] = "Garaac",
         ["Short Code:"] = "Koodh gaaban:",
+        // Tariff types report
+        ["Counts by account, car type and status"] = "Tirada xisaab, nooc gaari iyo xaalad ahaan",
+        ["Every tariff with its car type, revenue account, tax amount and status."] = "Tariff kasta iyo nooca gaariga, xisaabta dakhliga, qaddarka canshuurta iyo xaaladdiisa.",
+        ["No tax amount"] = "Qaddar canshuur ma leh",
+        ["Tariff Types Report"] = "Warbixinta Noocyada Tariff-ka",
+        ["Tariff names"] = "Magacyada tariff-ka",
+        ["Tariff rows"] = "Safafka tariff-ka",
+        ["Tax Amount"] = "Qaddarka Canshuurta",
     };
 }

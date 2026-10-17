@@ -1,93 +1,162 @@
 @page
 @model VehicleTax.Web.Pages.Reports.MovementsModel
 @{
-    ViewData["Title"] = L["Tariff Report"];
+    ViewData["Title"] = L["Tariff Types Report"];
+    ViewData["DetailCount"] = Model.TotalRecords;
+    ViewData["SummaryHint"] = L["Counts by account, car type and status"];
 }
+<style>
+    .tt-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
+    .tt-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
+    .tt-kpi { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 14px; height: 100%; }
+    .tt-kpi .v { font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
+    .tt-kpi .l { font-size: 12px; color: #64748b; font-weight: 600; }
+    .tt-table thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; background: #f8fafc; white-space: nowrap; }
+    .tt-table td { vertical-align: middle; }
+    @@media print { .tt-noprint { display: none !important; } }
+</style>
 
-<h3 class="fw-bold mb-4">@L["Tariff Report"]</h3>
-
-<form method="get" class="card p-3 shadow-sm mb-4">
-    <div class="row g-3">
-
-        <div class="col-md-3">
-            <label class="form-label">@L["Tariff Name"]</label>
-            <input asp-for="MovementName" class="form-control" />
+<div class="container py-4">
+    <div class="tt-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-signpost-split me-2"></i>@L["Tariff Types Report"]</h3>
+            <div style="opacity:.85">@L["Every tariff with its car type, revenue account, tax amount and status."]</div>
         </div>
-
-        <div class="col-md-3">
-            <label class="form-label">@L["Car Type"]</label>
-            <select asp-for="CarTypeId" asp-items="Model.CarTypes" class="form-select">
-                <option value="">@L["All"]</option>
-            </select>
-        </div>
-
-        <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
-
-        <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-primary w-100">@L["Filter"]</button>
-        </div>
-
-        <div class="col-md-2 d-flex align-items-end">
-            <a asp-page-handler="ExportCsv"
-               asp-route-movementName="@Model.MovementName"
-               asp-route-carTypeId="@Model.CarTypeId"
-               class="btn btn-success w-100">
-                CSV
+        <div class="d-flex gap-2 tt-noprint">
+            <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="bi bi-printer"></i></button>
+            <a class="btn btn-light fw-semibold" asp-page-handler="ExportCsv"
+               asp-route-MovementName="@Model.MovementName" asp-route-CarTypeId="@Model.CarTypeId"
+               asp-route-AccountId="@Model.AccountId" asp-route-Status="@Model.Status">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>@L["Export CSV"]
             </a>
         </div>
-
     </div>
-</form>
 
-@{ ViewData["DetailCount"] = Model.TotalRecords; }
-<partial name="_ReportViewToggle" />
-
-<div data-report-view="summary">
-<div class="row mb-3">
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h6>@L["Total Tariffs"]</h6>
-                <h4>@Model.TotalRecords</h4>
+    <form method="get" class="tt-card mb-3 tt-noprint">
+        <div class="p-3 row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Tariff Name"]</label>
+                <input name="MovementName" value="@Model.MovementName" class="form-control" placeholder="@L["Search tariff..."]" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Car Type"]</label>
+                <select name="CarTypeId" class="form-select">
+                    <option value="">@L["All"]</option>
+                    @foreach (var c in Model.CarTypes)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CarTypeId ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Revenue Account"]</label>
+                <select name="AccountId" class="form-select">
+                    <option value="">@L["All accounts"]</option>
+                    @foreach (var a in Model.Accounts)
+                    {
+                        <option value="@a.Id" selected="@(a.Id == Model.AccountId ? "selected" : null)">@a.DisplayName</option>
+                    }
+                    <option value="-1" selected="@(Model.AccountId == -1 ? "selected" : null)">@L["No revenue account"]</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["Status"]</label>
+                <select name="Status" class="form-select">
+                    <option value="all" selected="@(Model.Status == "all" ? "selected" : null)">@L["All"]</option>
+                    <option value="active" selected="@(Model.Status == "active" ? "selected" : null)">@L["Active"]</option>
+                    <option value="inactive" selected="@(Model.Status == "inactive" ? "selected" : null)">@L["Inactive"]</option>
+                </select>
+            </div>
+            <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
+            <div class="col-md-2 d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i>@L["Filter"]</button>
+                <a class="btn btn-outline-secondary" asp-page="/Reports/Movements" title="@L["Reset"]"><i class="bi bi-x-lg"></i></a>
             </div>
         </div>
-    </div>
-</div>
+    </form>
 
-<partial name="_CountGroups" model="Model.SummaryGroups" />
-</div>
+    <partial name="_ReportViewToggle" />
 
-<div data-report-view="details">
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>@L["System ID"]</th>
-            <th>@L["Tariff"]</th>
-            <th>@L["Car Type"]</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (!Model.Movements.Any())
-        {
-            <tr>
-                <td colspan="3" class="text-center text-muted">
-                    @L["No tariff records found."]
-                </td>
-            </tr>
-        }
-        else
-        {
-            foreach (var m in Model.Movements)
+    <div data-report-view="summary">
+        <div class="row g-3 mb-3">
+            @foreach (var k in new[] {
+                (L["Tariff rows"].ToString(), Model.TotalRecords, "#0b57d0"),
+                (L["Tariff names"].ToString(), Model.TariffNames, "#7c3aed"),
+                (L["Active"].ToString(), Model.ActiveCount, "#15803d"),
+                (L["Inactive"].ToString(), Model.TotalRecords - Model.ActiveCount, "#64748b"),
+                (L["No revenue account"].ToString(), Model.NoAccountCount, "#b45309"),
+                (L["No tax amount"].ToString(), Model.NoAmountCount, "#b91c1c") })
             {
-                <tr>
-                    <td class="fw-semibold">@m.Id</td>
-                    <td>@m.Name</td>
-                    <td>@m.CarType?.Name</td>
-                </tr>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="tt-kpi"><div class="v" style="color:@k.Item3">@k.Item2</div><div class="l">@k.Item1</div></div>
+                </div>
             }
-        }
-    </tbody>
-</table>
+        </div>
+        <partial name="_CountGroups" model="Model.SummaryGroups" />
+    </div>
 
-<partial name="_Pager" model="Model.Pager" />
+    <div data-report-view="details">
+        <div class="tt-card">
+            <div class="table-responsive">
+                <table class="table tt-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>@L["System ID"]</th>
+                            <th>@L["Tariff"]</th>
+                            <th>@L["Car Type"]</th>
+                            <th>@L["Revenue Account"]</th>
+                            <th class="text-end">@L["Tax Amount"]</th>
+                            <th>@L["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            var m = r.Tariff;
+                            <tr class="@(m.IsActive ? "" : "text-muted")">
+                                <td class="fw-semibold">@m.Id</td>
+                                <td class="fw-semibold">@m.Name</td>
+                                <td>@(m.CarType?.Name ?? "—")</td>
+                                <td>
+                                    @if (m.RevenueAccount != null)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary">@m.RevenueAccount.DisplayName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">@L["No revenue account"]</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (r.Amount.HasValue)
+                                    {
+                                        <span class="fw-semibold">$@r.Amount.Value.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger">@L["no amount"]</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (m.IsActive)
+                                    {
+                                        <span class="badge bg-success">@L["Active"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@L["Inactive"]</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Rows.Any())
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">@L["No tariff records found."]</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <partial name="_Pager" model="Model.Pager" />
+        </div>
+    </div>
 </div>
