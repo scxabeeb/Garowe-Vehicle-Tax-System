@@ -25,10 +25,20 @@ public class CreateModel : PageModel
     // Read-only Revenue Account info for the selected movement (set on POST validation)
     public string? RevenueAccountDisplay { get; set; }
 
-    public void OnGet()
+    /// <summary>Opened from "Add amount" on Missing amounts: car type and tariff come pre-selected.</summary>
+    public void OnGet(int? carTypeId = null, int? movementId = null)
     {
         LoadCarTypes();
-        Movements = new SelectList(Enumerable.Empty<SelectListItem>());
+        if (carTypeId.HasValue)
+        {
+            Tax.CarTypeId = carTypeId.Value;
+            if (movementId.HasValue) Tax.MovementId = movementId.Value;
+            LoadMovements(carTypeId.Value);
+        }
+        else
+        {
+            Movements = new SelectList(Enumerable.Empty<SelectListItem>());
+        }
     }
 
     public IActionResult OnPost()

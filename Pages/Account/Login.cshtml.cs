@@ -38,6 +38,13 @@ public class LoginModel : PageModel
 
     public string? ErrorMessage { get; set; }
 
+    public void OnGet(string? expired = null)
+    {
+        // Sent here by ExpiredFormFilter when an old login page was submitted.
+        if (!string.IsNullOrEmpty(expired))
+            ErrorMessage = "Your session expired. Please sign in again.";
+    }
+
     public async Task<IActionResult> OnPostAsync()
     {
         Username = (Username ?? string.Empty).Trim();

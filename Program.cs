@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using VehicleTax.Web.Data;
@@ -36,6 +37,14 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 builder.Services.AddScoped<VehicleTax.Web.Services.IActivityLogger, VehicleTax.Web.Services.ActivityLogger>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+// =========================
+// 🔑 Keys for login cookies and form tokens, stored in the database so a
+// restart or deploy does not sign everyone out or break open forms.
+// =========================
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<AppDbContext>()
+    .SetApplicationName("GaroweVehicleTax");
 
 // =========================
 // 🔐 Authentication (COOKIE BASED)
@@ -87,7 +96,11 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
 })
 // Every page checks the user's live permissions (Security/PagePermissionFilter).
-.AddMvcOptions(o => o.Filters.Add<VehicleTax.Web.Security.PagePermissionFilter>());
+.AddMvcOptions(o =>
+{
+    o.Filters.Add<VehicleTax.Web.Security.PagePermissionFilter>();
+    o.Filters.Add<VehicleTax.Web.Security.ExpiredFormFilter>();
+});
 
 // =========================
 // API Controllers

@@ -689,7 +689,16 @@
 </nav>
 
 <main class="container mt-4 flex-fill">
-    @RenderBody()
+    @if (!string.IsNullOrEmpty(Context.Request.Query["expired"]))
+{
+    <div class="container mt-3">
+        <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history"></i>@L["Your session expired. Please try again."]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+}
+@RenderBody()
 </main>
 
 <footer class="mt-5 py-3 border-top text-center text-muted small bg-white">

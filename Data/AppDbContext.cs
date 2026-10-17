@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VehicleTax.Web.Models;
 
 namespace VehicleTax.Web.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IDataProtectionKeyContext
     {
+        /// <summary>Keys that sign login cookies and form tokens; kept so they survive restarts and deploys.</summary>
+        public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
         {

@@ -952,5 +952,24 @@ public static class LangSo
         ["Newest first"] = "Kuwa ugu dambeeyay",
         ["Owner A–Z"] = "Milkiilaha A–Z",
         ["No vehicles found."] = "Gaari lama helin.",
+        ["Your session expired. Please try again."] = "Fadhigaagu wuu dhacay. Fadlan isku day mar kale.",
+        ["Your session expired. Please sign in again."] = "Fadhigaagu wuu dhacay. Fadlan dib u gal.",
+        ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
+        // Car types page
+        ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",
+        ["Name A–Z"] = "Magaca A–Z",
+        ["Most vehicles"] = "Gaadiidka ugu badan",
+        ["Most tariffs"] = "Tariff-yada ugu badan",
+        ["No car types found."] = "Nooc gaari lama helin.",
+        ["Locked: cannot be edited or deleted"] = "Xiran: lama beddeli karo lamana tirtiri karo",
+        ["Priced"] = "Qiimaysan",
+        ["Tax amount"] = "Qaddarka canshuurta",
+        // Tax amounts page
+        ["Tariff status"] = "Xaaladda tariff-ka",
+        ["Amounts"] = "Qaddarrada",
+        ["Missing amounts"] = "Qaddarrada maqan",
+        ["Add amount"] = "Ku dar qaddar",
+        ["Every active tariff has an amount."] = "Tariff kasta oo firfircoon wuxuu leeyahay qaddar.",
+        ["No tax amounts found."] = "Qaddar canshuur lama helin.",
     };
 }

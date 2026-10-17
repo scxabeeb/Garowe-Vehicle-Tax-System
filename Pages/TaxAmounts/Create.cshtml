@@ -33,6 +33,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">@L["Tariff"]</label>
                         <select asp-for="Tax.MovementId"
+                                asp-items="Model.Movements"
                                 class="form-select"
                                 id="movementSelect">
                             <option value="">-- @L["Select Tariff"] --</option>
