@@ -207,6 +207,13 @@ public class GolisController : ControllerBase
                 return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
             }
 
+            // A paid invoice shows no bill information, so its short code
+            // cannot be paid a second time.
+            if (payment.IsPaid)
+            {
+                return Ok(BuildErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice already paid."));
+            }
+
             return Ok(BuildSuccessResponse(
                 request.RequestId,
                 request.SchemaVersion,
