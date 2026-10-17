@@ -18,12 +18,9 @@ public class GolisController : ControllerBase
     private readonly AppDbContext _context;
     private readonly GolisWebhookSettings _settings;
     private readonly IPaymentReferenceService _referenceService;
-    private readonly VehicleTax.Web.Services.IActivityLogger _activity;
 
-    public GolisController(AppDbContext context, IOptions<GolisWebhookSettings> options, IPaymentReferenceService referenceService,
-        VehicleTax.Web.Services.IActivityLogger activity)
+    public GolisController(AppDbContext context, IOptions<GolisWebhookSettings> options, IPaymentReferenceService referenceService)
     {
-        _activity = activity;
         _context = context;
         _settings = options.Value;
         _referenceService = referenceService;
@@ -105,29 +102,6 @@ public class GolisController : ControllerBase
             return Ok(BuildNotificationErrorResponse(request.RequestId, request.SchemaVersion, "1", "Invoice not found."));
         }
 
-        // One invoice takes one payment. Claim it in a single database step so
-        // two notifications arriving together cannot both mark it paid.
-        var claimed = await _context.Database.ExecuteSqlInterpolatedAsync(
-            $"UPDATE Payments SET IsPaid = 1 WHERE Id = {payment.Id} AND IsPaid = 0 AND IsReverted = 0");
-        if (claimed == 0)
-        {
-            await _context.Entry(payment).ReloadAsync();
-            // Golis retrying the same transaction: answer as before, change nothing.
-            if (payment.IsPaid && !string.IsNullOrEmpty(transactionId) &&
-                string.Equals(payment.TransactionId, transactionId, StringComparison.OrdinalIgnoreCase))
-            {
-                return Ok(BuildPaySuccess(request, payment));
-            }
-
-            // A different payment for an invoice that is already paid: refuse it
-            // and keep the first payment as it is.
-            await _activity.LogAsync(ActivityActions.DuplicatePayment, "Golis", "Payment", payment.Id.ToString(),
-                $"Refused a second payment for invoice {payment.InvoiceNumber}: transaction {transactionId}, " +
-                $"amount {amountStr}, sender {paidBy}. Already paid by transaction {payment.TransactionId}.");
-            return Ok(BuildNotificationErrorResponse(request.RequestId, request.SchemaVersion, "1",
-                payment.IsPaid ? "Invoice already paid." : "Invoice cannot be paid."));
-        }
-
         // Mark payment as paid
         payment.IsPaid = true;
         payment.PaidAt = DateTime.TryParse(paidDate, out var parsedDate) ? AppTime.ToUtc(parsedDate) : DateTime.UtcNow;
@@ -150,16 +124,10 @@ public class GolisController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok(BuildPaySuccess(request, payment));
-    }
-
-    /// <summary>Golis success answer for a paid invoice.</summary>
-    private static Dictionary<string, object?> BuildPaySuccess(GolisPayBillNotificationRequest request, Payment payment)
-    {
         // Generate confirmation ID
         var confirmationId = $"001-{payment.Id:D10}";
 
-        return new Dictionary<string, object?>
+        return Ok(new Dictionary<string, object?>
         {
             ["requestId"] = string.IsNullOrWhiteSpace(request.RequestId) ? string.Empty : request.RequestId,
             ["schemaVersion"] = string.IsNullOrWhiteSpace(request.SchemaVersion) ? "1.0" : request.SchemaVersion,
@@ -170,7 +138,7 @@ public class GolisController : ControllerBase
                 ["resultMessage"] = "SUCCESS"
             },
             ["confirmationId"] = confirmationId
-        };
+        });
     }
 
     private async Task<IActionResult> QueryCoreAsync(GolisBillQueryRequest request)

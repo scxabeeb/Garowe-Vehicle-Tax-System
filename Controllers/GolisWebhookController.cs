@@ -84,10 +84,6 @@ public class GolisWebhookController : ControllerBase
             var invoiceId = ParseInvoiceId(payload.InvoiceNumber);
             if (invoiceId.HasValue)
             {
-                // One invoice takes one payment: never record a second one for it.
-                if (await _context.Payments.AnyAsync(p => p.Id == invoiceId.Value && p.IsPaid && !p.IsReverted))
-                    return Conflict(new { message = "Invoice already paid." });
-
                 payment = await _context.Payments
                     .FirstOrDefaultAsync(p => p.Id == invoiceId.Value && !p.IsPaid && !p.IsReverted);
             }
