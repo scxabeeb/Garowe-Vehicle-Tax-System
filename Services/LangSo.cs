@@ -979,5 +979,6 @@ public static class LangSo
         ["Unknown (mobile app)"] = "Lama yaqaan (barnaamijka taleefanka)",
         ["Golis (customer paid)"] = "Golis (macmiilku bixiyay)",
         ["View all"] = "Eeg dhammaan",
+        ["Collected amount by revenue account for the chosen dates (today by default, same as the Finance dashboard)."] = "Lacagta la qaaday xisaab dakhli kasta taariikhaha la doortay (maanta haddii aan la beddelin, sida dashboard-ka Maaliyadda).",
     };
 }

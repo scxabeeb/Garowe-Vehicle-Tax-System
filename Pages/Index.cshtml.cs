@@ -70,6 +70,8 @@ public class IndexModel : PageModel
 
     /// <summary>True when this dashboard shows only the signed-in collector's own payments.</summary>
     public bool IsPersonal { get; private set; }
+    /// <summary>The signed-in collector, for the per-collector chart requests.</summary>
+    public int? CollectorId => _collectorId;
     private int? _collectorId;
 
     /// <summary>

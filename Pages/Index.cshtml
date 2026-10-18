@@ -239,9 +239,9 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="panel-title mb-0">@L["Collections by Revenue Account"]</h6>
-                    <span class="text-muted small fw-bold">$@Model.RevenueAccountGrandTotal.ToString("N0") total</span>
+                    <span class="text-muted small fw-bold" id="revenueAccountTotal"></span>
                 </div>
-                <p class="text-muted small mb-2">@L["Top revenue accounts by collected amount."]</p>
+                <p class="text-muted small mb-2">@L["Collected amount by revenue account for the chosen dates (today by default, same as the Finance dashboard)."]</p>
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     <input type="date" id="revAccountFromDate" class="form-control form-control-sm w-auto" />
                     <input type="date" id="revAccountToDate" class="form-control form-control-sm w-auto" />
@@ -404,11 +404,9 @@ function setDefaultRevAccountDateRange() {
         return;
     }
 
+    // Today by default, like the Finance dashboard.
     const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - 6);
-
-    fromInput.value = formatDateInputValue(weekStart);
+    fromInput.value = formatDateInputValue(today);
     toInput.value = formatDateInputValue(today);
 }
 
@@ -425,7 +423,8 @@ async function loadRevenueAccountChart() {
 
     try {
         const query = new URLSearchParams();
-        query.set('limit', '5');
+        query.set('limit', '20');
+        @if (Model.CollectorId.HasValue) { <text>query.set('collectorId', '@Model.CollectorId');</text> }
 
         if (fromInput.value) {
             query.set('fromDate', fromInput.value);
@@ -450,6 +449,7 @@ async function loadRevenueAccountChart() {
         const grandTotal = payload.grandTotal || 0;
 
         hint.innerText = `Total: $${Number(grandTotal).toLocaleString()} for ${items.length} account(s).`;
+        document.getElementById('revenueAccountTotal').innerText = `$${Number(grandTotal).toLocaleString()} total`;
         hint.classList.remove('text-muted');
         hint.classList.add('text-success', 'fw-bold');
 

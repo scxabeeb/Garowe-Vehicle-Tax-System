@@ -255,7 +255,8 @@ namespace VehicleTax.Web.Controllers
         public IActionResult GetRevenueAccountSummary(
             [FromQuery] DateTime? fromDate = null,
             [FromQuery] DateTime? toDate = null,
-            [FromQuery] int limit = 5)
+            [FromQuery] int limit = 5,
+            [FromQuery] int? collectorId = null)
         {
             if (limit < 1)
             {
@@ -283,13 +284,19 @@ namespace VehicleTax.Web.Controllers
                 query = query.Where(p => p.PaidAt < AppTime.ToUtc(toDate.Value.Date.AddDays(1)));
             }
 
+            if (collectorId.HasValue)
+                query = query.Where(p => p.CollectorId == collectorId.Value);
+
+            // Every payment in the range, so the total matches the Finance
+            // dashboard; payments whose tariff has no account get their own line.
             var items = query
-                .Where(p => p.Movement != null && p.Movement.RevenueAccount != null)
                 .AsEnumerable()
                 .GroupBy(p => new
                 {
-                    p.Movement!.RevenueAccount!.Id,
-                    label = p.Movement!.RevenueAccount!.AccountCode + " - " + p.Movement!.RevenueAccount!.AccountName
+                    Id = p.Movement?.RevenueAccount?.Id ?? 0,
+                    label = p.Movement?.RevenueAccount == null
+                        ? "No revenue account"
+                        : p.Movement.RevenueAccount.AccountCode + " - " + p.Movement.RevenueAccount.AccountName
                 })
                 .Select(g => new
                 {
@@ -302,7 +309,8 @@ namespace VehicleTax.Web.Controllers
                 .Take(limit)
                 .ToList();
 
-            var grandTotal = items.Sum(x => x.totalAmount);
+            // Total of all payments in the range (not only the accounts listed).
+            var grandTotal = query.Sum(p => (decimal?)p.Amount) ?? 0;
 
             return Ok(new
             {
