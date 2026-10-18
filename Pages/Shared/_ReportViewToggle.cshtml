@@ -63,7 +63,8 @@
                 u.searchParams.set('view', view);
                 set(u.pathname + u.search + u.hash);
             }
-            document.querySelectorAll('a[href]').forEach(function (a) {
+            // Links marked data-view-fixed choose their own view (e.g. open Details).
+            document.querySelectorAll('a[href]:not([data-view-fixed])').forEach(function (a) {
                 keepView(a.getAttribute('href'), function (v) { a.setAttribute('href', v); });
             });
             document.querySelectorAll('.vt-pager select option').forEach(function (o) {

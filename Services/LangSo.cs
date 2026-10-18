@@ -994,5 +994,9 @@ public static class LangSo
         ["Pick one day (or use the arrows on a single day) to create its RVs."] = "Dooro hal maalin (ama isticmaal fallaadhaha hal maalin) si aad u samayso RV-yadeeda.",
         ["Pending Amount"] = "Qaddarka sugaya",
         ["not paid yet"] = "weli lama bixin",
+        ["Click a checkpoint to see its payments."] = "Riix kontarool si aad u aragto lacag-bixinnadeeda.",
+        ["Avg"] = "Celcelis",
+        ["of total"] = "wadarta",
+        ["Show all checkpoints"] = "Muuji dhammaan kontaroolada",
     };
 }
