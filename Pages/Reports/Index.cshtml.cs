@@ -205,9 +205,7 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Collector summary
             CollectorSummaries = await query
-                .GroupBy(p => (p.TransactionId != null && p.TransactionId != "")
-                    ? VehicleTax.Web.Services.PaymentSource.GolisLabel
-                    : p.Collector != null
+                .GroupBy(p => p.Collector != null
                     ? p.Collector.Username
                     : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
                         ? p.ReceiptReference.UsedBy
