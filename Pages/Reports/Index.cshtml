@@ -89,17 +89,14 @@
 
 <!-- EXPORT / PRINT -->
 <div class="d-flex justify-content-end flex-wrap gap-2 mb-2 d-print-none">
-    <button type="button" class="btn btn-outline-primary module-action-btn" onclick="printPayments(true)">
-        <i class="bi bi-printer me-1"></i>@L["Print / PDF – filtered"]
-    </button>
-    <button type="button" class="btn btn-outline-secondary module-action-btn" onclick="printPayments(false)">
-        <i class="bi bi-printer me-1"></i>@L["Print / PDF – all payments"]
+    <button type="button" class="btn btn-outline-primary module-action-btn" onclick="printPayments()"
+            title="@L["Prints the payments matching the filters (all payments when no filter is set)."]">
+        <i class="bi bi-printer me-1"></i>@L["Print / PDF"]
     </button>
     <script>
-        // Opens every matching payment (all pages) ready to print or save as PDF.
-        function printPayments(filtered) {
+        // Opens every payment matching the current filters (all pages), ready to print or save as PDF.
+        function printPayments() {
             var u = new URL(location.href);
-            if (!filtered) u.search = '';
             ['handler', 'CurrentPage'].forEach(function (k) { u.searchParams.delete(k); });
             u.searchParams.set('PageSize', '0');
             u.searchParams.set('view', 'details');
