@@ -998,5 +998,6 @@ public static class LangSo
         ["Avg"] = "Celcelis",
         ["of total"] = "wadarta",
         ["Show all checkpoints"] = "Muuji dhammaan kontaroolada",
+        ["Sorting applies to the rows on this page. Choose All rows to sort everything."] = "Kala-soocidda waxay khuseysaa safafka boggan. Dooro Dhammaan si aad u kala sooctid wax walba.",
     };
 }
