@@ -34,7 +34,10 @@ public class SummaryModel : PageModel
     public decimal CompletedAmount { get; set; }
     public int CancelledCount { get; set; }
     public decimal CancelledAmount { get; set; }
-    public decimal NetAmount => CompletedAmount - CancelledAmount;
+    // Money actually collected (cancelled invoices were never collected).
+    public decimal NetAmount => CompletedAmount;
+    public int PendingCount { get; set; }
+    public decimal PendingAmount { get; set; }
 
     // Breakdowns
     public List<CollectorSummary> CollectorSummaries { get; set; } = new();
@@ -56,6 +59,7 @@ public class SummaryModel : PageModel
         public decimal Amount { get; set; }
         public DateTime PaidAt { get; set; }
         public bool IsReverted { get; set; }
+        public bool IsPaid { get; set; }
     }
 
     public class CollectorSummary
@@ -63,6 +67,8 @@ public class SummaryModel : PageModel
         public string CollectorName { get; set; } = "";
         public int Completed { get; set; }
         public decimal CompletedAmount { get; set; }
+        public int Pending { get; set; }
+        public decimal PendingAmount { get; set; }
         public int Cancelled { get; set; }
         public decimal CancelledAmount { get; set; }
     }
@@ -72,6 +78,8 @@ public class SummaryModel : PageModel
         public string MovementName { get; set; } = "";
         public int Completed { get; set; }
         public decimal CompletedAmount { get; set; }
+        public int Pending { get; set; }
+        public decimal PendingAmount { get; set; }
         public int Cancelled { get; set; }
         public decimal CancelledAmount { get; set; }
     }
@@ -81,6 +89,8 @@ public class SummaryModel : PageModel
         public string CheckpointName { get; set; } = "";
         public int Completed { get; set; }
         public decimal CompletedAmount { get; set; }
+        public int Pending { get; set; }
+        public decimal PendingAmount { get; set; }
         public int Cancelled { get; set; }
         public decimal CancelledAmount { get; set; }
     }
@@ -149,14 +159,18 @@ public class SummaryModel : PageModel
         var data = GetFilteredQuery().ToList();
 
         TotalTransactions = data.Count;
-        CompletedCount = data.Count(p => !p.IsReverted);
-        CompletedAmount = data.Where(p => !p.IsReverted).Sum(p => p.Amount);
+        // Completed = paid; Pending = invoice issued but not paid yet.
+        CompletedCount = data.Count(p => p.IsPaid && !p.IsReverted);
+        CompletedAmount = data.Where(p => p.IsPaid && !p.IsReverted).Sum(p => p.Amount);
+        PendingCount = data.Count(p => !p.IsPaid && !p.IsReverted);
+        PendingAmount = data.Where(p => !p.IsPaid && !p.IsReverted).Sum(p => p.Amount);
         CancelledCount = data.Count(p => p.IsReverted);
         CancelledAmount = data.Where(p => p.IsReverted).Sum(p => p.Amount);
 
         StatusSummaries = new List<StatusSummary>
         {
             new StatusSummary { Status = "Completed", Count = CompletedCount, Amount = CompletedAmount },
+            new StatusSummary { Status = "Pending", Count = PendingCount, Amount = PendingAmount },
             new StatusSummary { Status = "Cancelled", Count = CancelledCount, Amount = CancelledAmount }
         };
 
@@ -165,8 +179,10 @@ public class SummaryModel : PageModel
             .Select(g => new CollectorSummary
             {
                 CollectorName = g.Key,
-                Completed = g.Count(p => !p.IsReverted),
-                CompletedAmount = g.Where(p => !p.IsReverted).Sum(p => p.Amount),
+                Completed = g.Count(p => p.IsPaid && !p.IsReverted),
+                CompletedAmount = g.Where(p => p.IsPaid && !p.IsReverted).Sum(p => p.Amount),
+                Pending = g.Count(p => !p.IsPaid && !p.IsReverted),
+                PendingAmount = g.Where(p => !p.IsPaid && !p.IsReverted).Sum(p => p.Amount),
                 Cancelled = g.Count(p => p.IsReverted),
                 CancelledAmount = g.Where(p => p.IsReverted).Sum(p => p.Amount)
             })
@@ -178,8 +194,10 @@ public class SummaryModel : PageModel
             .Select(g => new MovementSummary
             {
                 MovementName = g.Key,
-                Completed = g.Count(p => !p.IsReverted),
-                CompletedAmount = g.Where(p => !p.IsReverted).Sum(p => p.Amount),
+                Completed = g.Count(p => p.IsPaid && !p.IsReverted),
+                CompletedAmount = g.Where(p => p.IsPaid && !p.IsReverted).Sum(p => p.Amount),
+                Pending = g.Count(p => !p.IsPaid && !p.IsReverted),
+                PendingAmount = g.Where(p => !p.IsPaid && !p.IsReverted).Sum(p => p.Amount),
                 Cancelled = g.Count(p => p.IsReverted),
                 CancelledAmount = g.Where(p => p.IsReverted).Sum(p => p.Amount)
             })
@@ -194,8 +212,10 @@ public class SummaryModel : PageModel
                 return new CheckpointSummary
                 {
                     CheckpointName = c.Name,
-                    Completed = rows.Count(p => !p.IsReverted),
-                    CompletedAmount = rows.Where(p => !p.IsReverted).Sum(p => p.Amount),
+                    Completed = rows.Count(p => p.IsPaid && !p.IsReverted),
+                    CompletedAmount = rows.Where(p => p.IsPaid && !p.IsReverted).Sum(p => p.Amount),
+                    Pending = rows.Count(p => !p.IsPaid && !p.IsReverted),
+                    PendingAmount = rows.Where(p => !p.IsPaid && !p.IsReverted).Sum(p => p.Amount),
                     Cancelled = rows.Count(p => p.IsReverted),
                     CancelledAmount = rows.Where(p => p.IsReverted).Sum(p => p.Amount)
                 };
@@ -215,7 +235,8 @@ public class SummaryModel : PageModel
                 CollectorName = p.Collector?.Username ?? "Unassigned",
                 Amount = p.Amount,
                 PaidAt = p.IsReverted ? (p.RevertedAt ?? p.PaidAt) : p.PaidAt,
-                IsReverted = p.IsReverted
+                IsReverted = p.IsReverted,
+                IsPaid = p.IsPaid
             })
             .OrderByDescending(p => p.ReferenceNo.HasValue)
             .ThenByDescending(p => p.Id)
@@ -236,6 +257,7 @@ public class SummaryModel : PageModel
         sb.AppendLine($"Completed Amount,{CompletedAmount:N0}");
         sb.AppendLine($"Cancelled Count,{CancelledCount}");
         sb.AppendLine($"Cancelled Amount,{CancelledAmount:N0}");
+        sb.AppendLine($"Pending,{PendingCount},{PendingAmount:N0}");
         sb.AppendLine($"Net Amount,{NetAmount:N0}");
         sb.AppendLine();
         sb.AppendLine("Collector,Completed,Completed Amount,Cancelled,Cancelled Amount");
@@ -252,7 +274,7 @@ public class SummaryModel : PageModel
         foreach (var p in PaymentRecords)
         {
             var refNo = p.ReferenceNo?.ToString() ?? "";
-            var status = p.IsReverted ? "Cancelled" : "Completed";
+            var status = p.IsReverted ? "Cancelled" : p.IsPaid ? "Completed" : "Pending";
             var date = AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm");
             sb.AppendLine($"{p.Id},{refNo},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{p.Amount:N0},{date},{status}");
         }

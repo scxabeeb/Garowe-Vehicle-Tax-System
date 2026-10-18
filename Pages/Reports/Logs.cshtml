@@ -108,9 +108,9 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">@L["Pages"]</div>
-                    <h3 class="fw-bold mb-0 text-info">@Model.TotalPages</h3>
-                    <div class="text-muted small fw-semibold">@L["Page"] @(Model.CurrentPage)</div>
+                    <div class="text-muted small fw-semibold">@L["Pending"]</div>
+                    <h3 class="fw-bold mb-0 text-warning">@Model.PendingCount</h3>
+                    <div class="text-muted small fw-semibold">$@Model.PendingAmount.ToString("N0") @L["not paid yet"]</div>
                 </div>
             </div>
         </div>
@@ -197,6 +197,10 @@
                                     @if (t.IsReverted)
                                     {
                                         <span class="badge bg-danger">@L["Cancelled"]</span>
+                                    }
+                                    else if (!t.IsPaid)
+                                    {
+                                        <span class="badge bg-warning text-dark">@L["Pending"]</span>
                                     }
                                     else
                                     {

@@ -39,6 +39,8 @@ public class LogsModel : PageModel
     public decimal TotalRevertedAmount { get; set; }
     public int CompletedCount { get; set; }
     public int RevertedCount { get; set; }
+    public int PendingCount { get; set; }
+    public decimal PendingAmount { get; set; }
     public int TotalPages { get; set; }
     public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
     public VehicleTax.Web.Services.Pager Pager { get; set; } = new(0, 1, 10);
@@ -100,14 +102,17 @@ public class LogsModel : PageModel
 
         // ---- Summary (whole filtered set, computed in the database) ----
         var totals = await query
-            .GroupBy(p => p.IsReverted)
-            .Select(g => new { Reverted = g.Key, Count = g.Count(), Amount = g.Sum(p => p.Amount) })
+            // 0 = completed (paid), 1 = pending (not paid yet), 2 = cancelled
+            .GroupBy(p => p.IsReverted ? 2 : p.IsPaid ? 0 : 1)
+            .Select(g => new { Status = g.Key, Count = g.Count(), Amount = g.Sum(p => p.Amount) })
             .ToListAsync();
-        CompletedCount = totals.Where(t => !t.Reverted).Sum(t => t.Count);
-        RevertedCount = totals.Where(t => t.Reverted).Sum(t => t.Count);
-        TotalCompletedAmount = totals.Where(t => !t.Reverted).Sum(t => t.Amount);
-        TotalRevertedAmount = totals.Where(t => t.Reverted).Sum(t => t.Amount);
-        TotalTransactions = CompletedCount + RevertedCount;
+        CompletedCount = totals.Where(t => t.Status == 0).Sum(t => t.Count);
+        PendingCount = totals.Where(t => t.Status == 1).Sum(t => t.Count);
+        PendingAmount = totals.Where(t => t.Status == 1).Sum(t => t.Amount);
+        RevertedCount = totals.Where(t => t.Status == 2).Sum(t => t.Count);
+        TotalCompletedAmount = totals.Where(t => t.Status == 0).Sum(t => t.Amount);
+        TotalRevertedAmount = totals.Where(t => t.Status == 2).Sum(t => t.Amount);
+        TotalTransactions = CompletedCount + PendingCount + RevertedCount;
 
         // ---- Paging ----
         Pager = new VehicleTax.Web.Services.Pager(TotalTransactions, CurrentPage, PageSize);

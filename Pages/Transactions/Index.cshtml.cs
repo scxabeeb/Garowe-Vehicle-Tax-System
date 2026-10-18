@@ -50,7 +50,10 @@ public class IndexModel : PageModel
     public decimal CompletedAmount { get; set; }
     public int CancelledCount { get; set; }
     public decimal CancelledAmount { get; set; }
-    public decimal NetAmount => CompletedAmount - CancelledAmount;
+    // Money actually collected (cancelled invoices were never collected).
+    public decimal NetAmount => CompletedAmount;
+    public int PendingCount { get; set; }
+    public decimal PendingAmount { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -60,15 +63,18 @@ public class IndexModel : PageModel
 
         // Summary totals over the whole filtered set, computed in the database.
         var totals = await query
-            .GroupBy(p => p.IsReverted)
-            .Select(g => new { Reverted = g.Key, Count = g.Count(), Amount = g.Sum(p => p.Amount) })
+            // 0 = completed (paid), 1 = pending (not paid yet), 2 = cancelled
+            .GroupBy(p => p.IsReverted ? 2 : p.IsPaid ? 0 : 1)
+            .Select(g => new { Status = g.Key, Count = g.Count(), Amount = g.Sum(p => p.Amount) })
             .ToListAsync();
-        CompletedCount = totals.Where(t => !t.Reverted).Sum(t => t.Count);
-        CompletedAmount = totals.Where(t => !t.Reverted).Sum(t => t.Amount);
-        CancelledCount = totals.Where(t => t.Reverted).Sum(t => t.Count);
-        CancelledAmount = totals.Where(t => t.Reverted).Sum(t => t.Amount);
-        TotalTransactions = CompletedCount + CancelledCount;
-        TotalAmount = CompletedAmount + CancelledAmount;
+        CompletedCount = totals.Where(t => t.Status == 0).Sum(t => t.Count);
+        CompletedAmount = totals.Where(t => t.Status == 0).Sum(t => t.Amount);
+        PendingCount = totals.Where(t => t.Status == 1).Sum(t => t.Count);
+        PendingAmount = totals.Where(t => t.Status == 1).Sum(t => t.Amount);
+        CancelledCount = totals.Where(t => t.Status == 2).Sum(t => t.Count);
+        CancelledAmount = totals.Where(t => t.Status == 2).Sum(t => t.Amount);
+        TotalTransactions = CompletedCount + PendingCount + CancelledCount;
+        TotalAmount = CompletedAmount + PendingAmount + CancelledAmount;
 
         Pager = new Pager(TotalTransactions, CurrentPage, PageSize);
 
@@ -110,6 +116,9 @@ public class IndexModel : PageModel
         {
             if (Action == "Completed")
                 query = query.Where(p => p.IsPaid && !p.IsReverted);
+
+            if (Action == "Pending")
+                query = query.Where(p => !p.IsPaid && !p.IsReverted);
 
             if (Action == "Reverted")
                 query = query.Where(p => p.IsReverted);

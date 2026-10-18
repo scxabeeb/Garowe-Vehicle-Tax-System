@@ -98,8 +98,9 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 text-center h-100">
                 <div class="card-body">
-                    <div class="text-muted small fw-semibold">@L["Net Amount"]</div>
-                    <h3 class="fw-bold mb-0 text-info">$@Model.NetAmount.ToString("N0")</h3>
+                    <div class="text-muted small fw-semibold">@L["Pending"]</div>
+                    <h3 class="fw-bold mb-0 text-warning">@Model.PendingCount</h3>
+                    <div class="text-muted small fw-semibold">$@Model.PendingAmount.ToString("N0") @L["not paid yet"]</div>
                 </div>
             </div>
         </div>
@@ -149,6 +150,8 @@
                                     <th>@L["Collector"]</th>
                                     <th class="text-end">@L["Completed"]</th>
                                     <th class="text-end">@L["Completed Amount"]</th>
+                                    <th class="text-end">@L["Pending"]</th>
+                                    <th class="text-end">@L["Pending Amount"]</th>
                                     <th class="text-end">@L["Cancelled"]</th>
                                     <th class="text-end">@L["Cancelled Amount"]</th>
                                 </tr>
@@ -160,6 +163,8 @@
                                         <td>@c.CollectorName</td>
                                         <td class="text-end">@c.Completed</td>
                                         <td class="text-end">$@c.CompletedAmount.ToString("N0")</td>
+                                        <td class="text-end text-warning-emphasis">@c.Pending</td>
+                                        <td class="text-end text-warning-emphasis">$@c.PendingAmount.ToString("N0")</td>
                                         <td class="text-end">@c.Cancelled</td>
                                         <td class="text-end">$@c.CancelledAmount.ToString("N0")</td>
                                     </tr>
@@ -185,6 +190,8 @@
                                     <th>@L["Tariff"]</th>
                                     <th class="text-end">@L["Completed"]</th>
                                     <th class="text-end">@L["Completed Amount"]</th>
+                                    <th class="text-end">@L["Pending"]</th>
+                                    <th class="text-end">@L["Pending Amount"]</th>
                                     <th class="text-end">@L["Cancelled"]</th>
                                     <th class="text-end">@L["Cancelled Amount"]</th>
                                 </tr>
@@ -196,6 +203,8 @@
                                         <td>@m.MovementName</td>
                                         <td class="text-end">@m.Completed</td>
                                         <td class="text-end">$@m.CompletedAmount.ToString("N0")</td>
+                                        <td class="text-end text-warning-emphasis">@m.Pending</td>
+                                        <td class="text-end text-warning-emphasis">$@m.PendingAmount.ToString("N0")</td>
                                         <td class="text-end">@m.Cancelled</td>
                                         <td class="text-end">$@m.CancelledAmount.ToString("N0")</td>
                                     </tr>
@@ -219,6 +228,8 @@
                                     <th>@L["Checkpoint"]</th>
                                     <th class="text-end">@L["Completed"]</th>
                                     <th class="text-end">@L["Completed Amount"]</th>
+                                    <th class="text-end">@L["Pending"]</th>
+                                    <th class="text-end">@L["Pending Amount"]</th>
                                     <th class="text-end">@L["Cancelled"]</th>
                                     <th class="text-end">@L["Cancelled Amount"]</th>
                                 </tr>
@@ -230,6 +241,8 @@
                                         <td>@c.CheckpointName</td>
                                         <td class="text-end">@c.Completed</td>
                                         <td class="text-end">$@c.CompletedAmount.ToString("N0")</td>
+                                        <td class="text-end text-warning-emphasis">@c.Pending</td>
+                                        <td class="text-end text-warning-emphasis">$@c.PendingAmount.ToString("N0")</td>
                                         <td class="text-end">@c.Cancelled</td>
                                         <td class="text-end">$@c.CancelledAmount.ToString("N0")</td>
                                     </tr>
@@ -290,6 +303,10 @@
                                         @if (p.IsReverted)
                                         {
                                             <span class="badge bg-danger">@L["Cancelled"]</span>
+                                        }
+                                        else if (!p.IsPaid)
+                                        {
+                                            <span class="badge bg-warning text-dark">@L["Pending"]</span>
                                         }
                                         else
                                         {

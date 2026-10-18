@@ -992,5 +992,7 @@ public static class LangSo
         ["All done for this period: every payment was sent to FMIS."] = "Muddadan waa dhammaatay: lacag-bixin kasta waxaa loo diray FMIS.",
         ["Pick one day to create an RV"] = "Dooro hal maalin si aad u samayso RV",
         ["Pick one day (or use the arrows on a single day) to create its RVs."] = "Dooro hal maalin (ama isticmaal fallaadhaha hal maalin) si aad u samayso RV-yadeeda.",
+        ["Pending Amount"] = "Qaddarka sugaya",
+        ["not paid yet"] = "weli lama bixin",
     };
 }
