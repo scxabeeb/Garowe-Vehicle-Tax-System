@@ -191,7 +191,7 @@
                             <th>@L["Collector"]</th>
                             <th>@L["Checkpoint"]</th>
                             <th>@L["Payment Method"]</th>
-                            <th>@L["Receipt"]</th>
+                            <th>@L["Receipt No"]</th>
                             <th>@L["Golis Bill No"]</th>
                             <th class="text-end">@L["Amount"]</th>
                         </tr>
@@ -209,7 +209,9 @@
                                 <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
                                 <td><span class="badge bg-secondary">@(p.Checkpoint?.Name ?? "Unassigned")</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(p.PaymentMethod) ? "-" : p.PaymentMethod)</td>
-                                <td>@(p.ReceiptReference?.ReferenceNumber ?? "-")</td>
+                                <td class="text-nowrap">
+                                    <a asp-page="/Payments/Receipt" asp-route-paymentId="@p.Id" class="text-decoration-none fw-semibold" target="_blank">@p.InvoiceNumber</a>
+                                </td>
                                 <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "-" : p.TransactionId)</td>
                                 <td class="text-end fw-bold">$@p.Amount.ToString("N0")</td>
                             </tr>
