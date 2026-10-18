@@ -17,7 +17,10 @@ public class IndexModel : PageModel
     private readonly AppDbContext _context;
     public IndexModel(AppDbContext context) => _context = context;
 
+    /// <summary>Single day (older links); same as FromDate = ToDate = Date.</summary>
     [BindProperty(SupportsGet = true)] public DateTime? Date { get; set; }
+    [BindProperty(SupportsGet = true)] public DateTime? FromDate { get; set; }
+    [BindProperty(SupportsGet = true)] public DateTime? ToDate { get; set; }
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -45,12 +48,18 @@ public class IndexModel : PageModel
     public decimal NeedsRvAmount => CollectedAmount - InRvAmount;
     public int Failed { get; set; }
 
-    public bool IsToday => Date!.Value.Date == AppTime.Today;
+    public bool IsSingleDay => FromDate == ToDate;
+    public bool IsToday => IsSingleDay && FromDate == AppTime.Today;
 
     public async Task OnGetAsync()
     {
-        Date = (Date ?? AppTime.Today).Date;
-        var (start, end) = AppTime.GetUtcDayRange(Date.Value);
+        // Period in Somalia days: From–To, a single Date, or today.
+        FromDate = (FromDate ?? Date ?? ToDate ?? AppTime.Today).Date;
+        ToDate = (ToDate ?? Date ?? FromDate).Value.Date;
+        if (ToDate < FromDate) (FromDate, ToDate) = (ToDate, FromDate);
+        Date = FromDate;
+        var start = AppTime.GetUtcDayRange(FromDate.Value).StartUtc;
+        var end = AppTime.GetUtcDayRange(ToDate.Value).EndUtc;
 
         // Only money actually collected: paid and not cancelled.
         var payments = await _context.Payments.AsNoTracking()

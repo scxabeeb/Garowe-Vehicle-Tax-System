@@ -980,5 +980,17 @@ public static class LangSo
         ["Golis (customer paid)"] = "Golis (macmiilku bixiyay)",
         ["View all"] = "Eeg dhammaan",
         ["Collected amount by revenue account for the chosen dates (today by default, same as the Finance dashboard)."] = "Lacagta la qaaday xisaab dakhli kasta taariikhaha la doortay (maanta haddii aan la beddelin, sida dashboard-ka Maaliyadda).",
+        // Finance period filter
+        ["Money collected in the chosen period. Put each account's payments into an RV, then send the RV to FMIS."] = "Lacagta la qaaday muddada la doortay. Lacag-bixinnada xisaab kasta geli RV, kadibna RV-ga u dir FMIS.",
+        ["Yesterday"] = "Shalay",
+        ["Last 7 days"] = "7-dii maalmood ee u dambeeyay",
+        ["This month"] = "Bishan",
+        ["Previous day"] = "Maalintii hore",
+        ["Next day"] = "Maalinta xigta",
+        ["Paid payments in this period"] = "Lacag-bixinnada la bixiyay muddadan",
+        ["No money was collected in this period."] = "Muddadan lacag lama qaadin.",
+        ["All done for this period: every payment was sent to FMIS."] = "Muddadan waa dhammaatay: lacag-bixin kasta waxaa loo diray FMIS.",
+        ["Pick one day to create an RV"] = "Dooro hal maalin si aad u samayso RV",
+        ["Pick one day (or use the arrows on a single day) to create its RVs."] = "Dooro hal maalin (ama isticmaal fallaadhaha hal maalin) si aad u samayso RV-yadeeda.",
     };
 }

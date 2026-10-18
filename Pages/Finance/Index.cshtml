@@ -3,7 +3,19 @@
 @using Step = VehicleTax.Web.Pages.Finance.IndexModel.Step
 @{
     ViewData["Title"] = L["Finance Dashboard"];
-    var day = Model.Date!.Value;
+    var from = Model.FromDate!.Value;
+    var to = Model.ToDate!.Value;
+    var day = from;
+    var today = VehicleTax.Web.AppTime.Today;
+    var single = Model.IsSingleDay;
+    var period = single ? from.ToString("dddd, dd MMMM yyyy") : $"{from:dd MMM yyyy} – {to:dd MMM yyyy}";
+    (string Key, string Label, DateTime F, DateTime T)[] quick =
+    {
+        ("today", L["Today"], today, today),
+        ("yesterday", L["Yesterday"], today.AddDays(-1), today.AddDays(-1)),
+        ("week", L["Last 7 days"], today.AddDays(-6), today),
+        ("month", L["This month"], new DateTime(today.Year, today.Month, 1), today),
+    };
     string d(DateTime x) => x.ToString("yyyy-MM-dd");
     string money(decimal m) => "$" + m.ToString("N2");
     (string Label, string Icon, string Fg, string Bg) look(Step s) => s switch
@@ -35,26 +47,49 @@
     <div class="fd-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
             <h3 class="fw-bold mb-1"><i class="bi bi-cash-stack me-2"></i>@L["Finance Dashboard"]</h3>
-            <div style="opacity:.85">@L["Money collected on the chosen day. Put each account's payments into an RV, then send the RV to FMIS."]</div>
+            <div style="opacity:.85">@L["Money collected in the chosen period. Put each account's payments into an RV, then send the RV to FMIS."]</div>
         </div>
-        <form method="get" class="d-flex flex-wrap gap-2 align-items-center fd-noprint">
-            <a class="btn btn-sm @(Model.IsToday ? "btn-light" : "btn-outline-light")" asp-route-Date="@d(VehicleTax.Web.AppTime.Today)">@L["Today"]</a>
-            <a class="btn btn-sm btn-outline-light" asp-route-Date="@d(day.AddDays(-1))"><i class="bi bi-chevron-left"></i></a>
-            <input type="date" name="Date" value="@d(day)" class="form-control form-control-sm" style="width:auto" onchange="this.form.submit()" />
-            <a class="btn btn-sm btn-outline-light @(Model.IsToday ? "disabled" : "")" asp-route-Date="@d(day.AddDays(1))"><i class="bi bi-chevron-right"></i></a>
+        <div class="d-flex gap-2 fd-noprint">
             <button type="button" class="btn btn-sm btn-outline-light" onclick="window.print()"><i class="bi bi-printer"></i></button>
             <a class="btn btn-sm btn-light fw-semibold" asp-page="/Finance/Rv/Index"><i class="bi bi-clock-history me-1"></i>@L["RV History"]</a>
-        </form>
+        </div>
     </div>
 
-    <div class="fw-semibold text-muted mb-2">@day.ToString("dddd, dd MMMM yyyy")</div>
+    @* ---- Period filter ---- *@
+    <form method="get" class="fd-card p-3 mb-3 fd-noprint">
+        <div class="d-flex flex-wrap gap-2 align-items-end">
+            <div class="d-flex flex-wrap gap-2 me-auto">
+                @foreach (var q in quick)
+                {
+                    var on = from == q.F && to == q.T;
+                    <a class="btn btn-sm @(on ? "btn-primary" : "btn-outline-primary")" asp-route-FromDate="@d(q.F)" asp-route-ToDate="@d(q.T)">@q.Label</a>
+                }
+                @if (single)
+                {
+                    <a class="btn btn-sm btn-outline-secondary" title="@L["Previous day"]" asp-route-FromDate="@d(from.AddDays(-1))" asp-route-ToDate="@d(from.AddDays(-1))"><i class="bi bi-chevron-left"></i></a>
+                    <a class="btn btn-sm btn-outline-secondary @(from >= today ? "disabled" : "")" title="@L["Next day"]" asp-route-FromDate="@d(from.AddDays(1))" asp-route-ToDate="@d(from.AddDays(1))"><i class="bi bi-chevron-right"></i></a>
+                }
+            </div>
+            <div>
+                <label class="form-label small fw-semibold mb-1">@L["From Date"]</label>
+                <input type="date" name="FromDate" value="@d(from)" max="@d(today)" class="form-control form-control-sm" />
+            </div>
+            <div>
+                <label class="form-label small fw-semibold mb-1">@L["To Date"]</label>
+                <input type="date" name="ToDate" value="@d(to)" max="@d(today)" class="form-control form-control-sm" />
+            </div>
+            <button class="btn btn-sm btn-primary"><i class="bi bi-funnel me-1"></i>@L["Apply"]</button>
+        </div>
+    </form>
+
+    <div class="fw-semibold text-muted mb-2">@period</div>
 
     @* ---- The three steps ---- *@
     <div class="row g-3 mb-3">
         @{
             var steps = new[]
             {
-                (1, L["Collected"].ToString(), Model.Collected, Model.CollectedAmount, L["Paid payments on this day"].ToString(), "#15803d", "#dcfce7"),
+                (1, L["Collected"].ToString(), Model.Collected, Model.CollectedAmount, (single ? L["Paid payments on this day"] : L["Paid payments in this period"]).ToString(), "#15803d", "#dcfce7"),
                 (2, L["In an RV"].ToString(), Model.InRv, Model.InRvAmount, L["Grouped into RV documents"].ToString(), "#0b57d0", "#eef4ff"),
                 (3, L["Sent to FMIS"].ToString(), Model.Sent, Model.SentAmount, L["Received by the finance system"].ToString(), "#7c3aed", "#ede9fe"),
             };
@@ -78,13 +113,13 @@
     @* ---- What to do next ---- *@
     @if (Model.Collected == 0)
     {
-        <div class="alert alert-light border d-flex gap-2 align-items-center"><i class="bi bi-info-circle"></i>@L["No money was collected on this day."]</div>
+        <div class="alert alert-light border d-flex gap-2 align-items-center"><i class="bi bi-info-circle"></i>@(single ? L["No money was collected on this day."] : L["No money was collected in this period."])</div>
     }
     else if (Model.NeedsRv > 0)
     {
         <div class="alert alert-warning d-flex gap-2 align-items-center">
             <i class="bi bi-hourglass-split fs-5"></i>
-            <div><b>@money(Model.NeedsRvAmount)</b> @L["from"] <b>@Model.NeedsRv</b> @L["payments still needs an RV."] @L["Press Create RV next to each account below."]</div>
+            <div><b>@money(Model.NeedsRvAmount)</b> @L["from"] <b>@Model.NeedsRv</b> @L["payments still needs an RV."] @(single ? L["Press Create RV next to each account below."] : L["Pick one day (or use the arrows on a single day) to create its RVs."])</div>
         </div>
     }
     else if (Model.Sent < Model.Collected)
@@ -96,7 +131,7 @@
     }
     else
     {
-        <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill fs-5"></i>@L["All done for this day: every payment was sent to FMIS."]</div>
+        <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill fs-5"></i>@(single ? L["All done for this day: every payment was sent to FMIS."] : L["All done for this period: every payment was sent to FMIS."])</div>
     }
     @if (Model.Failed > 0)
     {
@@ -129,6 +164,10 @@
                                 @if (a.Done)
                                 {
                                     <span class="fd-badge" style="background:#dcfce7;color:#15803d"><i class="bi bi-check2"></i>@L["Done"]</span>
+                                }
+                                else if (a.AccountId.HasValue && !single)
+                                {
+                                    <span class="small text-muted">@L["Pick one day to create an RV"]</span>
                                 }
                                 else if (a.AccountId.HasValue)
                                 {
@@ -189,7 +228,7 @@
                         <tr>
                             <td class="fw-semibold">@p.Id</td>
                             <td>@p.InvoiceNumber</td>
-                            <td class="small">@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString("HH:mm")</td>
+                            <td class="small text-nowrap">@VehicleTax.Web.AppTime.ToLocal(p.PaidAt).ToString(single ? "HH:mm" : "dd MMM HH:mm")</td>
                             <td class="fw-semibold">@p.Vehicle?.PlateNumber</td>
                             <td class="small">@(r.Account ?? "—")</td>
                             <td>@(p.Collector?.Username ?? "—")</td>
