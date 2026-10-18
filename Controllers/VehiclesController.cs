@@ -76,6 +76,32 @@ public class VehiclesController : ControllerBase
             .Select(p => (DateTime?)p.PaidAt)
             .FirstOrDefaultAsync();
 
+        // Recent invoices for this vehicle, so the collector can reopen one
+        // (check whether the customer paid it with the short code, print it).
+        var invoices = (await _context.Payments.AsNoTracking()
+                .Include(p => p.Movement)
+                .Include(p => p.Collector)
+                .Where(p => p.VehicleId == vehicle.Id && !p.IsReverted)
+                .OrderByDescending(p => p.Id)
+                .Take(10)
+                .ToListAsync())
+            .Select(p => new
+            {
+                paymentId = p.Id,
+                invoiceNumber = p.InvoiceNumber,
+                shortCode = p.ShortCode,
+                amount = p.Amount,
+                movementId = p.MovementId,
+                movement = p.Movement?.Name ?? p.MovementType,
+                isPaid = p.IsPaid,
+                status = p.IsPaid ? "Paid" : "Pending",
+                paidAt = DateTime.SpecifyKind(p.PaidAt, DateTimeKind.Utc),
+                golisBillNo = p.TransactionId,
+                paidBy = p.PaidBy,
+                collector = p.Collector?.Username,
+            })
+            .ToList();
+
         // Latest collected (paid, not reverted) payment so the plate checker
         // can show paid / not-paid status.
         var lastPayment = await _context.Payments
@@ -110,7 +136,8 @@ public class VehiclesController : ControllerBase
             paidBy = lastPayment?.PaidBy,
             paidToday = paidToday != null,
             paidTodayAt = paidToday == null ? (DateTime?)null : DateTime.SpecifyKind(paidToday.Value, DateTimeKind.Utc),
-            tariffs
+            tariffs,
+            invoices
         });
     }
 

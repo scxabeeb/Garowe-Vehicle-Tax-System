@@ -205,7 +205,9 @@ public class IndexModel : PageModel
             .Include(p => p.ReceiptReference)
             .Where(p => p.IsPaid && !p.IsReverted)
             .AsEnumerable()
-            .GroupBy(p => !string.IsNullOrEmpty(p.TransactionId) ? VehicleTax.Web.Services.PaymentSource.GolisLabel : p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
+            // Our users: an invoice the customer paid through Golis counts for
+            // the collector who issued it.
+            .GroupBy(p => p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")
             .Select(g => new
             {
                 Collector = g.Key,

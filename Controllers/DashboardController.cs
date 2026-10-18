@@ -132,9 +132,10 @@ namespace VehicleTax.Web.Controllers
                 {
                     p.Amount,
                     p.VehicleId,
-                    CollectorId = (p.TransactionId != null && p.TransactionId != "") ? null : p.CollectorId,
+                    // Our users: Golis-paid invoices count for the issuing collector.
+                    p.CollectorId,
                     Movement = p.Movement != null ? p.Movement.Name : p.MovementType,
-                    Collector = (p.TransactionId != null && p.TransactionId != "") ? VehicleTax.Web.Services.PaymentSource.GolisLabel : p.Collector != null ? p.Collector.Username : null
+                    Collector = p.Collector != null ? p.Collector.Username : null
                 })
                 .ToList();
 
