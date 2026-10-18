@@ -65,10 +65,10 @@ namespace VehicleTax.Web.Pages.Reports
 
             foreach (var item in ReportItems)
             {
-                sb.AppendLine($"{item.AccountCode},{item.AccountName},{item.TotalPayments},{item.TotalAmount:N0}");
+                sb.AppendLine($"{item.AccountCode},{item.AccountName},{item.TotalPayments},{VehicleTax.Web.Services.Money.Csv(item.TotalAmount)}");
             }
 
-            sb.AppendLine($"TOTAL,{GrandTotalPayments},{GrandTotalAmount:N0}");
+            sb.AppendLine($"TOTAL,{GrandTotalPayments},{VehicleTax.Web.Services.Money.Csv(GrandTotalAmount)}");
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "text/csv", $"RevenueAccountReport_{AppTime.Now:yyyyMMddHHmmss}.csv");

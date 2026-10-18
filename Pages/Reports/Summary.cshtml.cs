@@ -254,17 +254,17 @@ public class SummaryModel : PageModel
         sb.AppendLine($"To,{ToDate?.ToString("yyyy-MM-dd") ?? "All"}");
         sb.AppendLine($"Total Transactions,{TotalTransactions}");
         sb.AppendLine($"Completed Count,{CompletedCount}");
-        sb.AppendLine($"Completed Amount,{CompletedAmount:N0}");
+        sb.AppendLine($"Completed Amount,{VehicleTax.Web.Services.Money.Csv(CompletedAmount)}");
         sb.AppendLine($"Cancelled Count,{CancelledCount}");
-        sb.AppendLine($"Cancelled Amount,{CancelledAmount:N0}");
-        sb.AppendLine($"Pending,{PendingCount},{PendingAmount:N0}");
-        sb.AppendLine($"Net Amount,{NetAmount:N0}");
+        sb.AppendLine($"Cancelled Amount,{VehicleTax.Web.Services.Money.Csv(CancelledAmount)}");
+        sb.AppendLine($"Pending,{PendingCount},{VehicleTax.Web.Services.Money.Csv(PendingAmount)}");
+        sb.AppendLine($"Net Amount,{VehicleTax.Web.Services.Money.Csv(NetAmount)}");
         sb.AppendLine();
         sb.AppendLine("Collector,Completed,Completed Amount,Cancelled,Cancelled Amount");
 
         foreach (var c in CollectorSummaries)
         {
-            sb.AppendLine($"{c.CollectorName},{c.Completed},{c.CompletedAmount:N0},{c.Cancelled},{c.CancelledAmount:N0}");
+            sb.AppendLine($"{c.CollectorName},{c.Completed},{VehicleTax.Web.Services.Money.Csv(c.CompletedAmount)},{c.Cancelled},{VehicleTax.Web.Services.Money.Csv(c.CancelledAmount)}");
         }
 
         // Per-payment detail — include the audit Reference No. (or blank/for unrecorded)
@@ -276,7 +276,7 @@ public class SummaryModel : PageModel
             var refNo = p.ReferenceNo?.ToString() ?? "";
             var status = p.IsReverted ? "Cancelled" : p.IsPaid ? "Completed" : "Pending";
             var date = AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm");
-            sb.AppendLine($"{p.Id},{refNo},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{p.Amount:N0},{date},{status}");
+            sb.AppendLine($"{p.Id},{refNo},{p.InvoiceId},{p.PlateNumber},{p.MovementType},{p.CollectorName},{VehicleTax.Web.Services.Money.Csv(p.Amount)},{date},{status}");
         }
 
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());

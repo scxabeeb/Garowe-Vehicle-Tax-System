@@ -201,7 +201,7 @@ public class CheckpointReportModel : PageModel
                 Escape(p.PaymentMethod ?? "-"),
                 Escape(p.InvoiceNumber),
                 Escape(p.TransactionId ?? "-"),
-                p.Amount.ToString("N0")
+                VehicleTax.Web.Services.Money.Csv(p.Amount)
             ));
         }
 

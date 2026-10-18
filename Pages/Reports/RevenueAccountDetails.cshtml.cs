@@ -81,10 +81,10 @@ namespace VehicleTax.Web.Pages.Reports
 
             foreach (var t in Transactions)
             {
-                sb.AppendLine($"{t.SystemId},{(t.ReferenceNo?.ToString() ?? "-")},{t.Date:yyyy-MM-dd HH:mm},{t.ReceiptNumber},{t.PlateNumber},{t.OwnerName},{t.CarTypeName},{t.MovementName},{t.Amount:N0}");
+                sb.AppendLine($"{t.SystemId},{(t.ReferenceNo?.ToString() ?? "-")},{t.Date:yyyy-MM-dd HH:mm},{t.ReceiptNumber},{t.PlateNumber},{t.OwnerName},{t.CarTypeName},{t.MovementName},{VehicleTax.Web.Services.Money.Csv(t.Amount)}");
             }
 
-            sb.AppendLine($"TOTAL,{TotalTransactions},{TotalAmount:N0}");
+            sb.AppendLine($"TOTAL,{TotalTransactions},{VehicleTax.Web.Services.Money.Csv(TotalAmount)}");
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "text/csv", $"RevenueAccountDetails_{accountId}_{AppTime.Now:yyyyMMddHHmmss}.csv");

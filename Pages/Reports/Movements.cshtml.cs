@@ -75,7 +75,7 @@ namespace VehicleTax.Web.Pages.Reports
             foreach (var r in await LoadAsync())
                 sb.AppendLine(string.Join(",", r.Tariff.Id, Csv(r.Tariff.Name), Csv(r.Tariff.CarType?.Name),
                     Csv(r.Tariff.RevenueAccount?.AccountCode), Csv(r.Tariff.RevenueAccount?.AccountName),
-                    r.Amount?.ToString("0.00") ?? "", r.Tariff.IsActive ? "Active" : "Inactive"));
+                    VehicleTax.Web.Services.Money.Csv(r.Amount), r.Tariff.IsActive ? "Active" : "Inactive"));
             return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray(),
                 "text/csv", $"TariffTypes_{AppTime.Now:yyyyMMdd_HHmm}.csv");
         }

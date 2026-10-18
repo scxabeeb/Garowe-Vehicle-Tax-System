@@ -130,7 +130,7 @@ namespace VehicleTax.Web.Pages.Reports
             var csv = "System ID,CarType,Tariff,Amount\n";
             foreach (var t in list)
             {
-                csv += $"{t.Id},{t.CarType?.Name},{t.Movement?.Name},{t.Amount:N0}\n";
+                csv += $"{t.Id},{t.CarType?.Name},{t.Movement?.Name},{VehicleTax.Web.Services.Money.Csv(t.Amount)}\n";
             }
 
             return File(

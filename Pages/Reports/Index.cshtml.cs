@@ -414,12 +414,12 @@ namespace VehicleTax.Web.Pages.Reports
                     p.Checkpoint?.Name ?? "Unassigned",
                     p.InvoiceNumber,
                     p.TransactionId ?? "-",
-                    p.Amount.ToString("N0")
+                    VehicleTax.Web.Services.Money.Csv(p.Amount)
                 ));
             }
 
             // Add total row to the exported CSV (11 columns to match header)
-            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,,,,{TotalAmount:N0}");
+            sb.AppendLine($"TOTAL ({TotalPayments} payments),,,,,,,,,,,,{VehicleTax.Web.Services.Money.Csv(TotalAmount)}");
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "text/csv", $"Payments_{AppTime.Now:yyyyMMddHHmmss}.csv");

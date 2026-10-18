@@ -288,7 +288,7 @@ public class GolisAuditModel : PageModel
             sb.AppendLine("Golis Reference,Date,Time,Mobile,Amount,Description,System ID,System Receipt,System Amount,Difference,Status,Notes");
             foreach (var row in GolisRows)
             {
-                sb.AppendLine($"{row.Reference},{row.Date:yyyy-MM-dd},{row.Time},{row.Mobile},{row.Amount},{Escape(row.Description)},{row.SystemId},{row.SystemReceipt},{row.SystemAmount},{row.Difference},{row.Status},{Escape(row.Notes)}");
+                sb.AppendLine($"{row.Reference},{row.Date:yyyy-MM-dd},{row.Time},{row.Mobile},{VehicleTax.Web.Services.Money.Csv(row.Amount)},{Escape(row.Description)},{row.SystemId},{row.SystemReceipt},{VehicleTax.Web.Services.Money.Csv(row.SystemAmount)},{VehicleTax.Web.Services.Money.Csv(row.Difference)},{row.Status},{Escape(row.Notes)}");
             }
         }
         else
@@ -296,7 +296,7 @@ public class GolisAuditModel : PageModel
             sb.AppendLine("System ID,System Receipt,Date,Plate,Amount,Golis Reference,Status");
             foreach (var row in SystemOnlyRows)
             {
-                sb.AppendLine($"{row.SystemId},{row.ReceiptNumber},{row.Date:yyyy-MM-dd},{row.Plate},{row.Amount},{row.GolisReference},{row.Status}");
+                sb.AppendLine($"{row.SystemId},{row.ReceiptNumber},{row.Date:yyyy-MM-dd},{row.Plate},{VehicleTax.Web.Services.Money.Csv(row.Amount)},{row.GolisReference},{row.Status}");
             }
         }
 

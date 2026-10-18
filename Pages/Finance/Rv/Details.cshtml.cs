@@ -87,7 +87,7 @@ public class DetailsModel : PageModel
                 p.ReferenceNo?.ToString() ?? "-",
                 p.PaymentId,
                 p.InvoiceNumber ?? "",
-                p.Amount.ToString("0.00"),
+                VehicleTax.Web.Services.Money.Csv(p.Amount),
                 AppTime.ToLocal(p.PaidAt).ToString("yyyy-MM-dd HH:mm:ss"),
                 (p.CollectBy ?? "").Replace(",", " ")))
             .ToList();

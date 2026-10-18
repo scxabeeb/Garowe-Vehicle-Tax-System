@@ -130,7 +130,7 @@ public class CollectionModel : PageModel
                 p.Collector?.Username ?? "Unassigned",
                 p.Checkpoint?.Name ?? "-",
                 p.InvoiceNumber,
-                p.Amount.ToString("N0")
+                VehicleTax.Web.Services.Money.Csv(p.Amount)
             ));
         }
 

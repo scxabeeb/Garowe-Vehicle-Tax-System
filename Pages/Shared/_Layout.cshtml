@@ -184,7 +184,33 @@
     </style>
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+@{ var printMode = Context.Request.Query["print"] == "1"; }
+<body class="d-flex flex-column min-vh-100 @(printMode ? "print-mode" : "")">
+@if (printMode)
+{
+    @* Print view: only the report content, then the print dialog (choose "Save as PDF"). *@
+    <style>
+        .print-mode nav.navbar, .print-mode footer, .print-mode form, .print-mode .report-view-cards,
+        .print-mode .vt-pager, .print-mode .vt-sort-hint, .print-mode .d-print-none, .print-mode .alert,
+        .print-mode .btn, .print-mode .module-header .btn { display: none !important; }
+        .print-mode .vt-sort { display: none !important; }
+        .print-mode .container, .print-mode .container-fluid { max-width: none !important; }
+        .print-mode table { font-size: 11px; }
+        @@page { size: A4 landscape; margin: 10mm; }
+    </style>
+    <div class="container-fluid pt-3 d-flex align-items-center gap-3 border-bottom pb-2 mb-2">
+        <img src="/images/Logo.jpeg" alt="" width="48" height="48" class="rounded-circle" />
+        <div>
+            <div class="fw-bold">@L["Garowe Local Government"] — @ViewData["Title"]</div>
+            <div class="small text-muted">
+                @{ var f = Context.Request.Query["FromDate"].ToString(); var t = Context.Request.Query["ToDate"].ToString(); }
+                @(string.IsNullOrEmpty(f) && string.IsNullOrEmpty(t) ? L["All dates"] : $"{f} – {t}")
+                · @L["Printed"] @VehicleTax.Web.AppTime.Now.ToString("dd MMM yyyy HH:mm")
+            </div>
+        </div>
+    </div>
+    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 400); });</script>
+}
 
 <nav class="navbar navbar-expand-lg navbar-dark app-navbar shadow">
     <div class="container-fluid">

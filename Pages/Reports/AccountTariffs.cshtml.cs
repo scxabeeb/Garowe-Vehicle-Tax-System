@@ -53,7 +53,7 @@ public class AccountTariffsModel : PageModel
             foreach (var t in a.Tariffs)
                 foreach (var p in t.Prices)
                     sb.AppendLine(string.Join(",", Csv(a.Code), Csv(a.Id == null ? "No revenue account" : a.Name), Csv(t.Name),
-                        Csv(p.CarType), p.Amount?.ToString("0.00") ?? "", p.IsActive ? "Active" : "Inactive", p.MovementId));
+                        Csv(p.CarType), VehicleTax.Web.Services.Money.Csv(p.Amount), p.IsActive ? "Active" : "Inactive", p.MovementId));
         return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray(),
             "text/csv", $"RevenueAccountTariffs_{AppTime.Now:yyyyMMdd_HHmm}.csv");
     }

@@ -183,7 +183,7 @@ public class LogsModel : PageModel
                 Escape(p.PaymentMethod ?? "-"),
                 Escape(p.TransactionId ?? "-"),
                 Escape(p.ReceiptReference?.ReferenceNumber ?? "-"),
-                p.Amount.ToString("N0"),
+                VehicleTax.Web.Services.Money.Csv(p.Amount),
                 Escape(p.IsReverted ? "Cancelled" : "Completed"),
                 Escape(p.RevertedByUser?.Username ?? "-"),
                 Escape(p.RevertReason),

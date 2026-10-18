@@ -151,7 +151,7 @@ public class IndexModel : PageModel
                 Escape(t.Vehicle?.CarType?.Name),
                 Escape(t.MovementType),
                 Escape(t.Collector?.Username ?? "System"),
-                Escape(t.Amount.ToString("N0")),
+                VehicleTax.Web.Services.Money.Csv(t.Amount),
                 Escape(t.ReceiptReference != null ? t.ReceiptReference.ReferenceNumber : t.InvoiceNumber),
                 Escape(string.IsNullOrWhiteSpace(t.TransactionId) ? "-" : t.TransactionId),
                 Escape(t.IsReverted ? "Cancelled" : "Completed"),
