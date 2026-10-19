@@ -47,6 +47,7 @@ public class VerifyController : ControllerBase
             isReverted = payment.IsReverted,
             plateNumber = payment.Vehicle?.PlateNumber,
             ownerName = payment.Vehicle?.OwnerName,
+            carType = payment.Vehicle?.CarType?.Name,
             movement = payment.Movement?.Name ?? payment.MovementType,
             amount = payment.Amount,
             paidAt = DateTime.SpecifyKind(payment.PaidAt, DateTimeKind.Utc),
@@ -80,6 +81,7 @@ public class VerifyController : ControllerBase
                 Row(T("Invoice No"), payment.InvoiceNumber) +
                 Row(T("Plate"), payment.Vehicle?.PlateNumber) +
                 Row(T("Owner"), payment.Vehicle?.OwnerName) +
+                Row(T("Car Type"), payment.Vehicle?.CarType?.Name) +
                 Row(T("Tariff"), payment.Movement?.Name ?? payment.MovementType) +
                 Row(T("Amount"), "$" + payment.Amount.ToString("0.00")) +
                 Row(T("Paid At"), AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy, HH:mm")) +
@@ -140,7 +142,7 @@ td:first-child{{color:#64748b}} td:last-child{{text-align:right;font-weight:700}
         if (id == null) return null;
 
         var payment = _context.Payments
-            .Include(p => p.Vehicle)
+            .Include(p => p.Vehicle).ThenInclude(v => v!.CarType)
             .Include(p => p.Movement)
             .Include(p => p.Collector)
             .FirstOrDefault(p => p.Id == id.Value);
