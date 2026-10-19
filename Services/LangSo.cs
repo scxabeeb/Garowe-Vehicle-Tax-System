@@ -1004,5 +1004,12 @@ public static class LangSo
         ["Print / PDF"] = "Daabac / PDF",
         ["Prints the payments matching the filters (all payments when no filter is set)."] = "Waxay daabacdaa lacag-bixinnada u dhigma sifeeyayaasha (dhammaan haddii aan sifeeye la dooran).",
         ["Collections by checkpoint for the chosen dates (today by default)."] = "Lacagta la qaaday kontarool kasta taariikhaha la doortay (maanta haddii aan la beddelin).",
+        ["Sort by"] = "Kala sooc",
+        ["System ID – newest first"] = "Aqoonsiga nidaamka – kuwa cusub marka hore",
+        ["System ID – oldest first"] = "Aqoonsiga nidaamka – kuwa hore marka hore",
+        ["Date – newest first"] = "Taariikhda – kuwa cusub marka hore",
+        ["Date – oldest first"] = "Taariikhda – kuwa hore marka hore",
+        ["Amount – highest first"] = "Qaddarka – kan ugu badan marka hore",
+        ["Amount – lowest first"] = "Qaddarka – kan ugu yar marka hore",
     };
 }

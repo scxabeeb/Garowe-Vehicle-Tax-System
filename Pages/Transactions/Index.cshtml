@@ -84,6 +84,18 @@
                     </select>
                 </div>
 
+                <div class="col-md-3">
+                    <label class="form-label">@L["Sort by"]</label>
+                    <select name="Sort" class="form-select">
+                        @foreach (var (v, t) in new[] { ("idDesc", L["System ID – newest first"].ToString()), ("idAsc", L["System ID – oldest first"].ToString()),
+                                                        ("dateDesc", L["Date – newest first"].ToString()), ("dateAsc", L["Date – oldest first"].ToString()),
+                                                        ("amountDesc", L["Amount – highest first"].ToString()), ("amountAsc", L["Amount – lowest first"].ToString()) })
+                        {
+                            <option value="@v" selected="@(Model.Sort == v ? "selected" : null)">@t</option>
+                        }
+                    </select>
+                </div>
+
             </div>
 
             <div class="mt-3 text-end">
@@ -101,7 +113,7 @@
     <!-- EXPORT -->
     <div class="d-flex justify-content-end mb-2">
         <a asp-page-handler="ExportFiltered" asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
-           asp-route-UserId="@Model.UserId" asp-route-Action="@Model.Action"
+           asp-route-UserId="@Model.UserId" asp-route-Action="@Model.Action" asp-route-Sort="@Model.Sort"
            class="btn btn-success">
             <i class="bi bi-file-earmark-excel"></i> @L["Export Filtered"]
         </a>

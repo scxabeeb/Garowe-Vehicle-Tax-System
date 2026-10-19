@@ -29,7 +29,21 @@ public class IndexModel : PageModel
     public int? UserId { get; set; }
 
     [BindProperty(SupportsGet = true)]
-    public string? Action { get; set; }   // All | Completed | Reverted
+    public string? Action { get; set; }   // All | Completed | Pending | Reverted
+
+    /// <summary>idDesc (default) | idAsc | dateDesc | dateAsc | amountDesc | amountAsc</summary>
+    [BindProperty(SupportsGet = true)]
+    public string Sort { get; set; } = "idDesc";
+
+    private IQueryable<Payment> Sorted(IQueryable<Payment> q) => Sort switch
+    {
+        "idAsc" => q.OrderBy(p => p.Id),
+        "dateDesc" => q.OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt).ThenByDescending(p => p.Id),
+        "dateAsc" => q.OrderBy(p => p.IsReverted ? p.RevertedAt : p.PaidAt).ThenBy(p => p.Id),
+        "amountDesc" => q.OrderByDescending(p => p.Amount).ThenByDescending(p => p.Id),
+        "amountAsc" => q.OrderBy(p => p.Amount).ThenByDescending(p => p.Id),
+        _ => q.OrderByDescending(p => p.Id), // System ID, newest first
+    };
 
     // Page size selector (default = 10)
     [BindProperty(SupportsGet = true)]
@@ -78,10 +92,7 @@ public class IndexModel : PageModel
 
         Pager = new Pager(TotalTransactions, CurrentPage, PageSize);
 
-        // Latest action first: use RevertedAt for cancelled, PaidAt for completed.
-        Transactions = await Pager.Apply(query
-                .OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt)
-                .ThenByDescending(p => p.Id))
+        Transactions = await Pager.Apply(Sorted(query))
             .AsNoTracking()
             .ToListAsync();
     }
@@ -132,9 +143,7 @@ public class IndexModel : PageModel
     {
         var query = Filtered();
 
-        var data = query
-            .OrderByDescending(p => p.IsReverted ? p.RevertedAt : p.PaidAt)
-            .ThenByDescending(p => p.Id)
+        var data = Sorted(query)
             .AsNoTracking()
             .ToList();
 
