@@ -111,7 +111,8 @@ namespace VehicleTax.Web.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(SessionClaims.Version, user.SessionVersion.ToString())
             };
 
             var key = new SymmetricSecurityKey(
@@ -144,6 +145,7 @@ namespace VehicleTax.Web.Controllers
         }
 
         public const string InactiveMessage = "Your account is inactive. Please contact the administrator.";
+        public const string SignedOutMessage = "You were signed out by the administrator. Please log in again.";
 
         // ================= STATUS =================
         /// <summary>

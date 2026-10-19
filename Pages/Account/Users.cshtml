@@ -59,6 +59,13 @@
             {
                 <a class="btn btn-outline-light" asp-page="/Account/ManagePermissions"><i class="bi bi-shield-lock me-1"></i>@L["Manage Permissions"]</a>
             }
+            @if (User.IsInRole("Admin"))
+            {
+                <form method="post" asp-page-handler="SignOutAll" class="d-inline m-0"
+                      onsubmit="return confirm('@L["Sign out ALL users (except you) from the web and the mobile app? They will have to log in again."]');">
+                    <button class="btn btn-outline-light" type="submit"><i class="bi bi-box-arrow-right me-1"></i>@L["Sign out all users"]</button>
+                </form>
+            }
             @if (can(AppPermissions.Keys.UsersCreate))
             {
                 <a class="btn btn-light fw-semibold" asp-page="/Account/Register"><i class="bi bi-person-plus me-1"></i>@L["New User"]</a>
@@ -193,6 +200,13 @@
                                 @if (can(AppPermissions.Keys.RolesManagePermissions))
                                 {
                                     <a class="um-act" title="@L["Permissions"]" asp-page="/Account/ManagePermissions" asp-route-userId="@x.Id"><i class="bi bi-shield-lock"></i></a>
+                                }
+                                @if (User.IsInRole("Admin") && !isMe)
+                                {
+                                    <form method="post" asp-page-handler="SignOut" asp-route-id="@x.Id" class="d-inline"
+                                          onsubmit="return confirm('@L["Sign this user out of the web and the mobile app?"]');">
+                                        <button class="um-act" type="submit" title="@L["Sign out (web and mobile app)"]"><i class="bi bi-box-arrow-right"></i></button>
+                                    </form>
                                 }
                                 @if (can(AppPermissions.Keys.UsersEdit) && !isMe)
                                 {

@@ -42,6 +42,12 @@ public static class ActivityContext
     /// sign requests in, so the token is validated here only to name who
     /// made the change.
     /// </summary>
+    private const string SessionKey = "activity.appSession";
+
+    /// <summary>Session number in the app's token (0 for tokens from before it existed).</summary>
+    public static int AppSessionVersion(HttpContext http) =>
+        AppUser(http) != null && http.Items.TryGetValue(SessionKey, out var v) && v is int i ? i : 0;
+
     public static string? AppUser(HttpContext http)
     {
         const string cacheKey = "activity.appUser";
@@ -68,6 +74,7 @@ public static class ActivityContext
                     ValidateLifetime = false,
                 }, out _);
                 name = principal.FindFirst(ClaimTypes.Name)?.Value ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                http.Items[SessionKey] = SessionClaims.Of(principal);
             }
             catch (Exception)
             {

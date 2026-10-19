@@ -65,8 +65,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             var name = ctx.Principal?.Identity?.Name;
             if (string.IsNullOrEmpty(name)) return;
             var db = ctx.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            // Also signed out when an admin ended their sessions.
+            var sv = SessionClaims.Of(ctx.Principal);
             var active = await db.Users.AsNoTracking()
-                .AnyAsync(u => u.Username == name && !u.IsLocked);
+                .AnyAsync(u => u.Username == name && !u.IsLocked && u.SessionVersion == sv);
             if (!active)
             {
                 ctx.RejectPrincipal();
@@ -241,8 +243,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// The mobile app of a user set Inactive is refused (401) on every request,
-// so a collector already signed in cannot keep working.
+// The mobile app of a user set Inactive, or signed out by an admin, is
+// refused (401) on every request, so they cannot keep working.
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path;
@@ -254,15 +256,28 @@ app.Use(async (context, next) =>
         if (name != null)
         {
             var db = context.RequestServices.GetRequiredService<AppDbContext>();
-            var inactive = await db.Users.AsNoTracking()
-                .AnyAsync(u => u.Username == name && u.IsLocked);
-            if (inactive)
+            var user = await db.Users.AsNoTracking()
+                .Where(u => u.Username == name)
+                .Select(u => new { u.IsLocked, u.SessionVersion })
+                .FirstOrDefaultAsync();
+            if (user != null && user.IsLocked)
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsJsonAsync(new
                 {
                     message = VehicleTax.Web.Controllers.AuthController.InactiveMessage,
                     inactive = true
+                });
+                return;
+            }
+            // An admin signed this user out: tokens from before that stop working.
+            if (user != null && user.SessionVersion != VehicleTax.Web.Services.ActivityContext.AppSessionVersion(context))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    message = VehicleTax.Web.Controllers.AuthController.SignedOutMessage,
+                    signedOut = true
                 });
                 return;
             }

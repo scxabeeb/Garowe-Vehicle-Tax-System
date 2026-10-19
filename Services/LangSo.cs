@@ -959,6 +959,13 @@ public static class LangSo
         ["Set this user Inactive? They will be signed out and cannot log in on the web or the app."] = "Ma ka dhigaysaa isticmaalahan Inactive? Waa laga saarayaa, mana soo geli karo website-ka ama app-ka.",
         ["You cannot set your own account to inactive."] = "Akoonkaaga ma ka dhigi kartid Inactive.",
         ["An inactive user cannot log in on the web or the mobile app."] = "Isticmaale Inactive ah ma soo geli karo website-ka ama app-ka.",
+        ["Sign out all users"] = "Ka saar dhammaan isticmaalayaasha",
+        ["Sign out ALL users (except you) from the web and the mobile app? They will have to log in again."] = "Ma ka saaraysaa DHAMMAAN isticmaalayaasha (adiga mooyee) website-ka iyo app-ka? Waa inay mar kale soo galaan.",
+        ["Sign this user out of the web and the mobile app?"] = "Ma ka saaraysaa isticmaalahan website-ka iyo app-ka?",
+        ["Sign out (web and mobile app)"] = "Ka saar (website iyo app)",
+        ["Use Logout to sign yourself out."] = "Isticmaal Ka bax si aad naftaada uga baxdo.",
+        ["You were signed out by the administrator. Please log in again."] = "Maamulaha ayaa kaa saaray. Fadlan mar kale soo gal.",
+        ["ForcedLogout"] = "Laga saaray",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",

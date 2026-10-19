@@ -48,6 +48,7 @@ public static class ActivityActions
     public const string Created = "Created";
     public const string Updated = "Updated";
     public const string Deleted = "Deleted";
+    public const string ForcedLogout = "ForcedLogout";
 
-    public static readonly string[] All = { Login, LoginFailed, Logout, Created, Updated, Deleted };
+    public static readonly string[] All = { Login, LoginFailed, Logout, Created, Updated, Deleted, ForcedLogout };
 }

@@ -23,4 +23,19 @@ public class User
 
     // New: lock / unlock support
     public bool IsLocked { get; set; } = false;
+
+    /// <summary>
+    /// Stamped into every web login and app token ("sv" claim). Raising it
+    /// signs the user out everywhere: older logins no longer match.
+    /// </summary>
+    public int SessionVersion { get; set; }
+}
+
+public static class SessionClaims
+{
+    public const string Version = "sv";
+
+    /// <summary>The session number a login carries; logins from before it existed carry 0.</summary>
+    public static int Of(System.Security.Claims.ClaimsPrincipal? principal) =>
+        int.TryParse(principal?.FindFirst(Version)?.Value, out var v) ? v : 0;
 }

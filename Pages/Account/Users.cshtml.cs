@@ -14,11 +14,13 @@ public class UsersModel : PageModel
     private readonly AppDbContext _context;
 
     private readonly IPermissionService _permissions;
+    private readonly IActivityLogger _activity;
 
-    public UsersModel(AppDbContext context, IPermissionService permissions)
+    public UsersModel(AppDbContext context, IPermissionService permissions, IActivityLogger activity)
     {
         _context = context;
         _permissions = permissions;
+        _activity = activity;
     }
 
     public List<UserAccessView> Users { get; set; } = new();
@@ -92,6 +94,40 @@ public class UsersModel : PageModel
         _context.SaveChanges();
 
         TempData["Message"] = $"User '{user.Username}' was deleted.";
+        return RedirectToPage();
+    }
+
+    /// <summary>Admin: sign one user out of the web and the mobile app.</summary>
+    public async Task<IActionResult> OnPostSignOutAsync(int id)
+    {
+        if (!User.IsInRole("Admin")) return Forbid();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null) return RedirectToPage();
+        if (string.Equals(User.Identity?.Name, user.Username, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "Use Logout to sign yourself out.";
+            return RedirectToPage();
+        }
+
+        user.SessionVersion++;
+        await _context.SaveChangesAsync();
+        await _activity.LogAsync(ActivityActions.ForcedLogout, User.Identity?.Name, entity: "User", entityId: user.Id.ToString(),
+            details: $"Signed out {user.Username} (web and mobile app)");
+        TempData["Message"] = $"User '{user.Username}' was signed out of the web and the mobile app.";
+        return RedirectToPage();
+    }
+
+    /// <summary>Admin: sign every other user out of the web and the mobile app.</summary>
+    public async Task<IActionResult> OnPostSignOutAllAsync()
+    {
+        if (!User.IsInRole("Admin")) return Forbid();
+        var me = User.Identity?.Name ?? "";
+        var count = await _context.Users
+            .Where(u => u.Username != me)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.SessionVersion, u => u.SessionVersion + 1));
+        await _activity.LogAsync(ActivityActions.ForcedLogout, me, entity: "User",
+            details: $"Signed out all users ({count}) from the web and mobile app");
+        TempData["Message"] = $"All users ({count}) were signed out of the web and the mobile app. They must log in again.";
         return RedirectToPage();
     }
 

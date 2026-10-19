@@ -145,7 +145,8 @@ public class LoginModel : PageModel
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim(SessionClaims.Version, user.SessionVersion.ToString())
         };
 
         // Add permission claims
