@@ -45,7 +45,7 @@ public sealed class PagePermissionFilter : IAsyncPageFilter
         // Users
         ["/Account/Users"] = K.UsersView,
         ["/Account/Users#Delete"] = K.UsersDelete,
-        ["/Account/Users#ToggleActive"] = K.UsersDelete,
+        ["/Account/Users#ToggleActive"] = K.UsersEdit,
         ["/Account/Register"] = K.UsersCreate,
         ["/Account/EditUser"] = K.UsersEdit,
         ["/Account/UserSecurity"] = K.UsersView,

@@ -957,6 +957,8 @@ public static class LangSo
         ["Your account is inactive. Please contact the administrator."] = "Akoonkaagu waa la xannibay (Inactive). Fadlan la xiriir maamulaha.",
         ["Set this user Active? They can log in again."] = "Ma ka dhigaysaa isticmaalahan Active? Wuu soo gali karaa mar kale.",
         ["Set this user Inactive? They will be signed out and cannot log in on the web or the app."] = "Ma ka dhigaysaa isticmaalahan Inactive? Waa laga saarayaa, mana soo geli karo website-ka ama app-ka.",
+        ["You cannot set your own account to inactive."] = "Akoonkaaga ma ka dhigi kartid Inactive.",
+        ["An inactive user cannot log in on the web or the mobile app."] = "Isticmaale Inactive ah ma soo geli karo website-ka ama app-ka.",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",

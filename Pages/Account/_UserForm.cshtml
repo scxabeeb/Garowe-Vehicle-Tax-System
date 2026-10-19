@@ -122,6 +122,15 @@
 
                         @if (Model.IsEdit)
                         {
+                            <label class="form-label fw-semibold mt-3 d-block">@L["Status"]</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="IsActive" id="ufActive" value="true" checked="@(Model.IsLocked ? null : "checked")" />
+                                <label class="btn btn-outline-success" for="ufActive"><i class="bi bi-person-check me-1"></i>@L["Active"]</label>
+                                <input type="radio" class="btn-check" name="IsActive" id="ufInactive" value="false" checked="@(Model.IsLocked ? "checked" : null)" disabled="@(Model.IsMe ? "disabled" : null)" />
+                                <label class="btn btn-outline-danger" for="ufInactive"><i class="bi bi-person-x me-1"></i>@L["Inactive"]</label>
+                            </div>
+                            <div class="form-text">@L[Model.IsMe ? "You cannot set your own account to inactive." : "An inactive user cannot log in on the web or the mobile app."]</div>
+
                             <a class="btn btn-sm btn-outline-primary mt-3" asp-page="/Account/ManagePermissions" asp-route-userId="@Model.Id">
                                 <i class="bi bi-sliders me-1"></i>@L["Fine-tune this user's permissions"]
                             </a>

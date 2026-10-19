@@ -29,6 +29,7 @@ public class EditUserModel : PageModel
     [BindProperty] public string? Password { get; set; }
     [BindProperty] public string Role { get; set; } = "";
     [BindProperty] public int? CheckpointId { get; set; }
+    [BindProperty] public bool IsActive { get; set; } = true;
 
     public UserFormModel Form { get; private set; } = new();
 
@@ -43,6 +44,7 @@ public class EditUserModel : PageModel
         Phone = user.Phone;
         Role = user.Role;
         CheckpointId = user.CheckpointId;
+        IsActive = !user.IsLocked;
         await BuildFormAsync(user, new List<string>());
         return Page();
     }
@@ -66,6 +68,8 @@ public class EditUserModel : PageModel
             errors.Add("You cannot change your own role.");
         if (isMe && !string.Equals(username, dbUser.Username, StringComparison.Ordinal))
             errors.Add("You cannot change your own username while signed in.");
+        if (isMe && !IsActive)
+            errors.Add("You cannot set your own account to inactive.");
         if (CheckpointId.HasValue && !_context.Checkpoints.Any(c => c.Id == CheckpointId.Value))
             errors.Add("Selected checkpoint does not exist.");
 
@@ -81,6 +85,7 @@ public class EditUserModel : PageModel
         dbUser.Phone = Phone?.Trim() ?? "";
         dbUser.Role = roles.First(r => r.Name.Equals(Role, StringComparison.OrdinalIgnoreCase)).Name;
         dbUser.CheckpointId = CheckpointId;
+        dbUser.IsLocked = !IsActive;
         if (!string.IsNullOrWhiteSpace(Password))
             dbUser.Password = _passwordHasher.HashPassword(dbUser, Password.Trim());
 
@@ -100,7 +105,8 @@ public class EditUserModel : PageModel
             Phone = Phone,
             Role = Role,
             CheckpointId = CheckpointId,
-            IsLocked = user.IsLocked,
+            IsLocked = !IsActive,
+            IsMe = string.Equals(User.Identity?.Name, user.Username, StringComparison.OrdinalIgnoreCase),
             Roles = await UserFormSupport.LoadRolesAsync(_context, _permissions, keep: user.Role),
             Checkpoints = UserFormSupport.LoadCheckpoints(_context, CheckpointId),
             Errors = errors,

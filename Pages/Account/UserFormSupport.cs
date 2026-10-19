@@ -20,6 +20,7 @@ public class UserFormModel
     public string Role { get; set; } = "";
     public int? CheckpointId { get; set; }
     public bool IsLocked { get; set; }
+    public bool IsMe { get; set; }
     public List<RoleOption> Roles { get; set; } = new();
     public SelectList Checkpoints { get; set; } = null!;
     public List<string> Errors { get; set; } = new();

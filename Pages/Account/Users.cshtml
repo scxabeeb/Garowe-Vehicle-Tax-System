@@ -176,7 +176,7 @@
                                 {
                                     <a class="um-act" title="@L["Permissions"]" asp-page="/Account/ManagePermissions" asp-route-userId="@x.Id"><i class="bi bi-shield-lock"></i></a>
                                 }
-                                @if (can(AppPermissions.Keys.UsersDelete) && !isMe)
+                                @if (can(AppPermissions.Keys.UsersEdit) && !isMe)
                                 {
                                     <form method="post" asp-page-handler="ToggleActive" asp-route-id="@x.Id" class="d-inline"
                                           onsubmit="return confirm('@(x.IsLocked ? L["Set this user Active? They can log in again."] : L["Set this user Inactive? They will be signed out and cannot log in on the web or the app."])');">
@@ -189,6 +189,9 @@
                                             <button class="um-toggle off" type="submit"><i class="bi bi-person-x"></i>@L["Set Inactive"]</button>
                                         }
                                     </form>
+                                }
+                                @if (can(AppPermissions.Keys.UsersDelete) && !isMe)
+                                {
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@x.Id" class="d-inline"
                                           onsubmit="return confirm('@L["Delete this user? This cannot be undone."]');">
                                         <button class="um-act danger" type="submit" title="@L["Delete"]"><i class="bi bi-trash"></i></button>
