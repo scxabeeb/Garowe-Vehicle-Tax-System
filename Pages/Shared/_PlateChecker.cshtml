@@ -13,7 +13,7 @@
         ["network"] = L["Network error. Please try again."], ["enterPlate"] = L["Plate Number"],
         ["owner"] = L["Owner"], ["carType"] = L["Car Type"], ["tariff"] = L["Tariff"], ["amount"] = L["Amount"], ["paidAt"] = L["Paid At"],
         ["lastPaid"] = L["Last Paid"], ["invoice"] = L["Invoice No"], ["golis"] = L["Golis Bill No"],
-        ["collector"] = L["Collector"], ["systemId"] = L["System ID"],
+        ["collector"] = L["Collector"], ["systemId"] = L["System ID"], ["checkpoint"] = L["Checkpoint"],
         ["sender"] = L["Paid by (sender)"],
         ["cameraError"] = L["Camera not available. Type the invoice number instead."],
     };
@@ -104,6 +104,7 @@
                     row(T.owner, v.ownerName) + (v.carType && v.carType.name ? row(T.carType, v.carType.name) : '') + row(T.tariff, v.movement) +
                     row(paidToday ? T.paidAt : T.lastPaid, v.paidAt ? fmt(v.paidAt) : '-') +
                     (v.amount != null ? row(T.amount, '$' + Number(v.amount).toFixed(2)) : '') +
+                    (v.checkpoint ? row(T.checkpoint, v.checkpoint) : '') +
                     row(T.invoice, v.invoiceNumber) + row(T.golis, v.golisBillNo) +
                     (v.paidBy ? row(T.sender, v.paidBy) : '') + row(T.systemId, v.paymentId));
             })
@@ -132,6 +133,7 @@
                     row(T.invoice, p.invoiceNumber) + row(T.systemId, p.paymentId) + row(T.owner, p.ownerName) + (p.carType ? row(T.carType, p.carType) : '') +
                     row(T.tariff, p.movement) + row(T.amount, '$' + Number(p.amount).toFixed(2)) +
                     row(T.paidAt, fmt(p.paidAt)) + row(T.collector, p.collector) +
+                    (p.checkpoint ? row(T.checkpoint, p.checkpoint) : '') +
                     (p.golisBillNo ? row(T.golis, p.golisBillNo) : '') +
                     (p.paidBy ? row(T.sender, p.paidBy) : ''));
             })

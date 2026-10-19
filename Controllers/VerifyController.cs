@@ -52,12 +52,16 @@ public class VerifyController : ControllerBase
             amount = payment.Amount,
             paidAt = DateTime.SpecifyKind(payment.PaidAt, DateTimeKind.Utc),
             collector = payment.Collector?.Username,
+            checkpoint = CheckpointOf(payment),
             golisBillNo = payment.TransactionId,
             // The sender's number is partly hidden for people who are not signed in.
             paidBy = Phone(payment.PaidBy),
             referenceNo = payment.ReferenceNo
         });
     }
+
+    /// <summary>Where it was paid: the payment's checkpoint, else its collector's.</summary>
+    private static string? CheckpointOf(Payment p) => p.Checkpoint?.Name ?? p.Collector?.Checkpoint?.Name;
 
     [HttpGet("verify/{code}")]
     public ContentResult VerifyPage(string code)
@@ -86,6 +90,7 @@ public class VerifyController : ControllerBase
                 Row(T("Amount"), "$" + payment.Amount.ToString("0.00")) +
                 Row(T("Paid At"), AppTime.ToLocal(payment.PaidAt).ToString("dd MMM yyyy, HH:mm")) +
                 Row(T("Collector"), payment.Collector?.Username) +
+                Row(T("Checkpoint"), CheckpointOf(payment)) +
                 (string.IsNullOrWhiteSpace(payment.TransactionId) ? "" : Row(T("Golis Bill"), payment.TransactionId)) +
                 (string.IsNullOrWhiteSpace(payment.PaidBy) ? "" : Row(T("Paid by (sender)"), Phone(payment.PaidBy)));
             body = Card(color, bg, status,
@@ -144,7 +149,8 @@ td:first-child{{color:#64748b}} td:last-child{{text-align:right;font-weight:700}
         var payment = _context.Payments
             .Include(p => p.Vehicle).ThenInclude(v => v!.CarType)
             .Include(p => p.Movement)
-            .Include(p => p.Collector)
+            .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
+            .Include(p => p.Checkpoint)
             .FirstOrDefault(p => p.Id == id.Value);
 
         // A full invoice number must match exactly (guards against guessing).

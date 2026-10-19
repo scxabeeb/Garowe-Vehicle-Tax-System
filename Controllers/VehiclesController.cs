@@ -106,6 +106,8 @@ public class VehiclesController : ControllerBase
         // can show paid / not-paid status.
         var lastPayment = await _context.Payments
             .Include(p => p.Movement)
+            .Include(p => p.Checkpoint)
+            .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
             .Where(p => p.VehicleId == vehicle.Id && p.IsPaid && !p.IsReverted)
             .OrderByDescending(p => p.PaidAt)
             .FirstOrDefaultAsync();
@@ -134,6 +136,8 @@ public class VehiclesController : ControllerBase
             golisBillNo = lastPayment?.TransactionId,
             // Number that paid the last payment (Golis sender).
             paidBy = lastPayment?.PaidBy,
+            // Where it was paid: the payment's checkpoint, else its collector's.
+            checkpoint = lastPayment?.Checkpoint?.Name ?? lastPayment?.Collector?.Checkpoint?.Name,
             paidToday = paidToday != null,
             paidTodayAt = paidToday == null ? (DateTime?)null : DateTime.SpecifyKind(paidToday.Value, DateTimeKind.Utc),
             tariffs,
