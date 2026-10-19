@@ -37,6 +37,10 @@
     .um-act { width: 34px; height: 34px; border-radius: 10px; display: inline-grid; place-items: center; border: 1px solid #e2e8f0; background: #fff; color: #334155; }
     .um-act:hover { background: #f1f5f9; }
     .um-act.danger { color: #dc2626; }
+    .um-switch { width: 2.4em !important; height: 1.25em; cursor: pointer; margin: 0 !important; float: none !important; }
+    .um-switch:not(:checked) { background-color: #fecaca; border-color: #fca5a5; }
+    .um-switch:checked { background-color: #16a34a; border-color: #16a34a; }
+    .form-switch .form-check-label.um-status { cursor: pointer; }
     .um-toggle { height: 34px; padding: 0 12px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600; border: 1px solid; vertical-align: middle; }
     .um-toggle.off { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
     .um-toggle.off:hover { background: #fee2e2; }
@@ -145,7 +149,21 @@
                             <td><span class="um-role" style="background:@(roleColor(x.Role))1a;color:@roleColor(x.Role)">@L[x.Role ?? "-"]</span></td>
                             <td>@(x.Checkpoint?.Name ?? "—")</td>
                             <td>
-                                @if (x.IsLocked)
+                                @if (can(AppPermissions.Keys.UsersEdit) && !isMe)
+                                {
+                                    @* Click the switch to change the status; the page asks first. *@
+                                    <form method="post" asp-page-handler="ToggleActive" asp-route-id="@x.Id" class="m-0"
+                                          onsubmit="return confirm('@(x.IsLocked ? L["Set this user Active? They can log in again."] : L["Set this user Inactive? They will be signed out and cannot log in on the web or the app."])');">
+                                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center gap-2" title="@L[x.IsLocked ? "Set Active" : "Set Inactive"]">
+                                            <input class="form-check-input um-switch" type="checkbox" role="switch" id="umSw@(x.Id)"
+                                                   checked="@(x.IsLocked ? null : "checked")"
+                                                   onchange="if (!this.form.requestSubmit) { this.form.submit(); } else { this.form.requestSubmit(); } this.checked = !this.checked;" />
+                                            <label class="form-check-label um-status m-0" for="umSw@(x.Id)"
+                                                   style="@(x.IsLocked ? "background:#fee2e2;color:#b91c1c" : "background:#dcfce7;color:#15803d")">@L[x.IsLocked ? "Inactive" : "Active"]</label>
+                                        </div>
+                                    </form>
+                                }
+                                else if (x.IsLocked)
                                 {
                                     <span class="um-status" style="background:#fee2e2;color:#b91c1c">@L["Inactive"]</span>
                                 }
