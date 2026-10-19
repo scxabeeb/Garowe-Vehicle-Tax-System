@@ -42,7 +42,7 @@ public static class ActivityContext
     /// sign requests in, so the token is validated here only to name who
     /// made the change.
     /// </summary>
-    private static string? AppUser(HttpContext http)
+    public static string? AppUser(HttpContext http)
     {
         const string cacheKey = "activity.appUser";
         if (http.Items.TryGetValue(cacheKey, out var cached)) return cached as string;

@@ -95,6 +95,16 @@ namespace VehicleTax.Web.Controllers
                 _context.SaveChanges();
             }
 
+            if (user.IsLocked)
+            {
+                await _activity.LogAsync(ActivityActions.LoginFailed, user.Username, entityId: user.Id.ToString(), details: "App: account inactive");
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = InactiveMessage,
+                    inactive = true
+                });
+            }
+
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Username),
@@ -131,6 +141,23 @@ namespace VehicleTax.Web.Controllers
                     role = user.Role
                 }
             });
+        }
+
+        public const string InactiveMessage = "Your account is inactive. Please contact the administrator.";
+
+        // ================= STATUS =================
+        /// <summary>
+        /// Lets the app check that its saved login still belongs to an active
+        /// user. Inactive users are answered 401 by the inactive-user check in
+        /// Program.cs before reaching here.
+        /// </summary>
+        [HttpGet("status")]
+        public IActionResult Status()
+        {
+            var name = ActivityContext.AppUser(HttpContext);
+            if (name == null)
+                return Unauthorized(new { message = "Not signed in" });
+            return Ok(new { active = true, username = name });
         }
 
         // ================= CHANGE PASSWORD =================

@@ -137,7 +137,7 @@ public class LoginModel : PageModel
         if (user.IsLocked)
         {
             await _activity.LogAsync(ActivityActions.LoginFailed, user.Username, entityId: user.Id.ToString(), details: "Web: account locked");
-            ErrorMessage = "Your account is locked. Please contact the administrator.";
+            ErrorMessage = "Your account is inactive. Please contact the administrator.";
             return Page();
         }
 

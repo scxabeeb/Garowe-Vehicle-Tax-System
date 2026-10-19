@@ -47,6 +47,8 @@ namespace VehicleTax.Web.Controllers
 
             if (dto.CollectorId.HasValue && collector == null)
                 return BadRequest(new { status = "error", message = "Collector not found" });
+            if (collector?.IsLocked == true)
+                return StatusCode(StatusCodes.Status403Forbidden, new { status = "error", message = AuthController.InactiveMessage, inactive = true });
 
             ReceiptReference? reference = null;
             if (!string.IsNullOrWhiteSpace(dto.ReferenceNumber))
@@ -154,6 +156,8 @@ namespace VehicleTax.Web.Controllers
             var collector = _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId);
             if (collector == null)
                 return BadRequest(new { status = "error", message = "Collector not found" });
+            if (collector.IsLocked)
+                return StatusCode(StatusCodes.Status403Forbidden, new { status = "error", message = AuthController.InactiveMessage, inactive = true });
 
             var now = DateTime.UtcNow;
 
@@ -243,6 +247,8 @@ namespace VehicleTax.Web.Controllers
 
             if (dto.CollectorId.HasValue && invoiceCollector == null)
                 return BadRequest(new { status = "error", message = "Collector not found" });
+            if (invoiceCollector?.IsLocked == true)
+                return StatusCode(StatusCodes.Status403Forbidden, new { status = "error", message = AuthController.InactiveMessage, inactive = true });
 
             var vehicle = _context.Vehicles
                 .Include(v => v.CarType)
@@ -342,6 +348,8 @@ namespace VehicleTax.Web.Controllers
             var collector = _context.Users.FirstOrDefault(u => u.Id == dto.CollectorId);
             if (collector == null)
                 return BadRequest(new { status = "error", message = "Collector not found" });
+            if (collector.IsLocked)
+                return StatusCode(StatusCodes.Status403Forbidden, new { status = "error", message = AuthController.InactiveMessage, inactive = true });
 
             ReceiptReference? reference = null;
             if (!string.IsNullOrWhiteSpace(dto.ReferenceNumber))

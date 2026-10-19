@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -57,6 +58,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
+        // A user set Inactive in User Management is signed out on their
+        // next page, not only at their next login.
+        options.Events.OnValidatePrincipal = async ctx =>
+        {
+            var name = ctx.Principal?.Identity?.Name;
+            if (string.IsNullOrEmpty(name)) return;
+            var db = ctx.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var active = await db.Users.AsNoTracking()
+                .AnyAsync(u => u.Username == name && !u.IsLocked);
+            if (!active)
+            {
+                ctx.RejectPrincipal();
+                await ctx.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 // =========================
 
@@ -222,6 +238,36 @@ app.Use(async (context, next) =>
     context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
     context.Response.Headers["Pragma"] = "no-cache";
     context.Response.Headers["Expires"] = "0";
+    await next();
+});
+
+// The mobile app of a user set Inactive is refused (401) on every request,
+// so a collector already signed in cannot keep working.
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path;
+    if (path.StartsWithSegments("/api") &&
+        !path.StartsWithSegments("/api/auth/login") &&
+        context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+    {
+        var name = VehicleTax.Web.Services.ActivityContext.AppUser(context);
+        if (name != null)
+        {
+            var db = context.RequestServices.GetRequiredService<AppDbContext>();
+            var inactive = await db.Users.AsNoTracking()
+                .AnyAsync(u => u.Username == name && u.IsLocked);
+            if (inactive)
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    message = VehicleTax.Web.Controllers.AuthController.InactiveMessage,
+                    inactive = true
+                });
+                return;
+            }
+        }
+    }
     await next();
 });
 

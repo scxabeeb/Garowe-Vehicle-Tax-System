@@ -954,6 +954,7 @@ public static class LangSo
         ["No vehicles found."] = "Gaari lama helin.",
         ["Your session expired. Please try again."] = "Fadhigaagu wuu dhacay. Fadlan isku day mar kale.",
         ["Your session expired. Please sign in again."] = "Fadhigaagu wuu dhacay. Fadlan dib u gal.",
+        ["Your account is inactive. Please contact the administrator."] = "Akoonkaagu waa la xannibay (Inactive). Fadlan la xiriir maamulaha.",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",
