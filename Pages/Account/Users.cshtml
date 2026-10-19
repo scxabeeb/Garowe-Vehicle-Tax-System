@@ -37,6 +37,11 @@
     .um-act { width: 34px; height: 34px; border-radius: 10px; display: inline-grid; place-items: center; border: 1px solid #e2e8f0; background: #fff; color: #334155; }
     .um-act:hover { background: #f1f5f9; }
     .um-act.danger { color: #dc2626; }
+    .um-toggle { height: 34px; padding: 0 12px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600; border: 1px solid; vertical-align: middle; }
+    .um-toggle.off { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .um-toggle.off:hover { background: #fee2e2; }
+    .um-toggle.on { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .um-toggle.on:hover { background: #dcfce7; }
 </style>
 
 <div class="container py-4">
@@ -173,10 +178,16 @@
                                 }
                                 @if (can(AppPermissions.Keys.UsersDelete) && !isMe)
                                 {
-                                    <form method="post" asp-page-handler="ToggleActive" asp-route-id="@x.Id" class="d-inline">
-                                        <button class="um-act" type="submit" title="@L[x.IsLocked ? "Set Active" : "Set Inactive"]">
-                                            <i class="bi @(x.IsLocked ? "bi-unlock" : "bi-lock")"></i>
-                                        </button>
+                                    <form method="post" asp-page-handler="ToggleActive" asp-route-id="@x.Id" class="d-inline"
+                                          onsubmit="return confirm('@(x.IsLocked ? L["Set this user Active? They can log in again."] : L["Set this user Inactive? They will be signed out and cannot log in on the web or the app."])');">
+                                        @if (x.IsLocked)
+                                        {
+                                            <button class="um-toggle on" type="submit"><i class="bi bi-person-check"></i>@L["Set Active"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="um-toggle off" type="submit"><i class="bi bi-person-x"></i>@L["Set Inactive"]</button>
+                                        }
                                     </form>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@x.Id" class="d-inline"
                                           onsubmit="return confirm('@L["Delete this user? This cannot be undone."]');">

@@ -955,6 +955,8 @@ public static class LangSo
         ["Your session expired. Please try again."] = "Fadhigaagu wuu dhacay. Fadlan isku day mar kale.",
         ["Your session expired. Please sign in again."] = "Fadhigaagu wuu dhacay. Fadlan dib u gal.",
         ["Your account is inactive. Please contact the administrator."] = "Akoonkaagu waa la xannibay (Inactive). Fadlan la xiriir maamulaha.",
+        ["Set this user Active? They can log in again."] = "Ma ka dhigaysaa isticmaalahan Active? Wuu soo gali karaa mar kale.",
+        ["Set this user Inactive? They will be signed out and cannot log in on the web or the app."] = "Ma ka dhigaysaa isticmaalahan Inactive? Waa laga saarayaa, mana soo geli karo website-ka ama app-ka.",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",
