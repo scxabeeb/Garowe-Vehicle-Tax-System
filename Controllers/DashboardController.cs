@@ -186,7 +186,8 @@ namespace VehicleTax.Web.Controllers
         public IActionResult GetTopCheckpoints(
             [FromQuery] DateTime? fromDate = null,
             [FromQuery] DateTime? toDate = null,
-            [FromQuery] int limit = 5)
+            [FromQuery] int limit = 5,
+            [FromQuery] int? collectorId = null)
         {
             if (limit < 1)
             {
@@ -214,6 +215,9 @@ namespace VehicleTax.Web.Controllers
             {
                 query = query.Where(p => p.PaidAt < AppTime.ToUtc(toDate.Value.Date.AddDays(1)));
             }
+
+            if (collectorId.HasValue)
+                query = query.Where(p => p.CollectorId == collectorId.Value);
 
             // Use the snapshot Payment.Checkpoint first; if null, fall back
             // to the collector's current checkpoint so historical payments

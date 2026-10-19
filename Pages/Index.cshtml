@@ -220,7 +220,7 @@
         <div class="card panel-card h-100">
             <div class="card-body">
                 <h6 class="panel-title mb-0">@L["Checkpoint Performance"]</h6>
-                <p class="text-muted small mb-2">Collections by checkpoint (snapshot).</p>
+                <p class="text-muted small mb-2">@L["Collections by checkpoint for the chosen dates (today by default)."]</p>
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     <input type="date" id="checkpointFromDate" class="form-control form-control-sm w-auto" />
                     <input type="date" id="checkpointToDate" class="form-control form-control-sm w-auto" />
@@ -518,6 +518,7 @@ async function loadCheckpointChart() {
     try {
         const query = new URLSearchParams();
         query.set('limit', '5');
+        @if (Model.CollectorId.HasValue) { <text>query.set('collectorId', '@Model.CollectorId');</text> }
 
         if (fromInput.value) {
             query.set('fromDate', fromInput.value);
@@ -589,11 +590,9 @@ function setDefaultCheckpointDateRange() {
         return;
     }
 
+    // Today by default (pick other dates in the filter).
     const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - 6);
-
-    fromInput.value = formatDateInputValue(weekStart);
+    fromInput.value = formatDateInputValue(today);
     toInput.value = formatDateInputValue(today);
 }
 

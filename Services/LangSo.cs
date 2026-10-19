@@ -1003,5 +1003,6 @@ public static class LangSo
         ["Printed"] = "La daabacay",
         ["Print / PDF"] = "Daabac / PDF",
         ["Prints the payments matching the filters (all payments when no filter is set)."] = "Waxay daabacdaa lacag-bixinnada u dhigma sifeeyayaasha (dhammaan haddii aan sifeeye la dooran).",
+        ["Collections by checkpoint for the chosen dates (today by default)."] = "Lacagta la qaaday kontarool kasta taariikhaha la doortay (maanta haddii aan la beddelin).",
     };
 }
