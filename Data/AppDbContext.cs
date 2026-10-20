@@ -78,6 +78,13 @@ namespace VehicleTax.Web.Data
                 .HasForeignKey(p => p.CollectorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Payment → collector who made the mistake (set when cancelled)
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.MistakeByUser)
+                .WithMany()
+                .HasForeignKey(p => p.MistakeByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Payment → Checkpoint relation (snapshot of checkpoint at payment time)
             // Ensures historical payments stay attributed to the original checkpoint
             // even when a collector is later reassigned to a different checkpoint.

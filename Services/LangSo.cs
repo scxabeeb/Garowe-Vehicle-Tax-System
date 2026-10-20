@@ -966,6 +966,12 @@ public static class LangSo
         ["Use Logout to sign yourself out."] = "Isticmaal Ka bax si aad naftaada uga baxdo.",
         ["You were signed out by the administrator. Please log in again."] = "Maamulaha ayaa kaa saaray. Fadlan mar kale soo gal.",
         ["ForcedLogout"] = "Laga saaray",
+        ["Mistake by"] = "Khaladka waxaa sameeyay",
+        ["Mistake by (collector)"] = "Khaladka waxaa sameeyay (lacag-ururiye)",
+        ["No one / not a collector mistake"] = "Cidna / maaha khalad lacag-ururiye",
+        ["Starts on the collector who took the payment. Filter by Mistake by to see each collector's mistakes."] = "Waxay ku bilaabataa lacag-ururiyaha qaaday lacagta. Ku shaandhee \"Khaladka waxaa sameeyay\" si aad u aragto khaladaadka lacag-ururiye kasta.",
+        ["Cancelled payments: collector who made the mistake"] = "Lacagaha la joojiyay: lacag-ururiyaha khaladka sameeyay",
+        ["by"] = "waxaa sameeyay",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",

@@ -91,6 +91,10 @@ namespace VehicleTax.Web.Models
         public int? RevertedByUserId { get; set; }
         public User? RevertedByUser { get; set; }   // 🔥 THIS WAS MISSING
 
+        /// <summary>On a cancelled payment: the collector whose mistake it was (chosen by the admin).</summary>
+        public int? MistakeByUserId { get; set; }
+        public User? MistakeByUser { get; set; }
+
         // Backward compatibility
         [NotMapped]
         public decimal AmountPaid

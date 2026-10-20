@@ -101,6 +101,19 @@
                     }
                 </select>
             </div>
+            @if (!Model.IsPersonal)
+            {
+                <div class="col-6 col-md-2 col-xl-1">
+                    <label class="form-label small fw-semibold mb-1" title="@L["Cancelled payments: collector who made the mistake"]">@L["Mistake by"]</label>
+                    <select name="MistakeById" class="form-select">
+                        <option value="">@L["All"]</option>
+                        @foreach (var u in Model.Collectors)
+                        {
+                            <option value="@u.Id" selected="@(u.Id == Model.MistakeById ? "selected" : null)">@u.Username</option>
+                        }
+                    </select>
+                </div>
+            }
             <input type="hidden" name="Status" value="@Model.Status" />
             <input type="hidden" name="PageSize" value="@Model.PageSize" />
             <div class="col-md-auto d-flex gap-2">
@@ -117,7 +130,7 @@
                 <a class="pl-stat @(Model.Status == s.Item1 ? "active" : "")"
                    asp-route-Status="@s.Item1" asp-route-Search="@Model.Search"
                    asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
-                   asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId"
+                   asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId" asp-route-MistakeById="@Model.MistakeById"
                    asp-route-PageSize="@Model.PageSize">
                     <span class="ic" style="background:@s.Item6;color:@s.Item5"><i class="bi @s.Item7"></i></span>
                     <div>
@@ -169,7 +182,15 @@
                                 @if (p.IsReverted)
                                 {
                                     <span class="badge bg-danger" title="@p.RevertReason">@L["Cancelled"]</span>
-                                    <div class="small text-muted">@p.RevertedByUser?.Username</div>
+                                    <div class="small text-muted">@L["by"] @p.RevertedByUser?.Username</div>
+                                    @if (p.MistakeByUser != null)
+                                    {
+                                        <div class="small text-danger fw-semibold"><i class="bi bi-person-exclamation"></i> @L["Mistake by"]: @p.MistakeByUser.Username</div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(p.RevertReason))
+                                    {
+                                        <div class="small text-muted text-truncate" style="max-width:180px" title="@p.RevertReason">@p.RevertReason</div>
+                                    }
                                 }
                                 else if (p.IsPaid)
                                 {
@@ -194,7 +215,7 @@
                                     {
                                         <button type="button" class="pl-act danger @(r.RvNumber != null ? "disabled" : "")" title="@L["Cancel payment"]"
                                                 data-bs-toggle="modal" data-bs-target="#plCancel"
-                                                data-id="@p.Id" data-label="#@p.Id · @p.InvoiceNumber · @p.Vehicle?.PlateNumber · $@p.Amount.ToString("N2")">
+                                                data-id="@p.Id" data-collector="@p.CollectorId" data-label="#@p.Id · @p.InvoiceNumber · @p.Vehicle?.PlateNumber · $@p.Amount.ToString("N2")">
                                             <i class="bi bi-x-circle"></i>
                                         </button>
                                     }
@@ -220,7 +241,7 @@
             <form method="post" asp-page-handler="Cancel" class="modal-content"
                   asp-route-Search="@Model.Search" asp-route-Status="@Model.Status"
                   asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
-                  asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId"
+                  asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId" asp-route-MistakeById="@Model.MistakeById"
                   asp-route-PageSize="@Model.PageSize" asp-route-CurrentPage="@Model.CurrentPage">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>@L["Cancel payment"]</h5>
@@ -231,6 +252,15 @@
                     <div class="fw-semibold mb-2" id="plCancelLabel"></div>
                     <label class="form-label small fw-semibold">@L["Reason"] <span class="text-danger">*</span></label>
                     <textarea name="reason" class="form-control" rows="3" required minlength="3" maxlength="500"></textarea>
+                    <label class="form-label small fw-semibold mt-3">@L["Mistake by (collector)"]</label>
+                    <select name="mistakeByUserId" id="plCancelMistake" class="form-select">
+                        <option value="">@L["No one / not a collector mistake"]</option>
+                        @foreach (var u in Model.Collectors)
+                        {
+                            <option value="@u.Id">@u.Username@(string.IsNullOrWhiteSpace(u.FullName) ? "" : " · " + u.FullName)</option>
+                        }
+                    </select>
+                    <div class="form-text">@L["Starts on the collector who took the payment. Filter by Mistake by to see each collector's mistakes."]</div>
                     <div class="form-text">@L["The payment will no longer count as paid. This is recorded in the Activity Log."]</div>
                 </div>
                 <div class="modal-footer">
@@ -246,6 +276,7 @@
             document.getElementById('plCancelId').value = b.dataset.id;
             document.getElementById('plCancelLabel').textContent = b.dataset.label;
             this.querySelector('textarea').value = '';
+            document.getElementById('plCancelMistake').value = b.dataset.collector || '';
         });
     </script>
 }

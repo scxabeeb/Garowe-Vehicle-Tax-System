@@ -33,6 +33,8 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public int? CollectorId { get; set; }
     [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
     [BindProperty(SupportsGet = true)] public int? MovementId { get; set; }
+    /// <summary>Cancelled payments whose mistake was this collector's.</summary>
+    [BindProperty(SupportsGet = true)] public int? MistakeById { get; set; }
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -63,7 +65,7 @@ public class IndexModel : PageModel
     }
 
     /// <summary>Cancel (revert) a payment. Admins only, with a reason.</summary>
-    public async Task<IActionResult> OnPostCancelAsync(int paymentId, string? reason)
+    public async Task<IActionResult> OnPostCancelAsync(int paymentId, string? reason, int? mistakeByUserId)
     {
         var me = await MeAsync();
         if (me == null || !IsAdmin || !CanCancel) return Forbid();
@@ -78,7 +80,8 @@ public class IndexModel : PageModel
             payment == null ? "Payment not found." :
             payment.IsReverted ? "This payment is already cancelled." :
             rv != null ? $"Payment #{paymentId} is in RV {rv}. Cancel the RV first." :
-            reason.Length < 3 ? "Cancel reason is required." : null;
+            reason.Length < 3 ? "Cancel reason is required." :
+            mistakeByUserId.HasValue && !await _context.Users.AnyAsync(u => u.Id == mistakeByUserId) ? "Collector not found." : null;
         if (error != null)
         {
             TempData["Error"] = error;
@@ -90,6 +93,7 @@ public class IndexModel : PageModel
         payment.RevertedAt = DateTime.UtcNow;
         payment.RevertReason = reason.Length > 500 ? reason[..500] : reason;
         payment.RevertedByUserId = me.Id;
+        payment.MistakeByUserId = mistakeByUserId;
 
         // Free the receipt reference so it can be used again.
         if (payment.ReceiptReference != null)
@@ -108,7 +112,7 @@ public class IndexModel : PageModel
     private object Route() => new
     {
         Search, Status, FromDate = FromDate?.ToString("yyyy-MM-dd"), ToDate = ToDate?.ToString("yyyy-MM-dd"),
-        CollectorId, CheckpointId, MovementId, PageSize, CurrentPage,
+        CollectorId, CheckpointId, MovementId, MistakeById, PageSize, CurrentPage,
     };
 
     private async Task<User?> MeAsync()
@@ -130,6 +134,7 @@ public class IndexModel : PageModel
             .Include(p => p.Collector)
             .Include(p => p.Checkpoint)
             .Include(p => p.RevertedByUser)
+            .Include(p => p.MistakeByUser)
             .Include(p => p.Movement).ThenInclude(m => m!.RevenueAccount)
             .AsQueryable();
 
@@ -169,6 +174,7 @@ public class IndexModel : PageModel
         if (!IsPersonal && CollectorId.HasValue) q = q.Where(p => p.CollectorId == CollectorId);
         if (CheckpointId.HasValue) q = q.Where(p => p.CheckpointId == CheckpointId);
         if (MovementId.HasValue) q = q.Where(p => p.MovementId == MovementId);
+        if (!IsPersonal && MistakeById.HasValue) q = q.Where(p => p.IsReverted && p.MistakeByUserId == MistakeById);
 
         // Totals by status, before the status filter so the cards stay useful.
         var totals = await q.GroupBy(p => p.IsReverted ? 2 : p.IsPaid ? 0 : 1)

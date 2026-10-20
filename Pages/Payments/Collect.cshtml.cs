@@ -346,6 +346,7 @@ public class CollectModel : PageModel
             payment.RevertedAt = DateTime.UtcNow;
             payment.RevertReason = reason;
             payment.RevertedByUserId = user.Id;
+            payment.MistakeByUserId = payment.CollectorId;
 
             // Reset receipt so it becomes available again
             if (payment.ReceiptReference != null)

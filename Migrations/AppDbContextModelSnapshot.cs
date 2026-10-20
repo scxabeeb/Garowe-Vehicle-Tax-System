@@ -347,6 +347,9 @@ namespace VehicleTax.Web.Migrations
                     b.Property<bool>("IsReverted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<int?>("MistakeByUserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("MovementId")
                         .HasColumnType("int");
 
@@ -392,6 +395,8 @@ namespace VehicleTax.Web.Migrations
                     b.HasIndex("CheckpointId");
 
                     b.HasIndex("CollectorId");
+
+                    b.HasIndex("MistakeByUserId");
 
                     b.HasIndex("MovementId");
 
@@ -1063,6 +1068,11 @@ namespace VehicleTax.Web.Migrations
                         .HasForeignKey("CollectorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("VehicleTax.Web.Models.User", "MistakeByUser")
+                        .WithMany()
+                        .HasForeignKey("MistakeByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("VehicleTax.Web.Models.Movement", "Movement")
                         .WithMany()
                         .HasForeignKey("MovementId")
@@ -1087,6 +1097,8 @@ namespace VehicleTax.Web.Migrations
                     b.Navigation("Checkpoint");
 
                     b.Navigation("Collector");
+
+                    b.Navigation("MistakeByUser");
 
                     b.Navigation("Movement");
 
