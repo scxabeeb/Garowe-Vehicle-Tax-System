@@ -26,7 +26,8 @@
             <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="bi bi-printer"></i></button>
             <a class="btn btn-light fw-semibold" asp-page-handler="ExportCsv"
                asp-route-MovementName="@Model.MovementName" asp-route-CarTypeId="@Model.CarTypeId"
-               asp-route-AccountId="@Model.AccountId" asp-route-Status="@Model.Status">
+               asp-route-AccountId="@Model.AccountId" asp-route-Status="@Model.Status"
+               asp-route-CheckpointId="@Model.CheckpointId" asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")">
                 <i class="bi bi-file-earmark-spreadsheet me-1"></i>@L["Export CSV"]
             </a>
         </div>
@@ -67,6 +68,24 @@
                     <option value="inactive" selected="@(Model.Status == "inactive" ? "selected" : null)">@L["Inactive"]</option>
                 </select>
             </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">@L["Checkpoint"]</label>
+                <select name="CheckpointId" class="form-select">
+                    <option value="">@L["All checkpoints"]</option>
+                    @foreach (var c in Model.Checkpoints)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CheckpointId ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["From Date"]</label>
+                <input type="date" name="FromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold mb-1">@L["To Date"]</label>
+                <input type="date" name="ToDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
             <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
             <div class="col-md-2 d-flex gap-2">
                 <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i>@L["Filter"]</button>
@@ -74,6 +93,15 @@
             </div>
         </div>
     </form>
+
+    @if (Model.ByCollection)
+    {
+        <div class="alert alert-info d-flex align-items-center gap-2 py-2">
+            <i class="bi bi-info-circle"></i>
+            @L["Showing the tariffs collected"]@(Model.CheckpointId.HasValue ? " " + L["at"] + " " + Model.Checkpoints.FirstOrDefault(c => c.Id == Model.CheckpointId)?.Name : "")@(Model.FromDate.HasValue || Model.ToDate.HasValue ? $" ({Model.FromDate?.ToString("dd MMM yyyy") ?? "…"} – {Model.ToDate?.ToString("dd MMM yyyy") ?? "…"})" : ""),
+            @L["paid payments only"].
+        </div>
+    }
 
     <partial name="_ReportViewToggle" />
 
@@ -85,12 +113,17 @@
                 (L["Active"].ToString(), Model.ActiveCount, "#15803d"),
                 (L["Inactive"].ToString(), Model.TotalRecords - Model.ActiveCount, "#64748b"),
                 (L["No revenue account"].ToString(), Model.NoAccountCount, "#b45309"),
-                (L["No tax amount"].ToString(), Model.NoAmountCount, "#b91c1c") })
+                (L["No tax amount"].ToString(), Model.NoAmountCount, "#b91c1c"),
+                (L["Payments"].ToString(), Model.PaymentCount, "#0e7490") })
             {
                 <div class="col-6 col-md-4 col-xl-2">
                     <div class="tt-kpi"><div class="v" style="color:@k.Item3">@k.Item2</div><div class="l">@k.Item1</div></div>
                 </div>
             }
+        </div>
+        <div class="tt-kpi mb-3 d-flex align-items-center gap-3">
+            <i class="bi bi-cash-stack fs-3" style="color:#15803d"></i>
+            <div><div class="v" style="color:#15803d">$@Model.CollectedTotal.ToString("N2")</div><div class="l">@L["Collected"] · @L["paid payments only"]</div></div>
         </div>
         <partial name="_CountGroups" model="Model.SummaryGroups" />
     </div>
@@ -107,6 +140,8 @@
                             <th>@L["Revenue Account"]</th>
                             <th class="text-end">@L["Tax Amount"]</th>
                             <th>@L["Status"]</th>
+                            <th class="text-end">@L["Payments"]</th>
+                            <th class="text-end">@L["Collected"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -147,11 +182,13 @@
                                         <span class="badge bg-secondary">@L["Inactive"]</span>
                                     }
                                 </td>
+                                <td class="text-end">@r.Payments.ToString("N0")</td>
+                                <td class="text-end fw-semibold">$@r.Collected.ToString("N2")</td>
                             </tr>
                         }
                         @if (!Model.Rows.Any())
                         {
-                            <tr><td colspan="6" class="text-center text-muted py-4">@L["No tariff records found."]</td></tr>
+                            <tr><td colspan="8" class="text-center text-muted py-4">@L["No tariff records found."]</td></tr>
                         }
                     </tbody>
                 </table>
