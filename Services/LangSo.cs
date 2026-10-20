@@ -994,6 +994,8 @@ public static class LangSo
         ["at"] = "ee",
         ["paid payments only"] = "lacagaha la bixiyay oo keliya",
         ["All checkpoints"] = "Dhammaan kontaroolada",
+        ["View tariffs"] = "Eeg tariffyada",
+        ["No payments in this period."] = "Lacag-bixin kuma jirto muddadan.",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",

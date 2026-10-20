@@ -40,6 +40,9 @@ namespace VehicleTax.Web.Pages.Reports
         public List<Checkpoint> Checkpoints { get; set; } = new();
         /// <summary>A checkpoint or date is chosen: rows are the tariffs collected there / then.</summary>
         public bool ByCollection => CheckpointId.HasValue || FromDate.HasValue || ToDate.HasValue;
+        public record CheckpointRow(int? Id, string Name, int Tariffs, int Payments, decimal Collected);
+        /// <summary>Paid payments per checkpoint, for the tariffs matching the other filters.</summary>
+        public List<CheckpointRow> ByCheckpoint { get; set; } = new();
         public int PaymentCount { get; set; }
         public decimal CollectedTotal { get; set; }
         public List<CountGroup> SummaryGroups { get; set; } = new();
@@ -76,6 +79,8 @@ namespace VehicleTax.Web.Pages.Reports
                     ReportDetails.CountBy(all.Select(r => r.Tariff.IsActive ? "Active" : "Inactive"), n => n)),
             };
 
+            ByCheckpoint = await LoadByCheckpointAsync();
+
             var p = Pager;
             Rows = all.Skip(p.Skip).Take(p.Take).ToList();
         }
@@ -91,6 +96,51 @@ namespace VehicleTax.Web.Pages.Reports
                     r.Payments, VehicleTax.Web.Services.Money.Csv(r.Collected)));
             return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray(),
                 "text/csv", $"TariffTypes_{AppTime.Now:yyyyMMdd_HHmm}.csv");
+        }
+
+        /// <summary>Every checkpoint (not just the chosen one) for the same tariffs and dates.</summary>
+        private async Task<List<CheckpointRow>> LoadByCheckpointAsync()
+        {
+            var tariffIds = await TariffQuery().Select(m => m.Id).ToListAsync();
+            var paid = PaidQuery(tariffIds, checkpoint: false);
+            var stats = await paid.GroupBy(p => p.CheckpointId)
+                .Select(g => new { g.Key, T = g.Select(p => p.MovementId).Distinct().Count(), N = g.Count(), Sum = g.Sum(p => p.Amount) })
+                .ToListAsync();
+            var names = Checkpoints.ToDictionary(c => c.Id, c => c.Name);
+            return stats
+                .Select(s => new CheckpointRow(s.Key, s.Key.HasValue && names.TryGetValue(s.Key.Value, out var n) ? n : "No checkpoint", s.T, s.N, s.Sum))
+                .OrderByDescending(r => r.Collected)
+                .ToList();
+        }
+
+        private IQueryable<Movement> TariffQuery()
+        {
+            var q = _context.Movements.AsNoTracking().AsQueryable();
+            if (!string.IsNullOrWhiteSpace(MovementName)) q = q.Where(m => m.Name.Contains(MovementName.Trim()));
+            if (CarTypeId.HasValue) q = q.Where(m => m.CarTypeId == CarTypeId);
+            if (AccountId == -1) q = q.Where(m => m.RevenueAccountId == null);
+            else if (AccountId.HasValue) q = q.Where(m => m.RevenueAccountId == AccountId);
+            if (Status == "active") q = q.Where(m => m.IsActive);
+            else if (Status == "inactive") q = q.Where(m => !m.IsActive);
+            return q;
+        }
+
+        /// <summary>Paid payments for these tariffs within the dates (and the checkpoint, unless asked not to).</summary>
+        private IQueryable<Payment> PaidQuery(List<int> tariffIds, bool checkpoint = true)
+        {
+            var paid = _context.Payments.AsNoTracking().Where(p => p.IsPaid && !p.IsReverted && tariffIds.Contains(p.MovementId));
+            if (checkpoint && CheckpointId.HasValue) paid = paid.Where(p => p.CheckpointId == CheckpointId);
+            if (FromDate.HasValue)
+            {
+                var from = AppTime.ToUtc(FromDate.Value.Date);
+                paid = paid.Where(p => p.PaidAt >= from);
+            }
+            if (ToDate.HasValue)
+            {
+                var to = AppTime.ToUtc(ToDate.Value.Date.AddDays(1));
+                paid = paid.Where(p => p.PaidAt < to);
+            }
+            return paid;
         }
 
         private async Task<List<Row>> LoadAsync()
@@ -118,19 +168,7 @@ namespace VehicleTax.Web.Pages.Reports
                 .ToDictionary(g => g.Key, g => g.First().Amount);
 
             // Paid payments per tariff (at the chosen checkpoint / dates).
-            var paid = _context.Payments.AsNoTracking().Where(p => p.IsPaid && !p.IsReverted && ids.Contains(p.MovementId));
-            if (CheckpointId.HasValue) paid = paid.Where(p => p.CheckpointId == CheckpointId);
-            if (FromDate.HasValue)
-            {
-                var from = AppTime.ToUtc(FromDate.Value.Date);
-                paid = paid.Where(p => p.PaidAt >= from);
-            }
-            if (ToDate.HasValue)
-            {
-                var to = AppTime.ToUtc(ToDate.Value.Date.AddDays(1));
-                paid = paid.Where(p => p.PaidAt < to);
-            }
-            var stats = await paid.GroupBy(p => p.MovementId)
+            var stats = await PaidQuery(ids).GroupBy(p => p.MovementId)
                 .Select(g => new { g.Key, N = g.Count(), Sum = g.Sum(p => p.Amount) })
                 .ToDictionaryAsync(x => x.Key);
 

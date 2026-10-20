@@ -125,6 +125,71 @@
             <i class="bi bi-cash-stack fs-3" style="color:#15803d"></i>
             <div><div class="v" style="color:#15803d">$@Model.CollectedTotal.ToString("N2")</div><div class="l">@L["Collected"] · @L["paid payments only"]</div></div>
         </div>
+        <div class="tt-card mb-3">
+            <div class="p-3 border-bottom fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-geo-alt text-primary"></i>@L["By Checkpoint"]
+                <span class="small text-muted fw-normal">· @L["paid payments only"]@(Model.FromDate.HasValue || Model.ToDate.HasValue ? $" · {Model.FromDate?.ToString("dd MMM yyyy") ?? "…"} – {Model.ToDate?.ToString("dd MMM yyyy") ?? "…"}" : "")</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table tt-table mb-0" data-no-pager>
+                    <thead>
+                        <tr>
+                            <th>@L["Checkpoint"]</th>
+                            <th class="text-end">@L["Tariffs"]</th>
+                            <th class="text-end">@L["Payments"]</th>
+                            <th class="text-end">@L["Collected"]</th>
+                            <th class="text-end">@L["Share"]</th>
+                            <th class="text-end" data-no-sort></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var cpTotal = Model.ByCheckpoint.Sum(c => c.Collected); }
+                        @foreach (var c in Model.ByCheckpoint)
+                        {
+                            var share = cpTotal == 0 ? 0 : c.Collected / cpTotal * 100;
+                            <tr class="@(c.Id == Model.CheckpointId ? "table-primary" : "")">
+                                <td class="fw-semibold">@(c.Id.HasValue ? c.Name : L["No checkpoint"])</td>
+                                <td class="text-end">@c.Tariffs</td>
+                                <td class="text-end">@c.Payments.ToString("N0")</td>
+                                <td class="text-end fw-semibold">$@c.Collected.ToString("N2")</td>
+                                <td class="text-end" style="min-width:140px">
+                                    <div class="d-flex align-items-center gap-2 justify-content-end">
+                                        <div class="progress flex-grow-1" style="height:6px;max-width:90px"><div class="progress-bar" style="width:@share.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div></div>
+                                        <span class="small text-muted">@share.ToString("0")%</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    @if (c.Id.HasValue)
+                                    {
+                                        <a class="btn btn-sm btn-outline-primary" data-view-fixed asp-page="/Reports/Movements"
+                                           asp-route-CheckpointId="@c.Id" asp-route-MovementName="@Model.MovementName" asp-route-CarTypeId="@Model.CarTypeId"
+                                           asp-route-AccountId="@Model.AccountId" asp-route-Status="@Model.Status"
+                                           asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-view="details">@L["View tariffs"] <i class="bi bi-chevron-right"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.ByCheckpoint.Any())
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">@L["No payments in this period."]</td></tr>
+                        }
+                    </tbody>
+                    @if (Model.ByCheckpoint.Any())
+                    {
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td>@L["Total"]</td>
+                                <td></td>
+                                <td class="text-end">@Model.ByCheckpoint.Sum(c => c.Payments).ToString("N0")</td>
+                                <td class="text-end">$@cpTotal.ToString("N2")</td>
+                                <td></td><td></td>
+                            </tr>
+                        </tfoot>
+                    }
+                </table>
+            </div>
+        </div>
         <partial name="_CountGroups" model="Model.SummaryGroups" />
     </div>
 
