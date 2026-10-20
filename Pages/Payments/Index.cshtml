@@ -234,8 +234,11 @@
                                 <a class="pl-act" title="@L["Open receipt"]" asp-page="/Payments/Receipt" asp-route-paymentId="@p.Id"><i class="bi bi-receipt"></i></a>
                                 @if (Model.IsAdmin && !p.IsReverted)
                                 {
-                                    <a class="pl-act @(r.RvNumber != null ? "disabled" : "")" title="@L["Transfer"]"
-                                       asp-page="/Finance/TransferPayments" asp-route-Search="@p.InvoiceNumber"><i class="bi bi-arrow-left-right"></i></a>
+                                    @if (p.IsPaid)
+                                    {
+                                        <a class="pl-act @(r.RvNumber != null ? "disabled" : "")" title="@L["Transfer"]"
+                                           asp-page="/Finance/TransferPayments" asp-route-Search="@p.InvoiceNumber"><i class="bi bi-arrow-left-right"></i></a>
+                                    }
                                     @if (!p.IsPaid)
                                     {
                                         <button type="button" class="pl-act" style="color:#b45309" title="@L["Pending reason"]"

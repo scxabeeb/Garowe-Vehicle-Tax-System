@@ -84,6 +84,7 @@ public class TransferPaymentsModel : PageModel
         foreach (var p in payments)
         {
             if (p.IsReverted) { skipped.Add($"#{p.Id} (cancelled)"); continue; }
+            if (!p.IsPaid) { skipped.Add($"#{p.Id} (pending)"); continue; }
             if (locked.TryGetValue(p.Id, out var rv)) { skipped.Add($"#{p.Id} (in RV {rv})"); continue; }
             if (p.MovementId == target!.Id) { skipped.Add($"#{p.Id} (already there)"); continue; }
 
@@ -145,7 +146,7 @@ public class TransferPaymentsModel : PageModel
             .Include(p => p.Vehicle)
             .Include(p => p.Collector)
             .Include(p => p.Movement).ThenInclude(m => m!.RevenueAccount)
-            .Where(p => !p.IsReverted);
+            .Where(p => !p.IsReverted && p.IsPaid); // only paid payments are transferred
 
         if (!string.IsNullOrWhiteSpace(Search))
         {
