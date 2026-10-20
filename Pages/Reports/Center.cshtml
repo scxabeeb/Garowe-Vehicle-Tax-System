@@ -1,0 +1,124 @@
+@page
+@model VehicleTax.Web.Pages.Reports.CenterModel
+@using VehicleTax.Web.Services
+@{
+    ViewData["Title"] = L["Reports Center"];
+    var groups = ReportCatalog.Groups
+        .Select(g => (Group: g, Reports: g.Reports.Where(r => Model.My.Contains(r.Permission)).ToList()))
+        .Where(x => x.Reports.Any())
+        .ToList();
+    var todayIso = AppTime.Today.ToString("yyyy-MM-dd");
+}
+<style>
+    .rc-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 22px 24px; }
+    .rc-kpi { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 14px 16px; display: flex; gap: 12px; align-items: center;
+        height: 100%; text-decoration: none; color: inherit; transition: all .15s; }
+    a.rc-kpi:hover { border-color: #93b4f5; box-shadow: 0 4px 14px rgba(11,87,208,.10); color: inherit; }
+    .rc-kpi .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.25rem; flex-shrink: 0; }
+    .rc-kpi .v { font-size: 1.35rem; font-weight: 800; line-height: 1.1; }
+    .rc-kpi .l { font-size: 12px; color: #64748b; font-weight: 600; }
+    .rc-group { margin-bottom: 1.6rem; }
+    .rc-group-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem; }
+    .rc-group-head .ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; }
+    .rc-group-head h5 { margin: 0; font-weight: 800; }
+    .rc-group-head .d { font-size: .82rem; color: #64748b; }
+    .rc-card { border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; padding: 14px 16px; display: flex; gap: 12px; height: 100%;
+        text-decoration: none; color: inherit; transition: all .15s; position: relative; }
+    .rc-card:hover { border-color: var(--rc); box-shadow: 0 6px 18px rgba(15,23,42,.08); transform: translateY(-2px); color: inherit; }
+    .rc-card .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0;
+        background: color-mix(in srgb, var(--rc) 12%, #fff); color: var(--rc); }
+    .rc-card .t { font-weight: 700; color: #0f172a; }
+    .rc-card .s { font-size: .82rem; color: #64748b; margin-top: 2px; }
+    .rc-card .go { margin-left: auto; color: #cbd5e1; align-self: center; }
+    .rc-card:hover .go { color: var(--rc); }
+</style>
+
+<div class="rc-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-grid-3x3-gap me-2"></i>@L["Reports Center"]</h3>
+        <div style="opacity:.85">@L["Every report in one place, grouped by what it answers."]</div>
+    </div>
+    <div class="position-relative" style="min-width:260px;">
+        <i class="bi bi-search position-absolute text-muted" style="left:12px;top:9px;"></i>
+        <input id="rcSearch" class="form-control ps-5" placeholder="@L["Find a report…"]" autocomplete="off" />
+    </div>
+</div>
+
+@if (Model.My.Contains("Reports.View"))
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <a class="rc-kpi" href="/Reports/Index?FromDate=@todayIso&ToDate=@todayIso">
+                <span class="ic" style="background:#dcfce7;color:#15803d"><i class="bi bi-check-circle"></i></span>
+                <div><div class="v">$@Model.PaidToday.ToString("N2")</div><div class="l">@L["Collected today"] · @Model.PaidTodayCount @L["payments"]</div></div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a class="rc-kpi" href="/Payments?Status=pending&FromDate=@todayIso&ToDate=@todayIso">
+                <span class="ic" style="background:#fef3c7;color:#b45309"><i class="bi bi-hourglass-split"></i></span>
+                <div><div class="v">$@Model.PendingToday.ToString("N2")</div><div class="l">@L["Pending today"] · @Model.PendingTodayCount</div></div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a class="rc-kpi" href="/Payments?Status=cancelled&FromDate=@todayIso&ToDate=@todayIso">
+                <span class="ic" style="background:#fee2e2;color:#b91c1c"><i class="bi bi-x-circle"></i></span>
+                <div><div class="v">@Model.CancelledToday</div><div class="l">@L["Cancelled today"]</div></div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a class="rc-kpi" href="/Reports/Index?FromDate=@(new DateTime(AppTime.Today.Year, AppTime.Today.Month, 1).ToString("yyyy-MM-dd"))&ToDate=@todayIso">
+                <span class="ic" style="background:#eef4ff;color:#0b57d0"><i class="bi bi-calendar3"></i></span>
+                <div><div class="v">$@Model.MonthTotal.ToString("N2")</div><div class="l">@L["Collected this month"]</div></div>
+            </a>
+        </div>
+    </div>
+}
+
+@foreach (var (g, reports) in groups)
+{
+    <section class="rc-group" data-rc-group>
+        <div class="rc-group-head">
+            <span class="ic" style="background:@g.Color"><i class="bi @g.Icon"></i></span>
+            <div>
+                <h5>@L[g.Title] <span class="badge rounded-pill bg-light text-secondary border ms-1">@reports.Count</span></h5>
+                <div class="d">@L[g.Description]</div>
+            </div>
+        </div>
+        <div class="row g-3">
+            @foreach (var r in reports)
+            {
+                <div class="col-md-6 col-xl-4" data-rc-item data-search="@($"{L[r.Title]} {r.Title} {L[r.Description]} {r.Description} {L[g.Title]}".ToLowerInvariant())">
+                    <a class="rc-card" href="@r.Page" style="--rc:@g.Color">
+                        <span class="ic"><i class="bi @r.Icon"></i></span>
+                        <div>
+                            <div class="t">@L[r.Title]</div>
+                            <div class="s">@L[r.Description]</div>
+                        </div>
+                        <i class="bi bi-arrow-right go"></i>
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+}
+<div id="rcEmpty" class="text-center text-muted py-5" style="display:none"><i class="bi bi-search fs-3 d-block mb-2"></i>@L["No report matches your search."]</div>
+
+<script>
+    (function () {
+        var input = document.getElementById('rcSearch');
+        input.addEventListener('input', function () {
+            var q = input.value.trim().toLowerCase(), any = false;
+            document.querySelectorAll('[data-rc-group]').forEach(function (g) {
+                var shown = 0;
+                g.querySelectorAll('[data-rc-item]').forEach(function (i) {
+                    var ok = !q || i.dataset.search.indexOf(q) >= 0;
+                    i.style.display = ok ? '' : 'none';
+                    if (ok) shown++;
+                });
+                g.style.display = shown ? '' : 'none';
+                if (shown) any = true;
+            });
+            document.getElementById('rcEmpty').style.display = any ? 'none' : '';
+        });
+    })();
+</script>

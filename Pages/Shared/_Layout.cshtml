@@ -466,173 +466,34 @@
                                 <i class="bi bi-bar-chart-line"></i> @L["Reports"]
                             </a>
 
-                            <ul class="dropdown-menu shadow border-0" style="max-height: 75vh; overflow-y: auto;">
-                                <li class="menu-category">@L["Collections"]</li>
+                            <ul class="dropdown-menu shadow border-0 reports-menu" style="max-height: 78vh; overflow-y: auto;">
                                 @if (canReportsView)
                                 {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Index">
-                                        <i class="bi bi-speedometer2"></i> @L["Collections Dashboard"]
-                                    </a>
-                                </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 fw-bold" href="@VehicleTax.Web.Services.ReportCatalog.CenterPage">
+                                            <i class="bi bi-grid-3x3-gap text-primary"></i> @L["Reports Center"]
+                                        </a>
+                                    </li>
                                 }
-                                @if (canReportsView)
+                                @{ var firstGroup = true; }
+                                @foreach (var rg in VehicleTax.Web.Services.ReportCatalog.Groups)
                                 {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Summary">
-                                        <i class="bi bi-file-earmark-bar-graph"></i> @L["Summary Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/CheckpointReport">
-                                        <i class="bi bi-geo-alt"></i> @L["Checkpoint Collection Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/PaymentSummary">
-                                        <i class="bi bi-bar-chart-line"></i> @L["Payment Summary Report"]
-                                    </a>
-                                </li>
-                                }
-                                <li><hr class="dropdown-divider" /></li>
-                                <li class="menu-category">@L["Finance & Accounts"]</li>
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/RevenueAccountReport">
-                                        <i class="bi bi-wallet2"></i> @L["Revenue Account Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canFinanceView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Index">
-                                        <i class="bi bi-cash-stack"></i> @L["Finance Dashboard"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canFinanceView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/Rv/Index">
-                                        <i class="bi bi-file-earmark-text"></i> @L["RV History"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canTransferPayments)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Finance/TransferPayments">
-                                        <i class="bi bi-arrow-left-right"></i> @L["Transfer Payments"]
-                                    </a>
-                                </li>
-                                }
-                                <li><hr class="dropdown-divider" /></li>
-                                <li class="menu-category">@L["Audit"]</li>
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/GolisAudit">
-                                        <i class="bi bi-shield-check"></i> @L["Golis Audit"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/GolisAuditHistory">
-                                        <i class="bi bi-clock-history"></i> @L["Golis Audit History"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Logs">
-                                        <i class="bi bi-journal-text"></i> @L["Logs & Audit Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Transactions/Index">
-                                        <i class="bi bi-arrow-left-right"></i> @L["Transactions Audit Log"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canActivityLog)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/ActivityLog">
-                                        <i class="bi bi-activity"></i> @L["Activity Log"]
-                                    </a>
-                                </li>
-                                }
-                                <li><hr class="dropdown-divider" /></li>
-                                <li class="menu-category">@L["Registry & Setup"]</li>
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Vehicles">
-                                        <i class="bi bi-truck"></i> @L["Vehicle Registry Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/AccountTariffs">
-                                        <i class="bi bi-wallet2"></i> @L["Revenue Account Tariffs"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/Movements">
-                                        <i class="bi bi-signpost-split"></i> @L["Tariff Types Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxMovement">
-                                        <i class="bi bi-bar-chart"></i> @L["Tax by Tariff Report"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxMovementCarType">
-                                        <i class="bi bi-diagram-3"></i> @L["Tax Amount by Tariff & Car Type"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/TaxAmountReport">
-                                        <i class="bi bi-currency-dollar"></i> @L["Tax Amount Schedule"]
-                                    </a>
-                                </li>
-                                }
-                                @if (canReportsView)
-                                {
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Reports/UsersReport">
-                                        <i class="bi bi-people"></i> @L["User Activity Report"]
-                                    </a>
-                                </li>
+                                    var items = rg.Reports.Where(r => can(r.Permission)).ToList();
+                                    if (!items.Any()) { continue; }
+                                    if (!firstGroup || canReportsView)
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                    }
+                                    firstGroup = false;
+                                    <li class="menu-category" style="color:@rg.Color"><i class="bi @rg.Icon me-1"></i>@L[rg.Title]</li>
+                                    @foreach (var r in items)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 @(currentPath == r.Page.ToLowerInvariant() || currentPath + "/index" == r.Page.ToLowerInvariant() ? "active" : "")" href="@r.Page">
+                                                <i class="bi @r.Icon"></i> @L[r.Title]
+                                            </a>
+                                        </li>
+                                    }
                                 }
                              </ul>
                         </li>
@@ -724,6 +585,7 @@
         </div>
     </div>
 }
+<partial name="_ReportTabs" />
 @RenderBody()
 </main>
 
