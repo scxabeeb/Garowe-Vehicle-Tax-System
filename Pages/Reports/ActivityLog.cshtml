@@ -13,16 +13,36 @@
         ActivityActions.Created => (L["Created"], "bi-plus-circle", "#15803d", "#dcfce7"),
         ActivityActions.Updated => (L["Updated"], "bi-pencil", "#b45309", "#fef3c7"),
         ActivityActions.Deleted => (L["Deleted"], "bi-trash", "#b91c1c", "#fee2e2"),
+        ActivityActions.ForcedLogout => (L["Signed out by admin"], "bi-person-x", "#7c3aed", "#ede9fe"),
         _ => (action, "bi-dot", "#334155", "#f1f5f9"),
     };
     string when(DateTime utc) => VehicleTax.Web.AppTime.ToLocal(utc).ToString("dd MMM yyyy HH:mm:ss");
+    // The Details list for an action / user / record, keeping the other filters.
+    // Built by hand: "Action" is a reserved route name, so Url.Page drops the link.
+    string listUrl(string? action, string? username = null, string? entity = null)
+    {
+        var q = new Dictionary<string, string?>
+        {
+            ["FromDate"] = Model.FromDate?.ToString("yyyy-MM-dd"), ["ToDate"] = Model.ToDate?.ToString("yyyy-MM-dd"),
+            ["Username"] = username ?? Model.Username, ["Action"] = action, ["Entity"] = entity ?? Model.Entity,
+            ["Source"] = Model.Source, ["Search"] = Model.Search, ["PageSize"] = Model.PageSize.ToString(), ["view"] = "details",
+        };
+        return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString("/Reports/ActivityLog",
+            q.Where(kv => !string.IsNullOrEmpty(kv.Value)).Select(kv => new KeyValuePair<string, string?>(kv.Key, kv.Value)));
+    }
 }
 
 <style>
     .al-hero { background: linear-gradient(135deg, #0b57d0, #1e3a8a); color: #fff; border-radius: 18px; padding: 20px 24px; }
     .al-card { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow: hidden; }
     .al-card .head { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 800; display: flex; gap: 8px; align-items: center; }
-    .al-kpi { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 14px; display: flex; gap: 12px; align-items: center; height: 100%; }
+    .al-kpi { border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 14px; display: flex; gap: 12px; align-items: center; height: 100%;
+        text-decoration: none; color: inherit; transition: all .15s; }
+    a.al-kpi:hover { border-color: #93b4f5; box-shadow: 0 2px 10px rgba(11,87,208,.12); color: inherit; transform: translateY(-1px); }
+    a.al-kpi.active { border: 2px solid #0b57d0; }
+    .al-kpi .go { margin-left: auto; color: #94a3b8; }
+    a.al-n { color: inherit; text-decoration: none; border-bottom: 1px dashed #cbd5e1; }
+    a.al-n:hover { color: #0b57d0; border-bottom-color: #0b57d0; }
     .al-kpi .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 1.15rem; flex-shrink: 0; }
     .al-kpi .v { font-size: 1.4rem; font-weight: 800; line-height: 1; }
     .al-kpi .l { font-size: 12px; color: #64748b; font-weight: 600; }
@@ -117,21 +137,26 @@
             @{
                 var kpis = new[]
                 {
-                    (L["Total Activity"], Model.Total, "bi-activity", "#0b57d0", "#eef4ff"),
-                    (L["Logged in"], Model.Count(ActivityActions.Login), "bi-box-arrow-in-right", "#0b57d0", "#eef4ff"),
-                    (L["Failed login"], Model.Count(ActivityActions.LoginFailed), "bi-shield-exclamation", "#b91c1c", "#fee2e2"),
-                    (L["Created"], Model.Count(ActivityActions.Created), "bi-plus-circle", "#15803d", "#dcfce7"),
-                    (L["Updated"], Model.Count(ActivityActions.Updated), "bi-pencil", "#b45309", "#fef3c7"),
-                    (L["Deleted"], Model.Count(ActivityActions.Deleted), "bi-trash", "#b91c1c", "#fee2e2"),
+                    (L["Total Activity"], Model.Total, "bi-activity", "#0b57d0", "#eef4ff", (string?)null),
+                    (L["Logged in"], Model.Count(ActivityActions.Login), "bi-box-arrow-in-right", "#0b57d0", "#eef4ff", (string?)ActivityActions.Login),
+                    (L["Failed login"], Model.Count(ActivityActions.LoginFailed), "bi-shield-exclamation", "#b91c1c", "#fee2e2", (string?)ActivityActions.LoginFailed),
+                    (L["Logged out"], Model.Count(ActivityActions.Logout), "bi-box-arrow-right", "#475569", "#f1f5f9", (string?)ActivityActions.Logout),
+                    (L["Created"], Model.Count(ActivityActions.Created), "bi-plus-circle", "#15803d", "#dcfce7", (string?)ActivityActions.Created),
+                    (L["Updated"], Model.Count(ActivityActions.Updated), "bi-pencil", "#b45309", "#fef3c7", (string?)ActivityActions.Updated),
+                    (L["Deleted"], Model.Count(ActivityActions.Deleted), "bi-trash", "#b91c1c", "#fee2e2", (string?)ActivityActions.Deleted),
+                    (L["Signed out by admin"], Model.Count(ActivityActions.ForcedLogout), "bi-person-x", "#7c3aed", "#ede9fe", (string?)ActivityActions.ForcedLogout),
                 };
             }
             @foreach (var k in kpis)
             {
-                <div class="col-6 col-md-4 col-xl-2">
-                    <div class="al-kpi">
+                <div class="col-6 col-md-4 col-xl-3">
+                    @* Click a card to see its list (Details) with the same filters. *@
+                    <a class="al-kpi @(k.Item6 == Model.Action || (k.Item6 == null && string.IsNullOrEmpty(Model.Action)) ? "active" : "")"
+                       href="@listUrl(k.Item6)" data-view-fixed title="@L["Show the list"]">
                         <span class="ic" style="background:@k.Item5;color:@k.Item4"><i class="bi @k.Item3"></i></span>
                         <div><div class="v al-num">@k.Item2.ToString("N0")</div><div class="l">@k.Item1</div></div>
-                    </div>
+                        <i class="bi bi-chevron-right go"></i>
+                    </a>
                 </div>
             }
         </div>
@@ -158,14 +183,13 @@
                                 {
                                     <tr>
                                         <td class="fw-semibold">
-                                            <a asp-route-Username="@u.Username" asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
-                                               asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")" asp-route-view="details">@u.Username</a>
+                                            <a data-view-fixed href="@listUrl(Model.Action, u.Username)">@u.Username</a>
                                         </td>
-                                        <td class="text-end al-num">@u.Logins</td>
-                                        <td class="text-end al-num @(u.Failed > 0 ? "text-danger fw-bold" : "")">@u.Failed</td>
-                                        <td class="text-end al-num">@u.Created</td>
-                                        <td class="text-end al-num">@u.Updated</td>
-                                        <td class="text-end al-num">@u.Deleted</td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Login, u.Username)">@u.Logins</a></td>
+                                        <td class="text-end al-num @(u.Failed > 0 ? "text-danger fw-bold" : "")"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.LoginFailed, u.Username)">@u.Failed</a></td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Created, u.Username)">@u.Created</a></td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Updated, u.Username)">@u.Updated</a></td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Deleted, u.Username)">@u.Deleted</a></td>
                                         <td class="small text-muted text-nowrap">@when(u.Last)</td>
                                     </tr>
                                 }
@@ -195,10 +219,10 @@
                                 @foreach (var e in Model.ByEntity)
                                 {
                                     <tr>
-                                        <td class="fw-semibold">@L[e.Entity]</td>
-                                        <td class="text-end al-num">@e.Created</td>
-                                        <td class="text-end al-num">@e.Updated</td>
-                                        <td class="text-end al-num">@e.Deleted</td>
+                                        <td class="fw-semibold"><a data-view-fixed href="@listUrl(Model.Action, null, e.Entity)">@L[e.Entity]</a></td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Created, null, e.Entity)">@e.Created</a></td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Updated, null, e.Entity)">@e.Updated</a></td>
+                                        <td class="text-end al-num"><a class="al-n" data-view-fixed href="@listUrl(ActivityActions.Deleted, null, e.Entity)">@e.Deleted</a></td>
                                     </tr>
                                 }
                                 @if (!Model.ByEntity.Any())

@@ -983,6 +983,8 @@ public static class LangSo
         ["Pending or cancelled payments: collector who made the mistake"] = "Lacagaha Pending ama la joojiyay: lacag-ururiyaha khaladka sameeyay",
         ["Pending payments are not cancelled. Use Pending reason to say why it is pending."] = "Lacagaha Pending lama joojiyo. Isticmaal Sababta sugitaanka si aad u sheegto sababta.",
         ["Other"] = "Kale",
+        ["Signed out by admin"] = "Maamulaha ayaa ka saaray",
+        ["Show the list"] = "Muuji liiska",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",
