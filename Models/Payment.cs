@@ -91,9 +91,13 @@ namespace VehicleTax.Web.Models
         public int? RevertedByUserId { get; set; }
         public User? RevertedByUser { get; set; }   // 🔥 THIS WAS MISSING
 
-        /// <summary>On a cancelled payment: the collector whose mistake it was (chosen by the admin).</summary>
+        /// <summary>The collector whose mistake it was (chosen by the admin on a cancelled or pending payment).</summary>
         public int? MistakeByUserId { get; set; }
         public User? MistakeByUser { get; set; }
+
+        /// <summary>Why a payment is still pending (one of PendingReasons.All), set by an admin.</summary>
+        public string? PendingReason { get; set; }
+        public string? PendingNote { get; set; }
 
         // Backward compatibility
         [NotMapped]
@@ -109,5 +113,16 @@ namespace VehicleTax.Web.Models
             get => PaidAt;
             set => PaidAt = value;
         }
+    }
+
+    /// <summary>Reasons an admin can give for a payment that stays pending.</summary>
+    public static class PendingReasons
+    {
+        public const string TakenByMistake = "Taken by mistake";
+        public const string WrongTariff = "Connected to wrong tariff";
+        public const string NotPaidYet = "Customer has not paid yet";
+        public const string Other = "Other";
+
+        public static readonly string[] All = { TakenByMistake, WrongTariff, NotPaidYet, Other };
     }
 }

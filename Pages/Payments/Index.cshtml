@@ -104,12 +104,25 @@
             @if (!Model.IsPersonal)
             {
                 <div class="col-6 col-md-2 col-xl-1">
-                    <label class="form-label small fw-semibold mb-1" title="@L["Cancelled payments: collector who made the mistake"]">@L["Mistake by"]</label>
+                    <label class="form-label small fw-semibold mb-1" title="@L["Pending or cancelled payments: collector who made the mistake"]">@L["Mistake by"]</label>
                     <select name="MistakeById" class="form-select">
                         <option value="">@L["All"]</option>
                         @foreach (var u in Model.Collectors)
                         {
                             <option value="@u.Id" selected="@(u.Id == Model.MistakeById ? "selected" : null)">@u.Username</option>
+                        }
+                    </select>
+                </div>
+            }
+            @if (!Model.IsPersonal)
+            {
+                <div class="col-6 col-md-2 col-xl-2">
+                    <label class="form-label small fw-semibold mb-1">@L["Pending reason"]</label>
+                    <select name="PendingReason" class="form-select">
+                        <option value="">@L["All"]</option>
+                        @foreach (var pr in VehicleTax.Web.Models.PendingReasons.All)
+                        {
+                            <option value="@pr" selected="@(pr == Model.PendingReason ? "selected" : null)">@L[pr]</option>
                         }
                     </select>
                 </div>
@@ -130,7 +143,7 @@
                 <a class="pl-stat @(Model.Status == s.Item1 ? "active" : "")"
                    asp-route-Status="@s.Item1" asp-route-Search="@Model.Search"
                    asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
-                   asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId" asp-route-MistakeById="@Model.MistakeById"
+                   asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId" asp-route-MistakeById="@Model.MistakeById" asp-route-PendingReason="@Model.PendingReason"
                    asp-route-PageSize="@Model.PageSize">
                     <span class="ic" style="background:@s.Item6;color:@s.Item5"><i class="bi @s.Item7"></i></span>
                     <div>
@@ -199,6 +212,18 @@
                                 else
                                 {
                                     <span class="badge bg-warning text-dark">@L["Pending"]</span>
+                                    @if (p.PendingReason != null)
+                                    {
+                                        <div class="small fw-semibold" style="color:#b45309"><i class="bi bi-info-circle"></i> @L[p.PendingReason]</div>
+                                    }
+                                    @if (p.MistakeByUser != null)
+                                    {
+                                        <div class="small text-danger fw-semibold"><i class="bi bi-person-exclamation"></i> @L["Mistake by"]: @p.MistakeByUser.Username</div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(p.PendingNote))
+                                    {
+                                        <div class="small text-muted text-truncate" style="max-width:180px" title="@p.PendingNote">@p.PendingNote</div>
+                                    }
                                 }
                                 @if (r.RvNumber != null)
                                 {
@@ -211,7 +236,17 @@
                                 {
                                     <a class="pl-act @(r.RvNumber != null ? "disabled" : "")" title="@L["Transfer"]"
                                        asp-page="/Finance/TransferPayments" asp-route-Search="@p.InvoiceNumber"><i class="bi bi-arrow-left-right"></i></a>
-                                    @if (Model.CanCancel)
+                                    @if (!p.IsPaid)
+                                    {
+                                        <button type="button" class="pl-act" style="color:#b45309" title="@L["Pending reason"]"
+                                                data-bs-toggle="modal" data-bs-target="#plPending"
+                                                data-id="@p.Id" data-collector="@(p.MistakeByUserId ?? p.CollectorId)"
+                                                data-reason="@p.PendingReason" data-note="@p.PendingNote"
+                                                data-label="#@p.Id · @p.InvoiceNumber · @p.Vehicle?.PlateNumber · $@p.Amount.ToString("N2")">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </button>
+                                    }
+                                    @if (Model.CanCancel && p.IsPaid)
                                     {
                                         <button type="button" class="pl-act danger @(r.RvNumber != null ? "disabled" : "")" title="@L["Cancel payment"]"
                                                 data-bs-toggle="modal" data-bs-target="#plCancel"
@@ -234,6 +269,61 @@
     </div>
 </div>
 
+@if (Model.IsAdmin)
+{
+    <div class="modal fade" id="plPending" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="post" asp-page-handler="PendingReason" class="modal-content"
+                  asp-route-Search="@Model.Search" asp-route-Status="@Model.Status"
+                  asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                  asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId"
+                  asp-route-PageSize="@Model.PageSize" asp-route-CurrentPage="@Model.CurrentPage">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-hourglass-split me-2" style="color:#b45309"></i>@L["Why is this payment pending?"]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="paymentId" id="plPendingId" />
+                    <div class="fw-semibold mb-2" id="plPendingLabel"></div>
+                    <label class="form-label small fw-semibold">@L["Reason"]</label>
+                    <select name="pendingReason" id="plPendingReason" class="form-select">
+                        <option value="">@L["No reason (clear)"]</option>
+                        @foreach (var pr in VehicleTax.Web.Models.PendingReasons.All)
+                        {
+                            <option value="@pr">@L[pr]</option>
+                        }
+                    </select>
+                    <label class="form-label small fw-semibold mt-3">@L["Note"]</label>
+                    <textarea name="note" id="plPendingNote" class="form-control" rows="2" maxlength="500"></textarea>
+                    <label class="form-label small fw-semibold mt-3">@L["Mistake by (collector)"]</label>
+                    <select name="mistakeByUserId" id="plPendingMistake" class="form-select">
+                        <option value="">@L["No one / not a collector mistake"]</option>
+                        @foreach (var u in Model.Collectors)
+                        {
+                            <option value="@u.Id">@u.Username@(string.IsNullOrWhiteSpace(u.FullName) ? "" : " · " + u.FullName)</option>
+                        }
+                    </select>
+                    <div class="form-text">@L["The payment stays pending; it is not cancelled. If the customer pays, it becomes paid as usual."]</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@L["Close"]</button>
+                    <button type="submit" class="btn btn-warning"><i class="bi bi-check2-circle me-1"></i>@L["Save"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('plPending').addEventListener('show.bs.modal', function (e) {
+            var b = e.relatedTarget;
+            document.getElementById('plPendingId').value = b.dataset.id;
+            document.getElementById('plPendingLabel').textContent = b.dataset.label;
+            document.getElementById('plPendingReason').value = b.dataset.reason || '';
+            document.getElementById('plPendingNote').value = b.dataset.note || '';
+            document.getElementById('plPendingMistake').value = b.dataset.collector || '';
+        });
+    </script>
+}
+
 @if (Model.IsAdmin && Model.CanCancel)
 {
     <div class="modal fade" id="plCancel" tabindex="-1">
@@ -241,7 +331,7 @@
             <form method="post" asp-page-handler="Cancel" class="modal-content"
                   asp-route-Search="@Model.Search" asp-route-Status="@Model.Status"
                   asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")" asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
-                  asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId" asp-route-MistakeById="@Model.MistakeById"
+                  asp-route-CollectorId="@Model.CollectorId" asp-route-CheckpointId="@Model.CheckpointId" asp-route-MovementId="@Model.MovementId" asp-route-MistakeById="@Model.MistakeById" asp-route-PendingReason="@Model.PendingReason"
                   asp-route-PageSize="@Model.PageSize" asp-route-CurrentPage="@Model.CurrentPage">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>@L["Cancel payment"]</h5>

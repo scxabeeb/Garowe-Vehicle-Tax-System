@@ -33,8 +33,10 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public int? CollectorId { get; set; }
     [BindProperty(SupportsGet = true)] public int? CheckpointId { get; set; }
     [BindProperty(SupportsGet = true)] public int? MovementId { get; set; }
-    /// <summary>Cancelled payments whose mistake was this collector's.</summary>
+    /// <summary>Cancelled or pending payments whose mistake was this collector's.</summary>
     [BindProperty(SupportsGet = true)] public int? MistakeById { get; set; }
+    /// <summary>Pending payments with this reason (PendingReasons.All).</summary>
+    [BindProperty(SupportsGet = true)] public string? PendingReason { get; set; }
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -79,6 +81,7 @@ public class IndexModel : PageModel
         string? error =
             payment == null ? "Payment not found." :
             payment.IsReverted ? "This payment is already cancelled." :
+            !payment.IsPaid ? "Pending payments are not cancelled. Use Pending reason to say why it is pending." :
             rv != null ? $"Payment #{paymentId} is in RV {rv}. Cancel the RV first." :
             reason.Length < 3 ? "Cancel reason is required." :
             mistakeByUserId.HasValue && !await _context.Users.AnyAsync(u => u.Id == mistakeByUserId) ? "Collector not found." : null;
@@ -109,10 +112,41 @@ public class IndexModel : PageModel
         return RedirectToPage(Route());
     }
 
+    /// <summary>Record why a pending payment is pending (and whose mistake), or clear it.</summary>
+    public async Task<IActionResult> OnPostPendingReasonAsync(int paymentId, string? pendingReason, string? note, int? mistakeByUserId)
+    {
+        var me = await MeAsync();
+        if (me == null || !IsAdmin) return Forbid();
+
+        var payment = await _context.Payments.FirstOrDefaultAsync(p => p.Id == paymentId);
+        pendingReason = string.IsNullOrWhiteSpace(pendingReason) ? null : pendingReason.Trim();
+        note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        string? error =
+            payment == null ? "Payment not found." :
+            payment.IsPaid || payment.IsReverted ? "Only pending payments can have a pending reason." :
+            pendingReason != null && !PendingReasons.All.Contains(pendingReason) ? "Choose a reason." :
+            mistakeByUserId.HasValue && !await _context.Users.AnyAsync(u => u.Id == mistakeByUserId) ? "Collector not found." : null;
+        if (error != null)
+        {
+            TempData["Error"] = error;
+            return RedirectToPage(Route());
+        }
+
+        payment!.PendingReason = pendingReason;
+        payment.PendingNote = pendingReason == null ? null : (note?.Length > 500 ? note[..500] : note);
+        payment.MistakeByUserId = pendingReason == null ? null : mistakeByUserId;
+        await _context.SaveChangesAsync();
+
+        TempData["Message"] = pendingReason == null
+            ? $"Pending reason cleared for payment #{payment.Id}."
+            : $"Payment #{payment.Id} ({payment.InvoiceNumber}) is pending: {pendingReason}.";
+        return RedirectToPage(Route());
+    }
+
     private object Route() => new
     {
         Search, Status, FromDate = FromDate?.ToString("yyyy-MM-dd"), ToDate = ToDate?.ToString("yyyy-MM-dd"),
-        CollectorId, CheckpointId, MovementId, MistakeById, PageSize, CurrentPage,
+        CollectorId, CheckpointId, MovementId, MistakeById, PendingReason, PageSize, CurrentPage,
     };
 
     private async Task<User?> MeAsync()
@@ -174,7 +208,8 @@ public class IndexModel : PageModel
         if (!IsPersonal && CollectorId.HasValue) q = q.Where(p => p.CollectorId == CollectorId);
         if (CheckpointId.HasValue) q = q.Where(p => p.CheckpointId == CheckpointId);
         if (MovementId.HasValue) q = q.Where(p => p.MovementId == MovementId);
-        if (!IsPersonal && MistakeById.HasValue) q = q.Where(p => p.IsReverted && p.MistakeByUserId == MistakeById);
+        if (!IsPersonal && MistakeById.HasValue) q = q.Where(p => !p.IsPaid && p.MistakeByUserId == MistakeById);
+        if (!string.IsNullOrEmpty(PendingReason)) q = q.Where(p => !p.IsPaid && !p.IsReverted && p.PendingReason == PendingReason);
 
         // Totals by status, before the status filter so the cards stay useful.
         var totals = await q.GroupBy(p => p.IsReverted ? 2 : p.IsPaid ? 0 : 1)

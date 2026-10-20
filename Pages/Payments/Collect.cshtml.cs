@@ -332,6 +332,11 @@ public class CollectModel : PageModel
                 ErrorMessage = "Invalid payment or already cancelled.";
                 return Page();
             }
+            if (!payment.IsPaid)
+            {
+                ErrorMessage = "Pending payments are not cancelled. Use Pending reason in the Payments List to say why it is pending.";
+                return Page();
+            }
 
             var username = User.Identity?.Name;
             var user = _context.Users.FirstOrDefault(u => u.Username == username);

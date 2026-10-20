@@ -366,6 +366,12 @@ namespace VehicleTax.Web.Migrations
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("PendingNote")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PendingReason")
+                        .HasColumnType("longtext");
+
                     b.Property<int?>("ReceiptReferenceId")
                         .HasColumnType("int");
 
