@@ -19,6 +19,11 @@
     };
 }
 <partial name="_ListStyles" />
+<style>
+    .vs-switch { width: 2.4em !important; height: 1.25em; cursor: pointer; margin: 0 !important; float: none !important; }
+    .vs-switch:not(:checked) { background-color: #fecaca; border-color: #fca5a5; }
+    .vs-switch:checked { background-color: #16a34a; border-color: #16a34a; }
+</style>
 
 <div class="container py-4">
     <div class="ls-hero mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -31,6 +36,11 @@
             <a asp-page="Create" class="btn btn-light fw-semibold"><i class="bi bi-plus-circle me-1"></i>@L["Register Vehicle"]</a>
         }
     </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill"></i>@TempData["Message"]</div>
+    }
 
     <form method="get" class="ls-card mb-3">
         <div class="p-3 row g-2 align-items-end">
@@ -60,6 +70,7 @@
                 </select>
             </div>
             <input type="hidden" name="Paid" value="@Model.Paid" />
+            <input type="hidden" name="State" value="@Model.State" />
             <input type="hidden" name="PageSize" value="@Model.Pager.PageSize" />
             <div class="col-md-2 d-flex gap-2">
                 <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i>@L["Filter"]</button>
@@ -72,8 +83,17 @@
         @foreach (var (key, label, n, icon) in chips)
         {
             <a class="ls-chip @(Model.Paid == key ? "active" : "")" asp-route-Paid="@key"
-               asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-Sort="@Model.Sort" asp-route-PageSize="@Model.Pager.PageSize">
+               asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-Sort="@Model.Sort" asp-route-State="@Model.State" asp-route-PageSize="@Model.Pager.PageSize">
                 <i class="bi @icon"></i>@label <span class="n">@n.ToString("N0")</span>
+            </a>
+        }
+        <span class="vr mx-1"></span>
+        @foreach (var (key, label, icon) in new[] { ("", L["Any status"].ToString(), "bi-circle"), ("active", L["Active"].ToString(), "bi-check-circle"), ("inactive", L["Inactive"].ToString(), "bi-slash-circle") })
+        {
+            <a class="ls-chip @((Model.State ?? "") == key ? "active" : "")" asp-route-State="@key" asp-route-Paid="@Model.Paid"
+               asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-Sort="@Model.Sort" asp-route-PageSize="@Model.Pager.PageSize">
+                <i class="bi @icon"></i>@label
+                @if (key == "inactive") { <span class="n">@Model.InactiveCount.ToString("N0")</span> }
             </a>
         }
     </div>
@@ -89,6 +109,7 @@
                         <th>@L["Car Type"]</th>
                         <th>@L["Last Paid"]</th>
                         <th class="text-end">@L["Payments"]</th>
+                        <th>@L["Status"]</th>
                         <th class="text-end">@L["Actions"]</th>
                     </tr>
                 </thead>
@@ -97,7 +118,7 @@
                     {
                         var v = r.Vehicle;
                         var paidToday = r.LastPaid.HasValue && VehicleTax.Web.AppTime.ToLocal(r.LastPaid.Value).Date == today;
-                        <tr>
+                        <tr class="@(v.IsActive ? "" : "table-light text-muted")">
                             <td><span class="ls-plate">@v.PlateNumber</span></td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
@@ -131,6 +152,25 @@
                                 }
                             </td>
                             <td class="text-end fw-semibold">@r.Payments</td>
+                            <td class="text-nowrap">
+                                @if (can(AppPermissions.Keys.VehiclesEdit))
+                                {
+                                    <form method="post" asp-page-handler="ToggleActive" asp-route-id="@v.Id"
+                                          asp-route-Search="@Model.Search" asp-route-CarTypeId="@Model.CarTypeId" asp-route-Paid="@Model.Paid"
+                                          asp-route-Sort="@Model.Sort" asp-route-State="@Model.State" asp-route-PageSize="@Model.Pager.PageSize" asp-route-CurrentPage="@Model.Pager.Page"
+                                          class="m-0" onsubmit="return confirm('@(v.IsActive ? L["Set this vehicle Inactive? It cannot get new invoices or payments."] : L["Set this vehicle Active again?"])');">
+                                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center gap-2">
+                                            <input class="form-check-input vs-switch" type="checkbox" role="switch" id="vSw@(v.Id)" checked="@(v.IsActive ? "checked" : null)"
+                                                   onchange="this.checked = !this.checked; this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit();" />
+                                            <label class="form-check-label ls-pill m-0" for="vSw@(v.Id)" style="cursor:pointer;@(v.IsActive ? "background:#dcfce7;color:#15803d" : "background:#fee2e2;color:#b91c1c")">@L[v.IsActive ? "Active" : "Inactive"]</label>
+                                        </div>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="ls-pill" style="@(v.IsActive ? "background:#dcfce7;color:#15803d" : "background:#fee2e2;color:#b91c1c")">@L[v.IsActive ? "Active" : "Inactive"]</span>
+                                }
+                            </td>
                             <td class="text-end text-nowrap">
                                 <a class="ls-act" title="@L["Payments"]" asp-page="/Payments/Index" asp-route-Search="@v.PlateNumber"><i class="bi bi-receipt"></i></a>
                                 @if (can(AppPermissions.Keys.VehiclesEdit))
@@ -146,7 +186,7 @@
                     }
                     @if (!Model.Rows.Any())
                     {
-                        <tr><td colspan="7" class="ls-empty"><i class="bi bi-car-front"></i>@L["No vehicles found."]</td></tr>
+                        <tr><td colspan="8" class="ls-empty"><i class="bi bi-car-front"></i>@L["No vehicles found."]</td></tr>
                     }
                 </tbody>
             </table>

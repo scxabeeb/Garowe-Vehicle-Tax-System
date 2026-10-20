@@ -119,6 +119,7 @@ public class VehiclesController : ControllerBase
             ownerName = vehicle.OwnerName,
             mobile = vehicle.Mobile,
             carTypeId = vehicle.CarTypeId,
+            isActive = vehicle.IsActive,
             carType = new
             {
                 id = vehicle.CarType!.Id,

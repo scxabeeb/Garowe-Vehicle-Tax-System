@@ -86,6 +86,12 @@
                 @if (Model.Vehicle != null)
                 {
                     var v = Model.Vehicle;
+                    @if (!v.IsActive)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-slash-circle-fill"></i>@L["This vehicle is inactive and cannot be charged. Ask an admin to set it Active."]
+                        </div>
+                    }
                     <!-- Vehicle -->
                     <div class="border rounded-4 p-3 mb-3 d-flex flex-wrap gap-3 align-items-center" style="background:#f8fafc">
                         <div class="px-3 py-2 rounded-3 fw-bold fs-4" style="background:#0b57d0;color:#fff;letter-spacing:.05em">@v.PlateNumber</div>

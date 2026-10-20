@@ -985,6 +985,11 @@ public static class LangSo
         ["Other"] = "Kale",
         ["Signed out by admin"] = "Maamulaha ayaa ka saaray",
         ["Show the list"] = "Muuji liiska",
+        ["Any status"] = "Xaalad kasta",
+        ["An inactive vehicle cannot get new invoices or payments."] = "Gaari Inactive ah ma heli karo biilal ama lacag-bixin cusub.",
+        ["Set this vehicle Inactive? It cannot get new invoices or payments."] = "Ma ka dhigaysaa gaarigan Inactive? Ma heli karo biilal ama lacag-bixin cusub.",
+        ["Set this vehicle Active again?"] = "Ma ka dhigaysaa gaarigan Active mar kale?",
+        ["This vehicle is inactive and cannot be charged. Ask an admin to set it Active."] = "Gaarigani waa Inactive lacagna laguma qaadi karo. Weydii maamulaha inuu ka dhigo Active.",
         ["Invalid username or password"] = "Magaca isticmaalaha ama furaha sirta ah waa khalad",
         // Car types page
         ["Vehicle categories, with their vehicles, tariffs and tax amounts."] = "Noocyada gaadiidka, gaadiidkooda, tariff-yadooda iyo qaddarrada canshuurta.",

@@ -180,6 +180,11 @@ public class CollectModel : PageModel
                 ErrorMessage = "Vehicle not found.";
                 return Page();
             }
+            if (!Vehicle.IsActive)
+            {
+                ErrorMessage = VehicleTax.Web.Models.Vehicle.InactiveMessage;
+                return Page();
+            }
 
             var tax = _context.TaxAmounts
                 .Include(t => t.Movement)

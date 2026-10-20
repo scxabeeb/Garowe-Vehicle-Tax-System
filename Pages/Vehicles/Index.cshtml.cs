@@ -23,6 +23,7 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public int? CarTypeId { get; set; }
     [BindProperty(SupportsGet = true)] public string Paid { get; set; } = "all"; // all | today | nottoday | never
     [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "plate"; // plate | newest | owner
+    [BindProperty(SupportsGet = true)] public string? State { get; set; } // active | inactive
     [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 20;
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -36,6 +37,22 @@ public class IndexModel : PageModel
     public int Total { get; set; }
     public int PaidTodayCount { get; set; }
     public int NeverPaidCount { get; set; }
+    public int InactiveCount { get; set; }
+
+    /// <summary>Switch a vehicle between Active and Inactive.</summary>
+    public async Task<IActionResult> OnPostToggleActiveAsync(int id)
+    {
+        var v = await _context.Vehicles.FirstOrDefaultAsync(x => x.Id == id);
+        if (v != null)
+        {
+            v.IsActive = !v.IsActive;
+            await _context.SaveChangesAsync();
+            TempData["Message"] = v.IsActive
+                ? $"Vehicle {v.PlateNumber} is now active."
+                : $"Vehicle {v.PlateNumber} is now inactive. It cannot get new invoices or payments.";
+        }
+        return RedirectToPage(new { Search, CarTypeId, Paid, Sort, State, PageSize, CurrentPage });
+    }
 
     public async Task OnGetAsync()
     {
@@ -52,6 +69,9 @@ public class IndexModel : PageModel
                              (digits.Length >= 3 && v.Mobile.Contains(digits)));
         }
         if (CarTypeId.HasValue) q = q.Where(v => v.CarTypeId == CarTypeId);
+        InactiveCount = await q.CountAsync(v => !v.IsActive);
+        if (State == "active") q = q.Where(v => v.IsActive);
+        else if (State == "inactive") q = q.Where(v => !v.IsActive);
 
         // Counts for the chips (within search / car type).
         var paid = _context.Payments.Where(p => p.IsPaid && !p.IsReverted);

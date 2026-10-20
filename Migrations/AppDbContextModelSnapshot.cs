@@ -976,6 +976,9 @@ namespace VehicleTax.Web.Migrations
                     b.Property<int>("CarTypeId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Mobile")
                         .IsRequired()
                         .HasColumnType("longtext");

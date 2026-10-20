@@ -68,6 +68,7 @@ public sealed class PagePermissionFilter : IAsyncPageFilter
         ["/Vehicles/Index"] = K.VehiclesView,
         ["/Vehicles/Create"] = K.VehiclesCreate,
         ["/Vehicles/Edit"] = K.VehiclesEdit,
+        ["/Vehicles/Index#ToggleActive"] = K.VehiclesEdit,
         ["/Vehicles/Delete"] = K.VehiclesDelete,
 
         // Payments

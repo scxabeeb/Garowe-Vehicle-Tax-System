@@ -36,6 +36,8 @@ namespace VehicleTax.Web.Controllers
             var vehicle = ResolveVehicle(dto.VehicleId, dto.PlateNumber);
             if (vehicle == null)
                 return BadRequest(new { status = "error", message = "Vehicle not found" });
+            if (!vehicle.IsActive)
+                return BadRequest(new { status = "error", message = Vehicle.InactiveMessage, vehicleInactive = true });
 
             var movement = ResolveMovement(dto.MovementId, dto.Movement, dto.MovementName);
             if (movement == null)
@@ -129,6 +131,8 @@ namespace VehicleTax.Web.Controllers
             var vehicle = _context.Vehicles.Find(dto.VehicleId);
             if (vehicle == null)
                 return BadRequest(new { status = "error", message = "Vehicle not found" });
+            if (!vehicle.IsActive)
+                return BadRequest(new { status = "error", message = Vehicle.InactiveMessage, vehicleInactive = true });
 
             ReceiptReference? reference = null;
             if (!string.IsNullOrWhiteSpace(dto.ReferenceNumber))
@@ -256,6 +260,8 @@ namespace VehicleTax.Web.Controllers
 
             if (vehicle == null)
                 return BadRequest(new { status = "error", message = "Vehicle not found" });
+            if (!vehicle.IsActive)
+                return BadRequest(new { status = "error", message = Vehicle.InactiveMessage, vehicleInactive = true });
 
             var movement = _context.Movements
                 .FirstOrDefault(m => m.Id == dto.MovementId);
