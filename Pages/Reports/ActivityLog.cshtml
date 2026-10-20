@@ -3,7 +3,7 @@
 @using VehicleTax.Web.Models
 @{
     ViewData["Title"] = L["Activity Log"];
-    ViewData["DetailCount"] = Model.Total;
+    ViewData["DetailCount"] = Model.Matching;
     ViewData["SummaryHint"] = L["Who did what, by user and record"];
     (string Label, string Icon, string Fg, string Bg) look(string action) => action switch
     {
@@ -132,35 +132,36 @@
     <partial name="_ReportViewToggle" />
 
     @* ---------------- SUMMARY ---------------- *@
-    <div data-report-view="summary">
-        <div class="row g-3 mb-3">
-            @{
-                var kpis = new[]
-                {
-                    (L["Total Activity"], Model.Total, "bi-activity", "#0b57d0", "#eef4ff", (string?)null),
-                    (L["Logged in"], Model.Count(ActivityActions.Login), "bi-box-arrow-in-right", "#0b57d0", "#eef4ff", (string?)ActivityActions.Login),
-                    (L["Failed login"], Model.Count(ActivityActions.LoginFailed), "bi-shield-exclamation", "#b91c1c", "#fee2e2", (string?)ActivityActions.LoginFailed),
-                    (L["Logged out"], Model.Count(ActivityActions.Logout), "bi-box-arrow-right", "#475569", "#f1f5f9", (string?)ActivityActions.Logout),
-                    (L["Created"], Model.Count(ActivityActions.Created), "bi-plus-circle", "#15803d", "#dcfce7", (string?)ActivityActions.Created),
-                    (L["Updated"], Model.Count(ActivityActions.Updated), "bi-pencil", "#b45309", "#fef3c7", (string?)ActivityActions.Updated),
-                    (L["Deleted"], Model.Count(ActivityActions.Deleted), "bi-trash", "#b91c1c", "#fee2e2", (string?)ActivityActions.Deleted),
-                    (L["Signed out by admin"], Model.Count(ActivityActions.ForcedLogout), "bi-person-x", "#7c3aed", "#ede9fe", (string?)ActivityActions.ForcedLogout),
-                };
-            }
-            @foreach (var k in kpis)
+    @* Cards stay in both views: click one to switch the list. *@
+    <div class="row g-3 mb-3">
+        @{
+            var kpis = new[]
             {
-                <div class="col-6 col-md-4 col-xl-3">
-                    @* Click a card to see its list (Details) with the same filters. *@
-                    <a class="al-kpi @(k.Item6 == Model.Action || (k.Item6 == null && string.IsNullOrEmpty(Model.Action)) ? "active" : "")"
-                       href="@listUrl(k.Item6)" data-view-fixed title="@L["Show the list"]">
-                        <span class="ic" style="background:@k.Item5;color:@k.Item4"><i class="bi @k.Item3"></i></span>
-                        <div><div class="v al-num">@k.Item2.ToString("N0")</div><div class="l">@k.Item1</div></div>
-                        <i class="bi bi-chevron-right go"></i>
-                    </a>
-                </div>
-            }
-        </div>
+                (L["Total Activity"], Model.Total, "bi-activity", "#0b57d0", "#eef4ff", (string?)null),
+                (L["Logged in"], Model.Count(ActivityActions.Login), "bi-box-arrow-in-right", "#0b57d0", "#eef4ff", (string?)ActivityActions.Login),
+                (L["Failed login"], Model.Count(ActivityActions.LoginFailed), "bi-shield-exclamation", "#b91c1c", "#fee2e2", (string?)ActivityActions.LoginFailed),
+                (L["Logged out"], Model.Count(ActivityActions.Logout), "bi-box-arrow-right", "#475569", "#f1f5f9", (string?)ActivityActions.Logout),
+                (L["Created"], Model.Count(ActivityActions.Created), "bi-plus-circle", "#15803d", "#dcfce7", (string?)ActivityActions.Created),
+                (L["Updated"], Model.Count(ActivityActions.Updated), "bi-pencil", "#b45309", "#fef3c7", (string?)ActivityActions.Updated),
+                (L["Deleted"], Model.Count(ActivityActions.Deleted), "bi-trash", "#b91c1c", "#fee2e2", (string?)ActivityActions.Deleted),
+                (L["Signed out by admin"], Model.Count(ActivityActions.ForcedLogout), "bi-person-x", "#7c3aed", "#ede9fe", (string?)ActivityActions.ForcedLogout),
+            };
+        }
+        @foreach (var k in kpis)
+        {
+            <div class="col-6 col-md-4 col-xl-3">
+                @* Click a card to see its list (Details) with the same filters. *@
+                <a class="al-kpi @(k.Item6 == Model.Action || (k.Item6 == null && string.IsNullOrEmpty(Model.Action)) ? "active" : "")"
+                   href="@listUrl(k.Item6)" data-view-fixed title="@L["Show the list"]">
+                    <span class="ic" style="background:@k.Item5;color:@k.Item4"><i class="bi @k.Item3"></i></span>
+                    <div><div class="v al-num">@k.Item2.ToString("N0")</div><div class="l">@k.Item1</div></div>
+                    <i class="bi bi-chevron-right go"></i>
+                </a>
+            </div>
+        }
+    </div>
 
+    <div data-report-view="summary">
         <div class="row g-3">
             <div class="col-xl-7">
                 <div class="al-card h-100">

@@ -40,7 +40,10 @@ public class ActivityLogModel : PageModel
     public List<UserActivity> ByUser { get; set; } = new();
     public List<EntityActivity> ByEntity { get; set; } = new();
     public List<ActivityLog> RecentLogins { get; set; } = new();
+    /// <summary>All activity for the other filters (the cards ignore the chosen action).</summary>
     public int Total => ByAction.Values.Sum();
+    /// <summary>Rows in the list (with the chosen action).</summary>
+    public int Matching { get; set; }
     public int Count(string action) => ByAction.TryGetValue(action, out var n) ? n : 0;
 
     public record UserActivity(string Username, int Logins, int Failed, int Created, int Updated, int Deleted, DateTime Last)
@@ -70,7 +73,8 @@ public class ActivityLogModel : PageModel
 
         var query = Filtered();
 
-        ByAction = await query.GroupBy(a => a.Action)
+        // Card counts for every action, so switching between cards keeps them all.
+        ByAction = await Filtered(ignoreAction: true).GroupBy(a => a.Action)
             .Select(g => new { g.Key, N = g.Count() })
             .ToDictionaryAsync(x => x.Key, x => x.N);
 
@@ -111,7 +115,8 @@ public class ActivityLogModel : PageModel
             .AsNoTracking()
             .ToListAsync();
 
-        Pager = new Pager(Total, CurrentPage, PageSize);
+        Matching = string.IsNullOrWhiteSpace(Action) ? Total : await query.CountAsync();
+        Pager = new Pager(Matching, CurrentPage, PageSize);
         CurrentPage = Pager.Page;
         Rows = await Pager.Apply(query.OrderByDescending(a => a.At).ThenByDescending(a => a.Id))
             .AsNoTracking()
@@ -139,7 +144,7 @@ public class ActivityLogModel : PageModel
             "text/csv", $"ActivityLog_{AppTime.Now:yyyyMMdd_HHmm}.csv");
     }
 
-    private IQueryable<ActivityLog> Filtered()
+    private IQueryable<ActivityLog> Filtered(bool ignoreAction = false)
     {
         var q = _context.ActivityLogs.AsQueryable();
 
@@ -155,7 +160,7 @@ public class ActivityLogModel : PageModel
             q = q.Where(a => a.At < to);
         }
         if (!string.IsNullOrWhiteSpace(Username)) q = q.Where(a => a.Username == Username);
-        if (!string.IsNullOrWhiteSpace(Action))
+        if (!ignoreAction && !string.IsNullOrWhiteSpace(Action))
         {
             q = Action == "SignIns"
                 ? q.Where(a => a.Action == ActivityActions.Login || a.Action == ActivityActions.LoginFailed || a.Action == ActivityActions.Logout)
