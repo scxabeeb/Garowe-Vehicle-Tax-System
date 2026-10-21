@@ -61,9 +61,9 @@
                 <label class="form-label small fw-semibold mb-1">@L["Current Tariff"]</label>
                 <select name="MovementId" class="form-select">
                     <option value="">@L["All"]</option>
-                    @foreach (var m in Model.Movements)
+                    @foreach (var m in Model.TariffFilterOptions)
                     {
-                        <option value="@m.Id" selected="@(m.Id == Model.MovementId ? "selected" : null)">@m.Name@(m.CarType == null ? "" : " · " + m.CarType)</option>
+                        <option value="@m.Id" selected="@(m.Id == Model.MovementId ? "selected" : null)">@m.Name</option>
                     }
                 </select>
             </div>

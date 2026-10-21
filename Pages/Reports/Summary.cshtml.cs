@@ -121,9 +121,7 @@ public class SummaryModel : PageModel
             _context.Checkpoints.AsNoTracking().OrderBy(c => c.Name).ToList(),
             "Id", "Name");
 
-        Movements = new SelectList(
-            _context.Movements.AsNoTracking().OrderBy(m => m.Name).ToList(),
-            "Id", "Name");
+        Movements = VehicleTax.Web.Services.TariffFilter.SelectList(_context);
     }
 
     private IQueryable<Payment> GetFilteredQuery()
@@ -152,7 +150,7 @@ public class SummaryModel : PageModel
             query = query.Where(p => p.CheckpointId == CheckpointId.Value);
 
         if (MovementId.HasValue)
-            query = query.Where(p => p.MovementId == MovementId.Value);
+            query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
         return query;
     }

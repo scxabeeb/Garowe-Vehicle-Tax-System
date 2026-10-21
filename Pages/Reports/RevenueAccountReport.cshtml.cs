@@ -92,15 +92,7 @@ namespace VehicleTax.Web.Pages.Reports
                 "Name"
             );
 
-            Movements = new SelectList(
-                await _context.Movements.AsNoTracking()
-                    .GroupBy(m => m.Name)
-                    .Select(g => new { Id = g.Min(x => x.Id), Name = g.Key })
-                    .OrderBy(x => x.Name)
-                    .ToListAsync(),
-                "Id",
-                "Name"
-            );
+            Movements = await VehicleTax.Web.Services.TariffFilter.SelectListAsync(_context);
         }
 
         private async Task LoadReportAsync()
@@ -122,7 +114,7 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(p => p.Movement != null && p.Movement.RevenueAccountId == RevenueAccountId.Value);
 
             if (MovementId.HasValue)
-                query = query.Where(p => p.MovementId == MovementId.Value);
+                query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
             if (CarTypeId.HasValue)
                 query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);

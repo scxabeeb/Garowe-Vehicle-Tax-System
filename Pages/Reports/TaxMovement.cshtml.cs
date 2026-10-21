@@ -47,14 +47,7 @@ namespace VehicleTax.Web.Pages.Reports
         public async Task OnGetAsync()
         {
             if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
-            Movements = new SelectList(
-                await _context.Movements
-                    .AsNoTracking()
-                    .OrderBy(m => m.Name)
-                    .ToListAsync(),
-                "Id",
-                "Name"
-            );
+            Movements = await VehicleTax.Web.Services.TariffFilter.SelectListAsync(_context);
 
             var query = _context.Payments
                 .Include(p => p.Movement)
@@ -67,7 +60,7 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
             if (MovementId.HasValue)
-                query = query.Where(p => p.MovementId == MovementId.Value);
+                query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
             // Total Tax
             TotalTax = await query.SumAsync(p => p.Amount);
@@ -76,11 +69,11 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Grouping
             var groupedQuery = query
-                .GroupBy(p => new { p.MovementId, p.Movement!.Name })
+                .GroupBy(p => p.Movement!.Name)
                 .Select(g => new TaxByMovement
                 {
-                    MovementId = g.Key.MovementId,
-                    MovementName = g.Key.Name,
+                    MovementId = g.Min(x => x.MovementId),
+                    MovementName = g.Key,
                     TotalAmount = g.Sum(x => x.Amount),
                     TotalPayments = g.Count()
                 });
@@ -110,14 +103,14 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(p => p.PaidAt < AppTime.ToUtc(ToDate.Value.Date.AddDays(1)));
 
             if (MovementId.HasValue)
-                query = query.Where(p => p.MovementId == MovementId.Value);
+                query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
             var data = await query
-                .GroupBy(p => new { p.MovementId, p.Movement!.Name })
+                .GroupBy(p => p.Movement!.Name)
                 .Select(g => new TaxByMovement
                 {
-                    MovementId = g.Key.MovementId,
-                    MovementName = g.Key.Name,
+                    MovementId = g.Min(x => x.MovementId),
+                    MovementName = g.Key,
                     TotalAmount = g.Sum(x => x.Amount),
                     TotalPayments = g.Count()
                 })

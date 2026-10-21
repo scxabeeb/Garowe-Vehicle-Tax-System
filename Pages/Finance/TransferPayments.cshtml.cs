@@ -39,6 +39,7 @@ public class TransferPaymentsModel : PageModel
     public List<Row> Rows { get; set; } = new();
     public Pager Pager { get; set; } = new(0, 1, 20);
     public List<MovementOption> Movements { get; set; } = new();
+    public List<VehicleTax.Web.Services.TariffFilter.Option> TariffFilterOptions { get; set; } = new();
     public List<RevenueAccount> Accounts { get; set; } = new();
     public List<PaymentTransfer> History { get; set; } = new();
     public bool Searched => !string.IsNullOrWhiteSpace(Search) || FromDate.HasValue || ToDate.HasValue || AccountId.HasValue || MovementId.HasValue;
@@ -135,6 +136,8 @@ public class TransferPaymentsModel : PageModel
             .OrderBy(m => m.Account).ThenBy(m => m.Name).ThenBy(m => m.CarType)
             .ToList();
 
+        TariffFilterOptions = await VehicleTax.Web.Services.TariffFilter.OptionsAsync(_context);
+
         History = await _context.PaymentTransfers.AsNoTracking()
             .OrderByDescending(t => t.At).ThenByDescending(t => t.Id)
             .Take(15)
@@ -170,7 +173,7 @@ public class TransferPaymentsModel : PageModel
             q = q.Where(p => p.PaidAt < to);
         }
         if (AccountId.HasValue) q = q.Where(p => p.Movement != null && p.Movement.RevenueAccountId == AccountId);
-        if (MovementId.HasValue) q = q.Where(p => p.MovementId == MovementId);
+        if (MovementId.HasValue) q = VehicleTax.Web.Services.TariffFilter.Apply(q, _context, MovementId);
 
         Pager = new Pager(await q.CountAsync(), CurrentPage, PageSize);
         CurrentPage = Pager.Page;

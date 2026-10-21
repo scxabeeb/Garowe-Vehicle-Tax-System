@@ -97,7 +97,7 @@
                     <option value="">@L["All Tariffs"]</option>
                     @foreach (var m in Model.Movements)
                     {
-                        <option value="@m.Id" selected="@(m.Id == Model.MovementId ? "selected" : null)">@m.Name@(m.CarType == null ? "" : " · " + m.CarType.Name)</option>
+                        <option value="@m.Id" selected="@(m.Id == Model.MovementId ? "selected" : null)">@m.Name</option>
                     }
                 </select>
             </div>

@@ -46,7 +46,7 @@ public class IndexModel : PageModel
     public Pager Pager { get; set; } = new(0, 1, 20);
     public List<User> Collectors { get; set; } = new();
     public List<Checkpoint> Checkpoints { get; set; } = new();
-    public List<Movement> Movements { get; set; } = new();
+    public List<VehicleTax.Web.Services.TariffFilter.Option> Movements { get; set; } = new();
 
     public bool IsPersonal { get; private set; }
     public bool IsAdmin { get; private set; }
@@ -185,7 +185,7 @@ public class IndexModel : PageModel
                 .OrderBy(u => u.Username).ToListAsync();
         }
         Checkpoints = await _context.Checkpoints.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
-        Movements = await _context.Movements.AsNoTracking().Include(m => m.CarType).OrderBy(m => m.Name).ToListAsync();
+        Movements = await VehicleTax.Web.Services.TariffFilter.OptionsAsync(_context);
 
         if (!string.IsNullOrWhiteSpace(Search))
         {
@@ -210,7 +210,7 @@ public class IndexModel : PageModel
         }
         if (!IsPersonal && CollectorId.HasValue) q = q.Where(p => p.CollectorId == CollectorId);
         if (CheckpointId.HasValue) q = q.Where(p => p.CheckpointId == CheckpointId);
-        if (MovementId.HasValue) q = q.Where(p => p.MovementId == MovementId);
+        if (MovementId.HasValue) q = VehicleTax.Web.Services.TariffFilter.Apply(q, _context, MovementId);
         if (!IsPersonal && MistakeById.HasValue) q = q.Where(p => !p.IsPaid && p.MistakeByUserId == MistakeById);
         if (!string.IsNullOrEmpty(PendingReason)) q = q.Where(p => !p.IsPaid && !p.IsReverted && p.PendingReason == PendingReason);
 

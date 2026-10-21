@@ -60,10 +60,7 @@ public class LogsModel : PageModel
             "Id", "Name"
         );
 
-        Movements = new SelectList(
-            await _context.Movements.AsNoTracking().OrderBy(m => m.Name).ToListAsync(),
-            "Id", "Name"
-        );
+        Movements = await VehicleTax.Web.Services.TariffFilter.SelectListAsync(_context);
 
         var query = _context.Payments
             .Include(p => p.Vehicle).ThenInclude(v => v.CarType)
@@ -90,7 +87,7 @@ public class LogsModel : PageModel
             query = query.Where(p => p.CheckpointId == CheckpointId.Value);
 
         if (MovementId.HasValue)
-            query = query.Where(p => p.MovementId == MovementId.Value);
+            query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
         if (!string.IsNullOrEmpty(Action) && Action != "All")
         {
@@ -154,7 +151,7 @@ public class LogsModel : PageModel
             query = query.Where(p => p.CheckpointId == CheckpointId.Value);
 
         if (MovementId.HasValue)
-            query = query.Where(p => p.MovementId == MovementId.Value);
+            query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
         if (!string.IsNullOrEmpty(Action) && Action != "All")
         {

@@ -114,21 +114,8 @@ namespace VehicleTax.Web.Pages.Reports
                 "Name"
             );
 
-            // Movements (UNIQUE BY NAME, even if many vehicles/payments use it)
-            Movements = new SelectList(
-                await _context.Movements
-                    .AsNoTracking()
-                    .GroupBy(m => m.Name)
-                    .Select(g => new
-                    {
-                        Id = g.Min(x => x.Id),   // take one Id per movement name
-                        Name = g.Key
-                    })
-                    .OrderBy(x => x.Name)
-                    .ToListAsync(),
-                "Id",
-                "Name"
-            );
+            // Tariffs, one per name (a tariff exists once per car type)
+            Movements = await VehicleTax.Web.Services.TariffFilter.SelectListAsync(_context);
 
             // Collectors
             Collectors = new SelectList(
@@ -187,7 +174,7 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);
 
             if (MovementId.HasValue)
-                query = query.Where(p => p.MovementId == MovementId.Value);
+                query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
             if (CollectorId.HasValue)
                 query = query.Where(p => p.CollectorId == CollectorId.Value);
@@ -391,7 +378,7 @@ namespace VehicleTax.Web.Pages.Reports
                 query = query.Where(p => p.Vehicle != null && p.Vehicle.CarTypeId == CarTypeId.Value);
 
             if (MovementId.HasValue)
-                query = query.Where(p => p.MovementId == MovementId.Value);
+                query = VehicleTax.Web.Services.TariffFilter.Apply(query, _context, MovementId);
 
             if (CollectorId.HasValue)
                 query = query.Where(p => p.CollectorId == CollectorId.Value);
