@@ -1,9 +1,13 @@
 @page
 @model VehicleTax.Web.Pages.Reports.TaxMovementCarTypeModel
 
-<h3 class="fw-bold mb-4">@L["Tax Amount by Tariff & Car Type"]</h3>
+<div class="module-page">
+<div class="module-header mb-4">
+    <h3 class="fw-bold mb-1">@L["Tax Amount by Tariff & Car Type"]</h3>
+    <div class="sub">@L["Tax collected per tariff and car type."]</div>
+</div>
 
-<form method="get" class="card p-3 mb-3 shadow-sm">
+<form method="get" class="card module-filter-card p-3 mb-3">
     <div class="row g-2">
         <div class="col-md-3">
             <label class="form-label">@L["From Date"]</label>
@@ -19,6 +23,13 @@
             <label class="form-label">@L["Tariff Name"]</label>
             <select asp-for="MovementName" asp-items="Model.Movements" class="form-select">
                 <option value="">@L["All Tariffs"]</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">@L["Car Type"]</label>
+            <select asp-for="CarTypeId" asp-items="Model.CarTypes" class="form-select">
+                <option value="">@L["All Car Types"]</option>
             </select>
         </div>
 
@@ -44,18 +55,18 @@
 
 <div data-report-view="summary">
 
-<div class="card shadow-sm mb-3">
+<div class="card module-kpi-card mb-3">
     <div class="card-body text-center">
-        <h5 class="text-muted">@L["Total Tax Collected"]</h5>
-        <h2 class="fw-bold text-success">
+        <div class="module-kpi-title">@L["Total Tax Collected"]</div>
+        <h2 class="module-kpi-value text-success">
             $@Model.TotalTax.ToString("N0")
         </h2>
     </div>
 </div>
 
-<div class="card shadow-sm">
+<div class="card module-table-card">
     <div class="card-header fw-bold">
-        Tax Amount Linked With Movement & Car Type
+        @L["Tax Amount Linked With Tariff & Car Type"]
     </div>
     <div class="card-body p-0">
         <table class="table table-striped mb-0">
@@ -90,4 +101,5 @@
 
 <div data-report-view="details">
     <partial name="_PaymentDetailsTable" model="Model.DetailRows" />
+</div>
 </div>

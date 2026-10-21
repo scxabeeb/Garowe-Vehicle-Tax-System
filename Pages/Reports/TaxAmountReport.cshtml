@@ -2,7 +2,7 @@
 @model VehicleTax.Web.Pages.Reports.TaxAmountReportModel
 
 <h3 class="mb-3">
-    <i class="bi bi-cash-stack text-success"></i> @L["Tax Amount Report"]
+    <i class="bi bi-cash-stack text-success"></i> @L["Tax Amount Schedule"]
 </h3>
 
 <form method="get" class="row g-2 mb-3">
@@ -77,6 +77,7 @@
                 <th>@L["Car Type"]</th>
                 <th>@L["Tariff"]</th>
                 <th>@L["Amount"]</th>
+                <th>@L["Status"]</th>
             </tr>
         </thead>
         <tbody>
@@ -106,6 +107,13 @@
                     <td class="fw-bold text-success">
                         $@t.Amount.ToString("N0")
                     </td>
+                    <td>
+                        <span class="badge @(t.Movement?.IsActive == false ? "bg-secondary" : "bg-success")">@L[t.Movement?.IsActive == false ? "Inactive" : "Active"]</span>
+                        @if (Model.DuplicateIds.Contains(t.Id))
+                        {
+                            <span class="badge bg-danger" title="@L["The same car type and tariff has more than one tax amount."]">@L["Duplicate"]</span>
+                        }
+                    </td>
                 </tr>
                 i++;
             }
@@ -113,7 +121,7 @@
         else
         {
             <tr>
-                <td colspan="4" class="text-center text-muted">
+                <td colspan="5" class="text-center text-muted">
                     @L["No records found."]
                 </td>
             </tr>

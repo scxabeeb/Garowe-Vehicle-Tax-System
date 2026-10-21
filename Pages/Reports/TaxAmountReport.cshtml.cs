@@ -43,6 +43,9 @@ namespace VehicleTax.Web.Pages.Reports
         public List<CarType> CarTypes { get; set; } = new();
         public List<Movement> Movements { get; set; } = new();
 
+        /// <summary>Ids of tax amounts that share their car type and tariff name with another one.</summary>
+        public HashSet<int> DuplicateIds { get; set; } = new();
+
         public void OnGet()
         {
             if (PageSize <= 0) PageSize = VehicleTax.Web.Services.Pager.AllRows; // "All"
@@ -105,6 +108,17 @@ namespace VehicleTax.Web.Pages.Reports
                 .Skip((PageNumber - 1) * PageSize)
                 .Take(PageSize)
                 .ToList();
+
+            // A car type should have one amount per tariff; flag the extras.
+            var duplicateKeys = _context.TaxAmounts
+                .GroupBy(t => new { t.CarTypeId, t.Movement!.Name })
+                .Where(g => g.Count() > 1)
+                .Select(g => new { g.Key.CarTypeId, g.Key.Name })
+                .ToList();
+            DuplicateIds = TaxAmounts
+                .Where(t => duplicateKeys.Any(k => k.CarTypeId == t.CarTypeId && k.Name == t.Movement?.Name))
+                .Select(t => t.Id)
+                .ToHashSet();
         }
 
         public IActionResult OnGetExportCsv(int? carTypeId, string? movementName, string? search)
@@ -125,16 +139,20 @@ namespace VehicleTax.Web.Pages.Reports
             if (!string.IsNullOrWhiteSpace(movementName))
                 query = query.Where(t => t.Movement!.Name == movementName);
 
-            var list = query.ToList();
+            var list = query
+                .OrderBy(t => t.CarType!.Name)
+                .ThenBy(t => t.Movement!.Name)
+                .ToList();
 
-            var csv = "System ID,CarType,Tariff,Amount\n";
+            var csv = new System.Text.StringBuilder("System ID,CarType,Tariff,Amount,Status\n");
             foreach (var t in list)
             {
-                csv += $"{t.Id},{t.CarType?.Name},{t.Movement?.Name},{VehicleTax.Web.Services.Money.Csv(t.Amount)}\n";
+                var status = t.Movement?.IsActive == false ? "Inactive" : "Active";
+                csv.Append($"{t.Id},{t.CarType?.Name},{t.Movement?.Name},{VehicleTax.Web.Services.Money.Csv(t.Amount)},{status}\n");
             }
 
             return File(
-                System.Text.Encoding.UTF8.GetBytes(csv),
+                System.Text.Encoding.UTF8.GetBytes(csv.ToString()),
                 "text/csv",
                 "TaxAmountReport.csv"
             );

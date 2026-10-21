@@ -46,6 +46,7 @@ namespace VehicleTax.Web.Pages.Reports
         public List<VehicleTax.Web.Services.PaymentDetailRow> DetailRows { get; set; } = new();
         public VehicleTax.Web.Services.PaymentSummaryBreakdown Breakdown { get; set; } = new();
         public SelectList Movements { get; set; } = null!;
+        public SelectList CarTypes { get; set; } = null!;
 
         public async Task OnGetAsync()
         {
@@ -58,6 +59,12 @@ namespace VehicleTax.Web.Pages.Reports
                     .OrderBy(m => m.Name)
                     .ToListAsync(),
                 "Name",
+                "Name"
+            );
+
+            CarTypes = new SelectList(
+                await _context.CarTypes.AsNoTracking().OrderBy(c => c.Name).ToListAsync(),
+                "Id",
                 "Name"
             );
 
@@ -84,18 +91,17 @@ namespace VehicleTax.Web.Pages.Reports
             Breakdown = await VehicleTax.Web.Services.ReportDetails.SummarizeAsync(query);
             DetailRows = await VehicleTax.Web.Services.ReportDetails.LoadAsync(query);
 
-            // Group by Movement + CarType
+            // Group by tariff name + car type (a tariff is stored once per car type)
             var groupedQuery = query
                 .GroupBy(p => new
                 {
-                    p.MovementId,
                     MovementName = p.Movement!.Name,
                     p.Vehicle!.CarTypeId,
                     CarTypeName = p.Vehicle.CarType!.Name
                 })
                 .Select(g => new TaxByMovementCarType
                 {
-                    MovementId = g.Key.MovementId,
+                    MovementId = g.Min(x => x.MovementId),
                     MovementName = g.Key.MovementName,
                     CarTypeId = g.Key.CarTypeId,
                     CarTypeName = g.Key.CarTypeName,
@@ -138,7 +144,6 @@ namespace VehicleTax.Web.Pages.Reports
             var data = await query
                 .GroupBy(p => new
                 {
-                    p.MovementId,
                     MovementName = p.Movement!.Name,
                     p.Vehicle!.CarTypeId,
                     CarTypeName = p.Vehicle.CarType!.Name
