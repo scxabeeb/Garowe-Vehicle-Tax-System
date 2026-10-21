@@ -1089,5 +1089,9 @@ public static class LangSo
         ["Date – oldest first"] = "Taariikhda – kuwa hore marka hore",
         ["Amount – highest first"] = "Qaddarka – kan ugu badan marka hore",
         ["Amount – lowest first"] = "Qaddarka – kan ugu yar marka hore",
+        ["Collector Profile"] = "Xogta qaade-canshuurta",
+        ["View profile"] = "Eeg xogta",
+        ["First Payment"] = "Lacag-bixintii ugu horreysay",
+        ["Last Payment"] = "Lacag-bixintii ugu dambeysay",
     };
 }

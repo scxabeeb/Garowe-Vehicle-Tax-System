@@ -1,0 +1,207 @@
+@page "{id:int}"
+@model VehicleTax.Web.Pages.Reports.CollectorProfileModel
+@inject VehicleTax.Web.Services.IPermissionService Perms
+@{
+    var c = Model.Collector;
+    ViewData["Title"] = $"{L["Collector Profile"]} — {c.DisplayName}";
+    var canEdit = await Perms.HasAsync(User, VehicleTax.Web.Security.AppPermissions.Keys.UsersEdit);
+    var initials = string.Concat(c.DisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
+
+    // Back to the dashboard the user came from (with its filters), else the dashboard with these dates.
+    var back = ViewContext.HttpContext.Request.Query["returnUrl"].ToString();
+    if (!Url.IsLocalUrl(back))
+        back = Url.Page("./Index", new { FromDate = Model.FromDate?.ToString("yyyy-MM-dd"), ToDate = Model.ToDate?.ToString("yyyy-MM-dd"), CollectorId = c.Id })!;
+}
+
+<style>
+    .cp-avatar { width: 64px; height: 64px; border-radius: 50%; background: #0b57d0; color: #fff;
+        display: grid; place-items: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; }
+    .cp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem 1.5rem; }
+    .cp-facts .k { font-size: .75rem; color: #64748b; text-transform: uppercase; letter-spacing: .03em; }
+    .cp-facts .v { font-weight: 600; color: #0f172a; word-break: break-word; }
+</style>
+
+<div class="module-page">
+    <div class="module-header mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h3 class="fw-bold mb-0"><i class="bi bi-person-badge"></i> @L["Collector Profile"]</h3>
+            <div class="d-flex gap-2">
+                @if (canEdit)
+                {
+                    <a asp-page="/Account/EditUser" asp-route-id="@c.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> @L["Edit User"]
+                    </a>
+                }
+                <a href="@back" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> @L["Back to Report"]
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- IDENTITY -->
+    <div class="card module-panel-card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="cp-avatar">@initials</div>
+                <div>
+                    <h4 class="fw-bold mb-0">@c.DisplayName</h4>
+                    <div class="text-muted">@@@c.Username</div>
+                </div>
+                <span class="badge ms-auto @(c.IsLocked ? "bg-danger" : "bg-success")">@L[c.IsLocked ? "Inactive" : "Active"]</span>
+            </div>
+            <div class="cp-facts">
+                <div><div class="k">@L["Full Name"]</div><div class="v">@(string.IsNullOrWhiteSpace(c.FullName) ? "-" : c.FullName)</div></div>
+                <div><div class="k">@L["Username"]</div><div class="v">@c.Username</div></div>
+                <div><div class="k">@L["Phone"]</div><div class="v">@(string.IsNullOrWhiteSpace(c.Phone) ? "-" : c.Phone)</div></div>
+                <div><div class="k">@L["Role"]</div><div class="v">@c.Role</div></div>
+                <div><div class="k">@L["Checkpoint"]</div><div class="v">@(c.Checkpoint?.Name ?? L["Unassigned"])</div></div>
+                <div><div class="k">@L["First Payment"]</div><div class="v">@(Model.FirstPaymentAt.HasValue ? AppTime.ToLocal(Model.FirstPaymentAt.Value).ToString("dd MMM yyyy") : "-")</div></div>
+                <div><div class="k">@L["Last Payment"]</div><div class="v">@(Model.LastPaymentAt.HasValue ? AppTime.ToLocal(Model.LastPaymentAt.Value).ToString("dd MMM yyyy HH:mm") : "-")</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <form method="get" class="card module-filter-card p-3 mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">@L["From Date"]</label>
+                <input type="date" asp-for="FromDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">@L["To Date"]</label>
+                <input type="date" asp-for="ToDate" class="form-control" />
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <button class="btn btn-primary module-action-btn">@L["Apply Filters"]</button>
+                <a asp-page="./CollectorProfile" asp-route-id="@c.Id" class="btn btn-secondary module-action-btn">@L["Reset"]</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card module-kpi-card border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="module-kpi-title">@L["Today"]</div>
+                    <h3 class="module-kpi-value text-primary">$@Model.TodayAmount.ToString("N0")</h3>
+                    <div class="small text-muted">@Model.TodayCount @L["payments"]</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card module-kpi-card border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="module-kpi-title">@L["Total Collected"]</div>
+                    <h3 class="module-kpi-value text-success">$@Model.Breakdown.PaidAmount.ToString("N0")</h3>
+                    <div class="small text-muted">@Model.Breakdown.PaidCount @L["payments"]</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card module-kpi-card border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="module-kpi-title">@L["Pending"]</div>
+                    <h3 class="module-kpi-value text-warning">@Model.PendingCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card module-kpi-card border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="module-kpi-title">@L["Cancelled"]</div>
+                    <h3 class="module-kpi-value text-danger">@Model.CancelledCount</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BREAKDOWN -->
+    <div class="row g-3 mb-4">
+        @foreach (var g in new[]
+        {
+            (Title: L["By Tariff"], Icon: "bi-signpost-split", Rows: Model.Breakdown.ByTariff),
+            (Title: L["By Checkpoint"], Icon: "bi-geo-alt", Rows: Model.Breakdown.ByCheckpoint),
+        })
+        {
+            var max = g.Rows.Count > 0 ? g.Rows.Max(r => r.Amount) : 0m;
+            <div class="col-lg-6">
+                <div class="card module-panel-card h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3"><i class="bi @g.Icon"></i> @g.Title</h5>
+                        @if (g.Rows.Count == 0)
+                        {
+                            <p class="text-muted mb-0">@L["No data found for the selected filters."]</p>
+                        }
+                        @foreach (var r in g.Rows)
+                        {
+                            var pct = max > 0 ? r.Amount / max * 100 : 0;
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="fw-semibold">@r.Name (@r.Count)</span>
+                                    <span>$@r.Amount.ToString("N0")</span>
+                                </div>
+                                <div class="progress" role="progressbar" aria-label="@r.Name">
+                                    <div class="progress-bar" style="width:@pct.ToString("0.#")%"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="card module-table-card">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-receipt"></i> @L["Payments"]</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@L["System ID"]</th>
+                            <th>@L["Date"]</th>
+                            <th>@L["Plate"]</th>
+                            <th>@L["Owner"]</th>
+                            <th>@L["Tariff"]</th>
+                            <th>@L["Car Type"]</th>
+                            <th>@L["Checkpoint"]</th>
+                            <th>@L["Invoice / Receipt No"]</th>
+                            <th>@L["Golis Bill No"]</th>
+                            <th class="text-end">@L["Amount"]</th>
+                            <th>@L["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Payments.Count == 0)
+                        {
+                            <tr><td colspan="11" class="text-center text-muted p-4">@L["No records found."]</td></tr>
+                        }
+                        @foreach (var r in Model.Payments)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.SystemId</td>
+                                <td class="text-nowrap">@r.PaidAt.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@r.Plate</td>
+                                <td>@r.Owner</td>
+                                <td>@r.Tariff</td>
+                                <td>@r.CarType</td>
+                                <td>@r.Checkpoint</td>
+                                <td><a asp-page="/Payments/Receipt" asp-route-paymentId="@r.SystemId">@r.InvoiceNumber</a></td>
+                                <td>@(string.IsNullOrWhiteSpace(r.GolisBillNo) ? "-" : r.GolisBillNo)</td>
+                                <td class="text-end">$@r.Amount.ToString("N2")</td>
+                                <td>
+                                    <span class="badge @(r.Status == "Paid" ? "bg-success" : r.Status == "Cancelled" ? "bg-danger" : "bg-warning text-dark")">@L[r.Status]</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <partial name="_Pager" model="Model.Pager" />
+</div>

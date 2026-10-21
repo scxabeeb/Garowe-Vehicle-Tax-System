@@ -266,7 +266,21 @@
                         var pct = maxCollectorAmount > 0 ? (c.TotalAmount / maxCollectorAmount) * 100 : 0;
                         <div class="mb-3">
                             <div class="d-flex justify-content-between small mb-1">
-                                <span class="fw-semibold">@c.CollectorName (@c.TotalPayments)</span>
+                                <span class="fw-semibold">
+                                    @if (c.CollectorId.HasValue)
+                                    {
+                                        <a asp-page="./CollectorProfile" asp-route-id="@c.CollectorId"
+                                           asp-route-FromDate="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-ToDate="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                                           title="@L["View profile"]">@c.CollectorName</a>
+                                        <span class="text-muted fw-normal">@@@c.Username</span>
+                                    }
+                                    else
+                                    {
+                                        @c.CollectorName
+                                    }
+                                    (@c.TotalPayments)
+                                </span>
                                 <span>$@c.TotalAmount.ToString("N0")</span>
                             </div>
                             <div class="progress" role="progressbar" aria-label="@L["Collector amount"]">
@@ -400,7 +414,17 @@
                         <td>@p.Vehicle?.CarType?.Name</td>
                         <td>@(p.Movement?.Name ?? p.MovementType)</td>
                         <td>@(p.Movement?.RevenueAccount != null ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}" : "-")</td>
-                        <td>@(p.Collector?.DisplayName ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
+                        <td>
+                            @if (p.Collector != null)
+                            {
+                                <a asp-page="./CollectorProfile" asp-route-id="@p.Collector.Id" title="@L["View profile"]">@p.Collector.DisplayName</a>
+                                <div class="small text-muted">@@@p.Collector.Username</div>
+                            }
+                            else
+                            {
+                                @(p.ReceiptReference?.UsedBy ?? "Unassigned")
+                            }
+                        </td>
                         <td>@(p.Checkpoint?.Name ?? "Unassigned")</td>
                         <td>@p.InvoiceNumber</td>
                         <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "-" : p.TransactionId)</td>

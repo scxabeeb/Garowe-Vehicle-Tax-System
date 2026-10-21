@@ -11,7 +11,10 @@ namespace VehicleTax.Web.Pages.Reports
 {
     public class CollectorSummary
     {
+        /// <summary>The user's id; null for payments without a system user.</summary>
+        public int? CollectorId { get; set; }
         public string CollectorName { get; set; } = "";
+        public string Username { get; set; } = "";
         public decimal TotalAmount { get; set; }
         public int TotalPayments { get; set; }
     }
@@ -134,7 +137,7 @@ namespace VehicleTax.Web.Pages.Reports
                     .OrderBy(u => u.FullName == "" ? u.Username : u.FullName)
                     .ToListAsync(),
                 "Id",
-                "DisplayName"
+                "NameWithUsername"
             );
 
             Checkpoints = new SelectList(
@@ -204,26 +207,38 @@ namespace VehicleTax.Web.Pages.Reports
             TotalVehicles = await query.Select(p => p.VehicleId).Distinct().CountAsync();
 
             // Collector summary
-            CollectorSummaries = await query
+            var collectorRows = await query
                 .GroupBy(p => new
                 {
                     p.CollectorId,
-                    Name = p.Collector != null
-                        ? (p.Collector.FullName != null && p.Collector.FullName.Trim() != ""
-                            ? p.Collector.FullName
-                            : p.Collector.Username)
-                        : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
-                            ? p.ReceiptReference.UsedBy
-                            : "Unassigned")
+                    FullName = p.Collector != null ? p.Collector.FullName : null,
+                    Username = p.Collector != null ? p.Collector.Username : null,
+                    UsedBy = p.Collector == null && p.ReceiptReference != null ? p.ReceiptReference.UsedBy : null
                 })
-                .Select(g => new CollectorSummary
+                .Select(g => new
                 {
-                    CollectorName = g.Key.Name!,
+                    g.Key.CollectorId,
+                    g.Key.FullName,
+                    g.Key.Username,
+                    g.Key.UsedBy,
                     TotalPayments = g.Count(),
                     TotalAmount = g.Sum(x => x.Amount)
                 })
-                .OrderByDescending(x => x.TotalAmount)
                 .ToListAsync();
+
+            CollectorSummaries = collectorRows
+                .Select(r => new CollectorSummary
+                {
+                    CollectorId = r.Username != null ? r.CollectorId : null,
+                    Username = r.Username ?? "",
+                    CollectorName = r.Username != null
+                        ? (string.IsNullOrWhiteSpace(r.FullName) ? r.Username : r.FullName)
+                        : (string.IsNullOrWhiteSpace(r.UsedBy) ? "Unassigned" : r.UsedBy),
+                    TotalPayments = r.TotalPayments,
+                    TotalAmount = r.TotalAmount
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .ToList();
 
             // Checkpoint summary — group by the snapshot checkpoint so that
             // payments stay attributed to the checkpoint they were collected under.
@@ -414,7 +429,7 @@ namespace VehicleTax.Web.Pages.Reports
                     p.Movement?.RevenueAccount != null
                         ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}"
                         : "-",
-                    p.Collector?.DisplayName ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
+                    p.Collector?.NameWithUsername ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
                     // Use the snapshot checkpoint name so historical
                     // payments keep the checkpoint they were collected under.
                     p.Checkpoint?.Name ?? "Unassigned",

@@ -14,6 +14,10 @@ public class User
     [NotMapped]
     public string DisplayName => string.IsNullOrWhiteSpace(FullName) ? Username : FullName;
 
+    // "Full Name (@username)", so users who share a name can be told apart.
+    [NotMapped]
+    public string NameWithUsername => string.IsNullOrWhiteSpace(FullName) ? Username : $"{FullName} (@{Username})";
+
     public string Phone { get; set; } = "";
 
     public string Password { get; set; } = "";
