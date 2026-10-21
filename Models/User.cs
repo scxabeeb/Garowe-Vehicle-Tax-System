@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace VehicleTax.Web.Models;
 
 public class User
@@ -7,6 +9,10 @@ public class User
     public string Username { get; set; } = "";
 
     public string FullName { get; set; } = "";
+
+    // Full name when set, otherwise the username.
+    [NotMapped]
+    public string DisplayName => string.IsNullOrWhiteSpace(FullName) ? Username : FullName;
 
     public string Phone { get; set; } = "";
 

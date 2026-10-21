@@ -80,6 +80,11 @@ namespace VehicleTax.Web.Controllers
                         ? p.Collector.Username
                         : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
                             ? p.ReceiptReference.UsedBy
+                            : "Unassigned"),
+                    collectorName = p.Collector != null
+                        ? (p.Collector.FullName != null && p.Collector.FullName.Trim() != "" ? p.Collector.FullName : p.Collector.Username)
+                        : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
+                            ? p.ReceiptReference.UsedBy
                             : "Unassigned")
                 })
                 .ToList();

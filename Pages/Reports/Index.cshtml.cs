@@ -131,10 +131,10 @@ namespace VehicleTax.Web.Pages.Reports
             Collectors = new SelectList(
                 await _context.Users
                     .AsNoTracking()
-                    .OrderBy(u => u.Username)
+                    .OrderBy(u => u.FullName == "" ? u.Username : u.FullName)
                     .ToListAsync(),
                 "Id",
-                "Username"
+                "DisplayName"
             );
 
             Checkpoints = new SelectList(
@@ -205,14 +205,20 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Collector summary
             CollectorSummaries = await query
-                .GroupBy(p => p.Collector != null
-                    ? p.Collector.Username
-                    : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
-                        ? p.ReceiptReference.UsedBy
-                        : "Unassigned"))
+                .GroupBy(p => new
+                {
+                    p.CollectorId,
+                    Name = p.Collector != null
+                        ? (p.Collector.FullName != null && p.Collector.FullName.Trim() != ""
+                            ? p.Collector.FullName
+                            : p.Collector.Username)
+                        : (p.ReceiptReference != null && !string.IsNullOrWhiteSpace(p.ReceiptReference.UsedBy)
+                            ? p.ReceiptReference.UsedBy
+                            : "Unassigned")
+                })
                 .Select(g => new CollectorSummary
                 {
-                    CollectorName = g.Key!,
+                    CollectorName = g.Key.Name!,
                     TotalPayments = g.Count(),
                     TotalAmount = g.Sum(x => x.Amount)
                 })
@@ -408,7 +414,7 @@ namespace VehicleTax.Web.Pages.Reports
                     p.Movement?.RevenueAccount != null
                         ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}"
                         : "-",
-                    p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
+                    p.Collector?.DisplayName ?? p.ReceiptReference?.UsedBy ?? "Unassigned",
                     // Use the snapshot checkpoint name so historical
                     // payments keep the checkpoint they were collected under.
                     p.Checkpoint?.Name ?? "Unassigned",

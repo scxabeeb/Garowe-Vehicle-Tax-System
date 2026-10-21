@@ -400,7 +400,7 @@
                         <td>@p.Vehicle?.CarType?.Name</td>
                         <td>@(p.Movement?.Name ?? p.MovementType)</td>
                         <td>@(p.Movement?.RevenueAccount != null ? $"{p.Movement.RevenueAccount.AccountCode} - {p.Movement.RevenueAccount.AccountName}" : "-")</td>
-                        <td>@(p.Collector?.Username ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
+                        <td>@(p.Collector?.DisplayName ?? p.ReceiptReference?.UsedBy ?? "Unassigned")</td>
                         <td>@(p.Checkpoint?.Name ?? "Unassigned")</td>
                         <td>@p.InvoiceNumber</td>
                         <td>@(string.IsNullOrWhiteSpace(p.TransactionId) ? "-" : p.TransactionId)</td>

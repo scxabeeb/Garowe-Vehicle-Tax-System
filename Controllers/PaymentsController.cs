@@ -452,7 +452,8 @@ namespace VehicleTax.Web.Controllers
                     owner = p.Vehicle?.OwnerName,
                     referenceNumber = p.ReceiptReference?.ReferenceNumber,
                     collectorId = p.CollectorId,
-                    collector = p.Collector?.Username ?? p.ReceiptReference?.UsedBy
+                    collector = p.Collector?.Username ?? p.ReceiptReference?.UsedBy,
+                    collectorName = p.Collector?.DisplayName ?? p.ReceiptReference?.UsedBy
                 })
                 .ToList();
 
@@ -525,6 +526,7 @@ namespace VehicleTax.Web.Controllers
                     ownerName = p.Vehicle?.OwnerName,
                     collectorId = p.CollectorId,
                     collector = p.Collector?.Username ?? p.ReceiptReference?.UsedBy,
+                    collectorName = p.Collector?.DisplayName ?? p.ReceiptReference?.UsedBy,
                     checkpointId = p.CheckpointId ?? p.Collector?.CheckpointId,
                     checkpointName = p.Checkpoint?.Name ?? p.Collector?.Checkpoint?.Name,
                     isPaid = p.IsPaid,
@@ -594,6 +596,7 @@ namespace VehicleTax.Web.Controllers
                     ownerName = p.Vehicle?.OwnerName,
                     collectorId = p.CollectorId,
                     collector = p.Collector?.Username,
+                    collectorName = p.Collector?.DisplayName,
                     isPaid = false,
                     isReverted = false,
                     status = "pending"
@@ -656,6 +659,7 @@ namespace VehicleTax.Web.Controllers
                     plate = p.Vehicle != null ? p.Vehicle.PlateNumber : null,
                     owner = p.Vehicle != null ? p.Vehicle.OwnerName : null,
                     collector = p.Collector != null ? p.Collector.Username : "Unassigned",
+                    collectorName = p.Collector != null ? (p.Collector.FullName != null && p.Collector.FullName.Trim() != "" ? p.Collector.FullName : p.Collector.Username) : "Unassigned",
                     checkpointName = p.Checkpoint != null ? p.Checkpoint.Name : "Unassigned"
                 })
                 .ToList();
