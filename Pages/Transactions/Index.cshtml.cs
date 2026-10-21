@@ -71,7 +71,10 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-        Users = await _context.Users.AsNoTracking().OrderBy(u => u.Username).ToListAsync();
+        // Inactive users are hidden; keep the one already selected.
+        Users = await _context.Users.AsNoTracking()
+            .Where(u => !u.IsLocked || u.Id == UserId)
+            .OrderBy(u => u.Username).ToListAsync();
 
         var query = Filtered();
 

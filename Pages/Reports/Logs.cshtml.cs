@@ -48,7 +48,10 @@ public class LogsModel : PageModel
     public async Task OnGetAsync()
     {
         Collectors = new SelectList(
-            await _context.Users.AsNoTracking().OrderBy(u => u.Username).ToListAsync(),
+            // Inactive users are hidden; keep the one already selected.
+            await _context.Users.AsNoTracking()
+                .Where(u => !u.IsLocked || u.Id == CollectorId)
+                .OrderBy(u => u.Username).ToListAsync(),
             "Id", "Username"
         );
 

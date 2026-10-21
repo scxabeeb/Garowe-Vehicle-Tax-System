@@ -132,8 +132,10 @@ namespace VehicleTax.Web.Pages.Reports
 
             // Collectors
             Collectors = new SelectList(
+                // Inactive users are hidden; keep the one already selected.
                 await _context.Users
                     .AsNoTracking()
+                    .Where(u => !u.IsLocked || u.Id == CollectorId)
                     .OrderBy(u => u.FullName == "" ? u.Username : u.FullName)
                     .ToListAsync(),
                 "Id",

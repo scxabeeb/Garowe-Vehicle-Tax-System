@@ -179,7 +179,10 @@ public class IndexModel : PageModel
         }
         else
         {
-            Collectors = await _context.Users.AsNoTracking().OrderBy(u => u.Username).ToListAsync();
+            // Inactive users are hidden; keep the one already selected.
+            Collectors = await _context.Users.AsNoTracking()
+                .Where(u => !u.IsLocked || u.Id == CollectorId)
+                .OrderBy(u => u.Username).ToListAsync();
         }
         Checkpoints = await _context.Checkpoints.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
         Movements = await _context.Movements.AsNoTracking().Include(m => m.CarType).OrderBy(m => m.Name).ToListAsync();

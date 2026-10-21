@@ -550,7 +550,9 @@ namespace VehicleTax.Web.Controllers
         [HttpGet("filters")]
         public IActionResult GetFilters()
         {
+            // Inactive users are not offered as filter choices.
             var collectors = _context.Users
+                .Where(u => !u.IsLocked)
                 .OrderBy(u => u.Username)
                 .Select(u => new { id = u.Id, name = u.Username, role = u.Role, checkpointId = u.CheckpointId })
                 .ToList();
