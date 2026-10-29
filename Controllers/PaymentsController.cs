@@ -764,6 +764,7 @@ namespace VehicleTax.Web.Controllers
                     ownerName = payment.Vehicle?.OwnerName,
                     movement = payment.Movement?.Name ?? payment.MovementType,
                     collector = payment.Collector?.Username,
+                    checkpointName = CheckpointNameOf(payment),
                     amount = payment.Amount,
                     isReverted = payment.IsReverted,
                     referenceNo = payment.ReferenceNo,
@@ -792,6 +793,7 @@ namespace VehicleTax.Web.Controllers
                 ownerName = payment.Vehicle?.OwnerName,
                 movement = payment.Movement?.Name ?? payment.MovementType,
                 collector = payment.Collector?.Username,
+                checkpointName = CheckpointNameOf(payment),
                 amount = payment.Amount,
                 isPaid = payment.IsPaid,
                 isReverted = payment.IsReverted,
@@ -799,6 +801,17 @@ namespace VehicleTax.Web.Controllers
                 referenceNumber = payment.ReceiptReference?.ReferenceNumber,
                 appName = "Garowe Vehicle Tax System"
             };
+        }
+
+        /// <summary>
+        /// The checkpoint printed on a receipt: the one recorded on the payment,
+        /// else its collector's. Never the vehicle's earlier payments.
+        /// </summary>
+        private string? CheckpointNameOf(Payment payment)
+        {
+            var id = payment.CheckpointId ?? payment.Collector?.CheckpointId
+                     ?? _context.Users.Where(u => u.Id == payment.CollectorId).Select(u => u.CheckpointId).FirstOrDefault();
+            return id == null ? null : _context.Checkpoints.Where(c => c.Id == id).Select(c => c.Name).FirstOrDefault();
         }
 
         private Vehicle? ResolveVehicle(int? vehicleId, string? plateNumber)

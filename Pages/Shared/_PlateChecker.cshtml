@@ -104,7 +104,7 @@
                     row(T.owner, v.ownerName) + (v.carType && v.carType.name ? row(T.carType, v.carType.name) : '') + row(T.tariff, v.movement) +
                     row(paidToday ? T.paidAt : T.lastPaid, v.paidAt ? fmt(v.paidAt) : '-') +
                     (v.amount != null ? row(T.amount, '$' + Number(v.amount).toFixed(2)) : '') +
-                    (v.checkpoint ? row(T.checkpoint, v.checkpoint) : '') +
+                    (v.lastPaidCheckpoint ? row(T.checkpoint, v.lastPaidCheckpoint) : '') +
                     row(T.invoice, v.invoiceNumber) + row(T.golis, v.golisBillNo) +
                     (v.paidBy ? row(T.sender, v.paidBy) : '') + row(T.systemId, v.paymentId));
             })

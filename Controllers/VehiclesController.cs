@@ -80,7 +80,8 @@ public class VehiclesController : ControllerBase
         // (check whether the customer paid it with the short code, print it).
         var invoices = (await _context.Payments.AsNoTracking()
                 .Include(p => p.Movement)
-                .Include(p => p.Collector)
+                .Include(p => p.Collector).ThenInclude(c => c!.Checkpoint)
+                .Include(p => p.Checkpoint)
                 .Where(p => p.VehicleId == vehicle.Id && !p.IsReverted)
                 .OrderByDescending(p => p.Id)
                 .Take(10)
@@ -99,6 +100,7 @@ public class VehiclesController : ControllerBase
                 golisBillNo = p.TransactionId,
                 paidBy = p.PaidBy,
                 collector = p.Collector?.Username,
+                checkpoint = p.Checkpoint?.Name ?? p.Collector?.Checkpoint?.Name,
             })
             .ToList();
 
@@ -137,8 +139,9 @@ public class VehiclesController : ControllerBase
             golisBillNo = lastPayment?.TransactionId,
             // Number that paid the last payment (Golis sender).
             paidBy = lastPayment?.PaidBy,
-            // Where it was paid: the payment's checkpoint, else its collector's.
-            checkpoint = lastPayment?.Checkpoint?.Name ?? lastPayment?.Collector?.Checkpoint?.Name,
+            // Where the LAST payment was made (plate checker only). Not named
+            // "checkpoint": the collect screen must not print it on a new receipt.
+            lastPaidCheckpoint = lastPayment?.Checkpoint?.Name ?? lastPayment?.Collector?.Checkpoint?.Name,
             paidToday = paidToday != null,
             paidTodayAt = paidToday == null ? (DateTime?)null : DateTime.SpecifyKind(paidToday.Value, DateTimeKind.Utc),
             tariffs,
